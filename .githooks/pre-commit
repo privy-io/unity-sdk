@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Pre-commit hook: auto-formats all C# files with dotnet format.
+
+set -euo pipefail
+
+dotnet format Format.csproj
