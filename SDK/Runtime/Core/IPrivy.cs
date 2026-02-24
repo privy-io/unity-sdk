@@ -26,6 +26,11 @@ namespace Privy
         ILoginWithOAuth OAuth { get; }
 
         /// <summary>
+        /// Gets the SMS (phone number) authentication interface.
+        /// </summary>
+        ILoginWithSms Sms { get; }
+
+        /// <summary>
         /// Gets the authenticated user and provides access to their properties and methods.
         /// </summary>
         [Obsolete("Use privy.GetUser() instead, which handles awaiting ready under the hood.")]

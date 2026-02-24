@@ -72,6 +72,17 @@ namespace Privy
                     LatestVerifiedAt = emailResponse.LatestVerifiedAt
                 };
             }
+            else if (response is PhoneAccountResponse phoneResponse)
+            {
+                return new PrivyPhoneAccount
+                {
+                    Type = phoneResponse.Type,
+                    PhoneNumber = phoneResponse.PhoneNumber,
+                    VerifiedAt = phoneResponse.VerifiedAt,
+                    FirstVerifiedAt = phoneResponse.FirstVerifiedAt,
+                    LatestVerifiedAt = phoneResponse.LatestVerifiedAt
+                };
+            }
             else if (response is GoogleOAuthAccountResponse googleOAuthAccountResponse)
             {
                 return new GoogleAccount

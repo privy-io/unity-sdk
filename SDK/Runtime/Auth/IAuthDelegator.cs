@@ -15,6 +15,11 @@ namespace Privy
         Task<AuthState> AuthenticateOAuthFlow(string authorizationCode, string codeVerifier, string stateCode,
             bool isRawFlow = false);
 
+        Task<bool> SendSmsCode(string phoneNumber);
+        Task<AuthState> LoginWithSmsCode(string phoneNumber, string code);
+        Task<InternalPrivyUser> LinkSms(string phoneNumber, string code);
+        Task<InternalPrivyUser> UnlinkSms(string phoneNumber);
+
         Task RestoreSession(); //Temp, should be private
         void Logout();
     }

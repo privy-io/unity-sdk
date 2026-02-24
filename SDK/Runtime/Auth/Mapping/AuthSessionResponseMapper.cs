@@ -8,24 +8,29 @@ namespace Privy
         {
             return new InternalAuthSession
             {
-                User = new InternalPrivyUser
-                {
-                    Id = authResponse.User.Id,
-                    LinkedAccounts = authResponse.User.LinkedAccounts
-                        .Select(account =>
-                        {
-                            var mappedAccount = LinkedAccountResponseMapper.MapToPublic(account);
-                            PrivyLogger.Debug($"Mapped account type: {mappedAccount?.GetType().Name ?? "null"}");
-                            return mappedAccount;
-                        })
-                        .Where(mappedAccount => mappedAccount != null) // Filter out null values
-                        .ToArray(), // Convert to array
-                    CustomMetadata = authResponse.User.CustomMetadata
-                },
+                User = MapToInternalUser(authResponse.User),
                 AccessToken = authResponse.Token,
                 IdentityToken = authResponse.IdentityToken,
                 RefreshToken = authResponse.RefreshToken,
                 SessionUpdateAction = authResponse.SessionUpdateAction //TEMP
+            };
+        }
+
+        public static InternalPrivyUser MapToInternalUser(UserResponse userResponse)
+        {
+            return new InternalPrivyUser
+            {
+                Id = userResponse.Id,
+                LinkedAccounts = userResponse.LinkedAccounts
+                    .Select(account =>
+                    {
+                        var mappedAccount = LinkedAccountResponseMapper.MapToPublic(account);
+                        PrivyLogger.Debug($"Mapped account type: {mappedAccount?.GetType().Name ?? "null"}");
+                        return mappedAccount;
+                    })
+                    .Where(mappedAccount => mappedAccount != null)
+                    .ToArray(),
+                CustomMetadata = userResponse.CustomMetadata
             };
         }
     }

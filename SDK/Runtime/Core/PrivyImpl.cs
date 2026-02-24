@@ -34,6 +34,7 @@ namespace Privy
 
         public ILoginWithEmail Email { get; }
         public ILoginWithOAuth OAuth { get; }
+        public ILoginWithSms Sms { get; }
 
         private PrivyUser _user;
 
@@ -100,6 +101,7 @@ namespace Privy
 
             Email = new LoginWithEmail(_authDelegator);
             OAuth = new LoginWithOAuth(_authDelegator);
+            Sms = new LoginWithSms(_authDelegator);
             _user = new PrivyUser(_authDelegator, _embeddedWalletManager, _appConfigRepository, walletApiWalletCreator,
                 walletApiRepository);
         }

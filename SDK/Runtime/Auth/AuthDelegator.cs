@@ -146,6 +146,92 @@ namespace Privy
             return AuthState.Authenticated;
         }
 
+        public async Task<bool> SendSmsCode(string phoneNumber)
+        {
+            if (string.IsNullOrEmpty(phoneNumber))
+            {
+                throw new PrivyException.AuthenticationException("Phone number cannot be null or empty",
+                    AuthenticationError.PhoneNumberEmpty);
+            }
+
+            bool successfullySentCode = await _authRepository.SendSmsCode(phoneNumber);
+
+            PrivyLogger.Debug($"Successfully sent SMS OTP code to {phoneNumber}: {successfullySentCode}");
+
+            return successfullySentCode;
+        }
+
+        public async Task<AuthState> LoginWithSmsCode(string phoneNumber, string code)
+        {
+            if (string.IsNullOrEmpty(phoneNumber))
+            {
+                throw new PrivyException.AuthenticationException("Phone number cannot be null or empty",
+                    AuthenticationError.PhoneNumberEmpty);
+            }
+
+            if (string.IsNullOrEmpty(code))
+            {
+                throw new PrivyException.AuthenticationException("Code cannot be null or empty",
+                    AuthenticationError.OtpEmpty);
+            }
+
+            InternalAuthSession authSession = await _authRepository.LoginWithSmsCode(phoneNumber, code);
+
+            if (authSession == null || authSession.User == null)
+            {
+                UpdateAuthState(AuthState.Unauthenticated);
+                throw new PrivyException.AuthenticationException("Could not sign in, invalid OTP",
+                    AuthenticationError.WrongOtpCode);
+            }
+
+            SetInternalAuthSession(authSession);
+            return AuthState.Authenticated;
+        }
+
+        public async Task<InternalPrivyUser> LinkSms(string phoneNumber, string code)
+        {
+            if (string.IsNullOrEmpty(phoneNumber))
+            {
+                throw new PrivyException.AuthenticationException("Phone number cannot be null or empty",
+                    AuthenticationError.PhoneNumberEmpty);
+            }
+
+            if (string.IsNullOrEmpty(code))
+            {
+                throw new PrivyException.AuthenticationException("Code cannot be null or empty",
+                    AuthenticationError.OtpEmpty);
+            }
+
+            string accessToken = await GetAccessToken();
+
+            InternalPrivyUser updatedUser = await _authRepository.LinkSms(phoneNumber, code, accessToken);
+
+            UpdateUserInSession(updatedUser);
+            return updatedUser;
+        }
+
+        public async Task<InternalPrivyUser> UnlinkSms(string phoneNumber)
+        {
+            if (string.IsNullOrEmpty(phoneNumber))
+            {
+                throw new PrivyException.AuthenticationException("Phone number cannot be null or empty",
+                    AuthenticationError.PhoneNumberEmpty);
+            }
+
+            string accessToken = await GetAccessToken();
+
+            InternalPrivyUser updatedUser = await _authRepository.UnlinkSms(phoneNumber, accessToken);
+
+            UpdateUserInSession(updatedUser);
+            return updatedUser;
+        }
+
+        private void UpdateUserInSession(InternalPrivyUser updatedUser)
+        {
+            _internalAuthSession.User = updatedUser;
+            _internalAuthSessionStorage.SaveInternalAuthSessionInStorage(_internalAuthSession);
+        }
+
         //Methods for persisting storage
         public async Task RestoreSession()
         {
