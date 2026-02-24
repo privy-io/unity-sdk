@@ -7,6 +7,7 @@ public class InitialScreenController : MonoBehaviour
 {
     public GameObject initialUI;
     public Button loginWithEmailButton;
+    public Button loginWithSmsButton;
     public Button loginWithOAuthGoogleButton;
     public Button loginWithOAuthDiscordButton;
     public Button loginWithOAuthTwitterButton;
@@ -32,6 +33,7 @@ public class InitialScreenController : MonoBehaviour
         });
 
         loginWithEmailButton.onClick.AddListener(OnLoginWithEmailButtonClick);
+        loginWithSmsButton.onClick.AddListener(OnLoginWithSmsButtonClick);
         loginWithOAuthGoogleButton.onClick.AddListener(OnLoginWithOAuthGoogleButtonClick);
         loginWithOAuthDiscordButton.onClick.AddListener(OnLoginWithOAuthDiscordButtonClick);
         loginWithOAuthTwitterButton.onClick.AddListener(OnLoginWithOAuthTwitterButtonClick);
@@ -46,7 +48,12 @@ public class InitialScreenController : MonoBehaviour
 
     private void OnLoginWithEmailButtonClick()
     {
-        UIManager.Instance.ShowSendCodeScreen();
+        UIManager.Instance.ShowSendCodeScreen(AuthScreenController.LoginMethod.Email);
+    }
+
+    private void OnLoginWithSmsButtonClick()
+    {
+        UIManager.Instance.ShowSendCodeScreen(AuthScreenController.LoginMethod.SMS);
     }
 
     private async void OnLoginWithOAuthGoogleButtonClick()
