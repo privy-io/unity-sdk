@@ -115,6 +115,12 @@ public class AuthScreenController : MonoBehaviour
 
     // ── Send code (email or SMS) ─────────────────────────────────────────────
 
+    private bool IsValidE164(string phone)
+    {
+        // simple regex for E.164: + followed by 1–15 digits
+        return System.Text.RegularExpressions.Regex.IsMatch(phone, @"^\+[1-9]\d{1,14}$");
+    }
+
     private async void OnSendCodeButtonClick()
     {
         string input = emailInputField.text;
@@ -126,6 +132,12 @@ public class AuthScreenController : MonoBehaviour
 
         if (_currentLoginMethod == LoginMethod.SMS)
         {
+            if (!IsValidE164(input))
+            {
+                Debug.LogError("Phone number must be in E.164 format (e.g. +15551234567)");
+                return;
+            }
+
             try
             {
                 bool success = await PrivyManager.Instance.Sms.SendCode(input);
@@ -133,6 +145,10 @@ public class AuthScreenController : MonoBehaviour
                     UIManager.Instance.ShowLoginWithCodeScreen();
                 else
                     Debug.LogError("Failed to send SMS code.");
+            }
+            catch (PrivyException.AuthenticationException ex) when (ex.Error == AuthenticationError.InvalidPhoneNumber)
+            {
+                Debug.LogError("Server rejected phone number as invalid: " + ex.Message);
             }
             catch (Exception ex)
             {
@@ -239,6 +255,11 @@ public class AuthScreenController : MonoBehaviour
         if (string.IsNullOrEmpty(phone))
         {
             Debug.LogError("Phone number is empty.");
+            return;
+        }
+        if (!IsValidE164(phone))
+        {
+            Debug.LogError("Phone number must be in E.164 format (e.g. +15551234567)");
             return;
         }
 

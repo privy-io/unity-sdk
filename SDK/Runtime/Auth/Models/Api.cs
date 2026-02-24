@@ -26,13 +26,13 @@ namespace Privy
 
     internal class SendSmsCodeRequestData
     {
-        [JsonProperty("phone_number")]
+        [JsonProperty("phoneNumber")]
         public string PhoneNumber;
     }
 
     internal class SmsLoginRequestData
     {
-        [JsonProperty("phone_number")]
+        [JsonProperty("phoneNumber")]
         public string PhoneNumber;
 
         [JsonProperty("code")]
@@ -41,7 +41,7 @@ namespace Privy
 
     internal class SmsLinkRequestData
     {
-        [JsonProperty("phone_number")]
+        [JsonProperty("phoneNumber")]
         public string PhoneNumber;
 
         [JsonProperty("code")]
@@ -50,13 +50,13 @@ namespace Privy
 
     internal class SmsUnlinkRequestData
     {
-        [JsonProperty("phone_number")]
+        [JsonProperty("phoneNumber")]
         public string PhoneNumber;
     }
 
     internal class SmsUpdateRequestData
     {
-        [JsonProperty("phone_number")]
+        [JsonProperty("phoneNumber")]
         public string PhoneNumber;
 
         [JsonProperty("code")]

@@ -54,6 +54,7 @@ namespace Privy
         OAuthAuthenticateFailed,
         NotAuthenticated,
         PhoneNumberEmpty,
+        InvalidPhoneNumber,
         LinkFailed,
         UnlinkFailed,
         IncorrectOtpCode

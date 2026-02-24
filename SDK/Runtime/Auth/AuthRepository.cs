@@ -221,6 +221,12 @@ namespace Privy
                 var response = JsonConvert.DeserializeObject<SendCodeResponseData>(jsonResponse);
                 return response.Success;
             }
+            catch (Exception ex) when (ex.Message.Contains("422"))
+            {
+                // backend returns 422 for invalid phone format or similar
+                throw new PrivyException.AuthenticationException("Invalid phone number format.",
+                    AuthenticationError.InvalidPhoneNumber);
+            }
             catch (Exception ex)
             {
                 throw new PrivyException.AuthenticationException($"Failed to send SMS code: {ex.Message}",

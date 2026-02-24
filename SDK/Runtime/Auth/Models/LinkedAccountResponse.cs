@@ -63,7 +63,7 @@ namespace Privy
 
     internal class PhoneAccountResponse : LinkedAccountResponse
     {
-        [JsonProperty("phone_number")]
+        [JsonProperty("phoneNumber")]
         public string PhoneNumber { get; set; }
     }
 
