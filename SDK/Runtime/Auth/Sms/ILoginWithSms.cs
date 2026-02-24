@@ -46,5 +46,16 @@ namespace Privy
         /// <returns>A task that represents the asynchronous operation.</returns>
         /// <exception cref="PrivyException.AuthenticationException">Thrown if the user is not authenticated or if the unlink operation fails.</exception>
         Task Unlink(string phoneNumber);
+
+        /// <summary>
+        /// Replaces the user's currently linked phone number with a new one.
+        /// The user must already be logged in and have a phone number linked.
+        /// After completion, the updated linked accounts are reflected in <c>privy.User.LinkedAccounts</c>.
+        /// </summary>
+        /// <param name="phoneNumber">The new phone number to replace the existing one with. Must be in E.164 format.</param>
+        /// <param name="code">The OTP code sent to the new phone number via <see cref="SendCode"/>.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+        /// <exception cref="PrivyException.AuthenticationException">Thrown if the user is not authenticated, the OTP is incorrect, or the update fails.</exception>
+        Task UpdatePhoneNumber(string phoneNumber, string code);
     }
 }

@@ -55,7 +55,8 @@ namespace Privy
         NotAuthenticated,
         PhoneNumberEmpty,
         LinkFailed,
-        UnlinkFailed
+        UnlinkFailed,
+        IncorrectOtpCode
     }
 
     public enum EmbeddedWalletError

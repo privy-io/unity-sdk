@@ -245,6 +245,11 @@ namespace Privy
                 ValidSessionResponse authResponse = DeserializeSessionResponse(jsonResponse);
                 return AuthSessionResponseMapper.MapToInternalSession(authResponse);
             }
+            catch (Exception ex) when (ex.Message.Contains("422"))
+            {
+                throw new PrivyException.AuthenticationException("Incorrect OTP code.",
+                    AuthenticationError.IncorrectOtpCode);
+            }
             catch (Exception ex)
             {
                 throw new PrivyException.AuthenticationException($"Failed to login with SMS code: {ex.Message}",
@@ -274,9 +279,48 @@ namespace Privy
                 UserResponse userResponse = DeserializeUserResponse(jsonResponse);
                 return AuthSessionResponseMapper.MapToInternalUser(userResponse);
             }
+            catch (Exception ex) when (ex.Message.Contains("422"))
+            {
+                throw new PrivyException.AuthenticationException("Incorrect OTP code.",
+                    AuthenticationError.IncorrectOtpCode);
+            }
             catch (Exception ex)
             {
                 throw new PrivyException.AuthenticationException($"Failed to link SMS: {ex.Message}",
+                    AuthenticationError.LinkFailed);
+            }
+        }
+
+        public async Task<InternalPrivyUser> UpdateSmsPhoneNumber(string phoneNumber, string code, string accessToken)
+        {
+            var requestData = new SmsUpdateRequestData
+            {
+                PhoneNumber = phoneNumber,
+                Code = code
+            };
+
+            string serializedRequest = JsonConvert.SerializeObject(requestData);
+            string path = "passwordless_sms/update";
+
+            var headers = new Dictionary<string, string>
+            {
+                { "Authorization", "Bearer " + accessToken }
+            };
+
+            try
+            {
+                string jsonResponse = await _httpRequestHandler.SendRequestAsync(path, serializedRequest, headers);
+                UserResponse userResponse = DeserializeUserResponse(jsonResponse);
+                return AuthSessionResponseMapper.MapToInternalUser(userResponse);
+            }
+            catch (Exception ex) when (ex.Message.Contains("422"))
+            {
+                throw new PrivyException.AuthenticationException("Incorrect OTP code.",
+                    AuthenticationError.IncorrectOtpCode);
+            }
+            catch (Exception ex)
+            {
+                throw new PrivyException.AuthenticationException($"Failed to update SMS phone number: {ex.Message}",
                     AuthenticationError.LinkFailed);
             }
         }

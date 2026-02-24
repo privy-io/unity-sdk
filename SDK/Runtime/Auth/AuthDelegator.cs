@@ -226,6 +226,27 @@ namespace Privy
             return updatedUser;
         }
 
+        public async Task UpdateSmsPhoneNumber(string phoneNumber, string code)
+        {
+            if (string.IsNullOrEmpty(phoneNumber))
+            {
+                throw new PrivyException.AuthenticationException("Phone number cannot be null or empty",
+                    AuthenticationError.PhoneNumberEmpty);
+            }
+
+            if (string.IsNullOrEmpty(code))
+            {
+                throw new PrivyException.AuthenticationException("Code cannot be null or empty",
+                    AuthenticationError.OtpEmpty);
+            }
+
+            string accessToken = await GetAccessToken();
+
+            InternalPrivyUser updatedUser = await _authRepository.UpdateSmsPhoneNumber(phoneNumber, code, accessToken);
+
+            UpdateUserInSession(updatedUser);
+        }
+
         private void UpdateUserInSession(InternalPrivyUser updatedUser)
         {
             _internalAuthSession.User = updatedUser;

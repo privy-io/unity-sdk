@@ -54,6 +54,15 @@ namespace Privy
         public string PhoneNumber;
     }
 
+    internal class SmsUpdateRequestData
+    {
+        [JsonProperty("phone_number")]
+        public string PhoneNumber;
+
+        [JsonProperty("code")]
+        public string Code;
+    }
+
     internal class SendRefreshRequestData
     {
         [JsonProperty("refresh_token")]

@@ -31,5 +31,10 @@ namespace Privy
         {
             await _authDelegator.UnlinkSms(phoneNumber);
         }
+
+        public async Task UpdatePhoneNumber(string phoneNumber, string code)
+        {
+            await _authDelegator.UpdateSmsPhoneNumber(phoneNumber, code);
+        }
     }
 }

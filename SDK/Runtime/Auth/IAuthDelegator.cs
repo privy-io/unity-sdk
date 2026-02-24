@@ -19,6 +19,7 @@ namespace Privy
         Task<AuthState> LoginWithSmsCode(string phoneNumber, string code);
         Task<InternalPrivyUser> LinkSms(string phoneNumber, string code);
         Task<InternalPrivyUser> UnlinkSms(string phoneNumber);
+        Task UpdateSmsPhoneNumber(string phoneNumber, string code);
 
         Task RestoreSession(); //Temp, should be private
         void Logout();
