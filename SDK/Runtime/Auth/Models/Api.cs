@@ -24,6 +24,45 @@ namespace Privy
         public string Code;
     }
 
+    internal class SendSmsCodeRequestData
+    {
+        [JsonProperty("phoneNumber")]
+        public string PhoneNumber;
+    }
+
+    internal class SmsLoginRequestData
+    {
+        [JsonProperty("phoneNumber")]
+        public string PhoneNumber;
+
+        [JsonProperty("code")]
+        public string Code;
+    }
+
+    internal class SmsLinkRequestData
+    {
+        [JsonProperty("phoneNumber")]
+        public string PhoneNumber;
+
+        [JsonProperty("code")]
+        public string Code;
+    }
+
+    internal class SmsUnlinkRequestData
+    {
+        [JsonProperty("phoneNumber")]
+        public string PhoneNumber;
+    }
+
+    internal class SmsUpdateRequestData
+    {
+        [JsonProperty("phoneNumber")]
+        public string PhoneNumber;
+
+        [JsonProperty("code")]
+        public string Code;
+    }
+
     internal class SendRefreshRequestData
     {
         [JsonProperty("refresh_token")]

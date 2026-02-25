@@ -31,8 +31,14 @@ public class UIManager : MonoBehaviour
         authScreenController.authorizedUI.SetActive(false);
     }
 
-    public void ShowSendCodeScreen()
+    /// <summary>
+    /// Shows the send-code screen configured for the given login method.
+    /// Pass <see cref="AuthScreenController.LoginMethod.Email"/> or
+    /// <see cref="AuthScreenController.LoginMethod.SMS"/>.
+    /// </summary>
+    public void ShowSendCodeScreen(AuthScreenController.LoginMethod method = AuthScreenController.LoginMethod.Email)
     {
+        authScreenController.SetLoginMethod(method);
         initialScreenController.initialUI.SetActive(false);
         authScreenController.sendCodeUI.SetActive(true);
         authScreenController.loginWithCodeUI.SetActive(false);

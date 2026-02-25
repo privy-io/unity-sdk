@@ -13,5 +13,11 @@ namespace Privy
 
         Task<InternalAuthSession> AuthenticateOAuthFlow(string authorizationCode, string codeVerifier, string stateCode,
             bool isRawFlow = false);
+
+        Task<bool> SendSmsCode(string phoneNumber);
+        Task<InternalAuthSession> LoginWithSmsCode(string phoneNumber, string code);
+        Task<InternalPrivyUser> LinkSms(string phoneNumber, string code, string accessToken);
+        Task<InternalPrivyUser> UnlinkSms(string phoneNumber, string accessToken);
+        Task<InternalPrivyUser> UpdateSmsPhoneNumber(string phoneNumber, string code, string accessToken);
     }
 }

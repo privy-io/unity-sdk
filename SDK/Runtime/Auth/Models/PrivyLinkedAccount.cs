@@ -87,6 +87,17 @@ namespace Privy
         public string Address { get; set; }
     }
 
+    /// <summary>
+    /// A phone (SMS) account linked to the user.
+    /// </summary>
+    public class PrivyPhoneAccount : PrivyLinkedAccount
+    {
+        /// <summary>
+        /// The phone number in E.164 format (e.g. "+15551234567").
+        /// </summary>
+        public string PhoneNumber { get; set; }
+    }
+
     public class GoogleAccount : PrivyLinkedAccount
     {
         public string Subject { get; set; }
