@@ -52,7 +52,12 @@ namespace Privy
         OAuthInitFailed,
         OAuthVerificationFailed,
         OAuthAuthenticateFailed,
-        NotAuthenticated
+        NotAuthenticated,
+        PhoneNumberEmpty,
+        InvalidPhoneNumber,
+        LinkFailed,
+        UnlinkFailed,
+        IncorrectOtpCode
     }
 
     public enum EmbeddedWalletError

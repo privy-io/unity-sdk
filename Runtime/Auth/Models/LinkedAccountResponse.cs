@@ -61,6 +61,12 @@ namespace Privy
         public string Address { get; set; }
     }
 
+    internal class PhoneAccountResponse : LinkedAccountResponse
+    {
+        [JsonProperty("phoneNumber")]
+        public string PhoneNumber { get; set; }
+    }
+
     internal class GoogleOAuthAccountResponse : LinkedAccountResponse
     {
         [JsonProperty("subject")]

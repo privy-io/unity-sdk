@@ -29,6 +29,9 @@ namespace Privy
                 case "email":
                     account = new EmailAccountResponse();
                     break;
+                case "phone":
+                    account = new PhoneAccountResponse();
+                    break;
                 case "google_oauth":
                     account = new GoogleOAuthAccountResponse();
                     break;
