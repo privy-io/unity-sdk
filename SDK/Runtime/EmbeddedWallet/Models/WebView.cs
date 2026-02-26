@@ -132,13 +132,48 @@ namespace Privy
             public string Method;
 
             [JsonProperty("params")]
-            public SolanaSignMessageRpcRequestParams Params;
+            public ISolanaRpcRequestParams Params;
         }
 
-        public class SolanaSignMessageRpcRequestParams
+        public interface ISolanaRpcRequestParams { }
+
+        public class SolanaSignMessageRpcRequestParams : ISolanaRpcRequestParams
         {
             [JsonProperty("message")]
             public string Message;
+        }
+
+        public class SolanaSignTransactionRpcRequestParams : ISolanaRpcRequestParams
+        {
+            [JsonProperty("transaction")]
+            public string Transaction;
+        }
+
+        public class SolanaSignAndSendTransactionRpcRequestParams : ISolanaRpcRequestParams
+        {
+            [JsonProperty("transaction")]
+            public string Transaction;
+
+            [JsonProperty("cluster")]
+            public string Cluster;
+
+            [JsonProperty("options", NullValueHandling = NullValueHandling.Ignore)]
+            public SolanaSignAndSendOptionsParams Options;
+        }
+
+        public class SolanaSignAndSendOptionsParams
+        {
+            [JsonProperty("skipPreflight", NullValueHandling = NullValueHandling.Ignore)]
+            public bool? SkipPreflight;
+
+            [JsonProperty("preflightCommitment", NullValueHandling = NullValueHandling.Ignore)]
+            public string PreflightCommitment;
+
+            [JsonProperty("maxRetries", NullValueHandling = NullValueHandling.Ignore)]
+            public int? MaxRetries;
+
+            [JsonProperty("minContextSlot", NullValueHandling = NullValueHandling.Ignore)]
+            public int? MinContextSlot;
         }
     }
 
@@ -262,16 +297,57 @@ namespace Privy
 
                 // FIXME: Need a much better way to deal with polymorphic parsing here,
                 // possibly higher up to take "chainType" into account.
-                if (method != null && method.Type == JTokenType.String && method.Value<string>() == "signMessage")
+                if (method != null && method.Type == JTokenType.String)
                 {
-                    // Treat it as a solana RPC
-                    return jo.ToObject<SolanaRpcResponseDetails>(serializer);
+                    var methodStr = method.Value<string>();
+                    if (methodStr == "signMessage" ||
+                        methodStr == "signTransaction" ||
+                        methodStr == "signAndSendTransaction")
+                    {
+                        // Treat it as a Solana RPC response
+                        return jo.ToObject<SolanaRpcResponseDetails>(serializer);
+                    }
                 }
 
                 return jo.ToObject<EthereumRpcResponseDetails>(serializer);
             }
 
             public override bool CanConvert(Type objectType) => objectType == typeof(IRpcResponseDetails);
+        }
+
+        private class SolanaRpcResponseDetailsConverter : JsonConverter<SolanaRpcResponseDetails>
+        {
+            public override void WriteJson(JsonWriter writer, SolanaRpcResponseDetails value, JsonSerializer serializer)
+            {
+                // Not necessary for a "response" type.
+                throw new NotImplementedException();
+            }
+
+            public override SolanaRpcResponseDetails ReadJson(JsonReader reader, Type objectType,
+                SolanaRpcResponseDetails existingValue, bool hasExistingValue, JsonSerializer serializer)
+            {
+                var jo = JObject.Load(reader);
+                var method = jo.GetValue("method")?.Value<string>();
+
+                ISolanaRpcResponseData data;
+                switch (method)
+                {
+                    case "signMessage":
+                        data = jo.GetValue("data")?.ToObject<SolanaSignMessageRpcResponseData>(serializer);
+                        break;
+                    case "signTransaction":
+                        data = jo.GetValue("data")?.ToObject<SolanaSignTransactionRpcResponseData>(serializer);
+                        break;
+                    case "signAndSendTransaction":
+                        data = jo.GetValue("data")?.ToObject<SolanaSignAndSendTransactionRpcResponseData>(serializer);
+                        break;
+                    default:
+                        data = null;
+                        break;
+                }
+
+                return new SolanaRpcResponseDetails { Method = method, Data = data };
+            }
         }
 
         public class EthereumRpcResponseDetails : IRpcResponseDetails
@@ -283,19 +359,42 @@ namespace Privy
             public string Data;
         }
 
+        [JsonConverter(typeof(SolanaRpcResponseDetailsConverter))]
         public class SolanaRpcResponseDetails : IRpcResponseDetails
         {
             [JsonProperty("method")]
             public string Method;
 
+            /// <summary>
+            /// Raw data object; cast to the appropriate type based on <see cref="Method"/>:
+            /// <list type="bullet">
+            /// <item><see cref="SolanaSignMessageRpcResponseData"/> when method is "signMessage"</item>
+            /// <item><see cref="SolanaSignTransactionRpcResponseData"/> when method is "signTransaction"</item>
+            /// <item><see cref="SolanaSignAndSendTransactionRpcResponseData"/> when method is "signAndSendTransaction"</item>
+            /// </list>
+            /// </summary>
             [JsonProperty("data")]
-            public SolanaSignMessageRpcResponseData Data;
+            public ISolanaRpcResponseData Data;
         }
 
-        public class SolanaSignMessageRpcResponseData
+        public interface ISolanaRpcResponseData { }
+
+        public class SolanaSignMessageRpcResponseData : ISolanaRpcResponseData
         {
             [JsonProperty("signature")]
             public string Signature;
+        }
+
+        public class SolanaSignTransactionRpcResponseData : ISolanaRpcResponseData
+        {
+            [JsonProperty("signedTransaction")]
+            public string SignedTransaction;
+        }
+
+        public class SolanaSignAndSendTransactionRpcResponseData : ISolanaRpcResponseData
+        {
+            [JsonProperty("hash")]
+            public string Hash;
         }
     }
 

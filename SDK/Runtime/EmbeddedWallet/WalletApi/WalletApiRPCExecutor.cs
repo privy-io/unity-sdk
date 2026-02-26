@@ -152,8 +152,15 @@ namespace Privy
                 switch (solanaRequest.Method)
                 {
                     case "signMessage":
+                        if (solanaRequest.Params is not SolanaSignMessageRpcRequestParams signMessageParams)
+                        {
+                            throw new PrivyException.EmbeddedWalletException(
+                                "signMessage requires SolanaSignMessageRpcRequestParams",
+                                EmbeddedWalletError.RpcRequestFailed);
+                        }
+
                         walletApiRequest = WalletApiRpcRequest.SolanaSignMessage(
-                            WalletApiSolanaSignMessageRpcParams.FromString(solanaRequest.Params.Message)
+                            WalletApiSolanaSignMessageRpcParams.FromString(signMessageParams.Message)
                         );
                         response = await _walletApiRepository.Rpc(walletApiRequest, _walletId, accessToken);
                         return new SolanaRpcResponseDetails
@@ -162,6 +169,56 @@ namespace Privy
                             Data = new SolanaSignMessageRpcResponseData
                             {
                                 Signature = ((WalletApiSolanaSignMessageRpcResponse)response.Data).Signature
+                            }
+                        };
+                    case "signTransaction":
+                        if (solanaRequest.Params is not SolanaSignTransactionRpcRequestParams signTxParams)
+                        {
+                            throw new PrivyException.EmbeddedWalletException(
+                                "signTransaction requires SolanaSignTransactionRpcRequestParams",
+                                EmbeddedWalletError.RpcRequestFailed);
+                        }
+
+                        walletApiRequest = WalletApiRpcRequest.SolanaSignTransaction(
+                            WalletApiSolanaSignTransactionRpcParams.FromString(signTxParams.Transaction)
+                        );
+                        response = await _walletApiRepository.Rpc(walletApiRequest, _walletId, accessToken);
+                        return new SolanaRpcResponseDetails
+                        {
+                            Method = response.Method,
+                            Data = new SolanaSignTransactionRpcResponseData
+                            {
+                                SignedTransaction = ((WalletApiSolanaSignTransactionRpcResponse)response.Data).SignedTransaction
+                            }
+                        };
+                    case "signAndSendTransaction":
+                        if (solanaRequest.Params is not SolanaSignAndSendTransactionRpcRequestParams signAndSendParams)
+                        {
+                            throw new PrivyException.EmbeddedWalletException(
+                                "signAndSendTransaction requires SolanaSignAndSendTransactionRpcRequestParams",
+                                EmbeddedWalletError.RpcRequestFailed);
+                        }
+
+                        var sendOptions = signAndSendParams.Options == null ? null : new SolanaSendOptions
+                        {
+                            SkipPreflight = signAndSendParams.Options.SkipPreflight,
+                            PreflightCommitment = signAndSendParams.Options.PreflightCommitment,
+                            MaxRetries = signAndSendParams.Options.MaxRetries,
+                            MinContextSlot = signAndSendParams.Options.MinContextSlot
+                        };
+
+                        walletApiRequest = WalletApiRpcRequest.SolanaSignAndSendTransaction(
+                            WalletApiSolanaSignAndSendTransactionRpcParams.FromString(
+                                signAndSendParams.Transaction, sendOptions),
+                            signAndSendParams.Cluster
+                        );
+                        response = await _walletApiRepository.Rpc(walletApiRequest, _walletId, accessToken);
+                        return new SolanaRpcResponseDetails
+                        {
+                            Method = response.Method,
+                            Data = new SolanaSignAndSendTransactionRpcResponseData
+                            {
+                                Hash = ((WalletApiSolanaSignAndSendTransactionRpcResponse)response.Data).Hash
                             }
                         };
                 }

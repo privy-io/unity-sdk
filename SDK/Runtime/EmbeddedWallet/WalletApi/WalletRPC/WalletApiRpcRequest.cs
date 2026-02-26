@@ -40,5 +40,13 @@ namespace Privy
 
         internal static WalletApiRpcRequest SolanaSignMessage(WalletApiSolanaSignMessageRpcParams parameters) =>
             new("signMessage", parameters);
+
+        internal static WalletApiRpcRequest SolanaSignTransaction(WalletApiSolanaSignTransactionRpcParams parameters) =>
+            new("signTransaction", parameters);
+
+        internal static WalletApiRpcRequest SolanaSignAndSendTransaction(
+            WalletApiSolanaSignAndSendTransactionRpcParams parameters,
+            string caip2) =>
+            new("signAndSendTransaction", parameters) { Caip2 = caip2 };
     }
 }
