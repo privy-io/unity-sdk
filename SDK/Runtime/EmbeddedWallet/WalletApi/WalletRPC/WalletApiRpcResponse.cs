@@ -56,6 +56,12 @@ namespace Privy
                     case "signMessage":
                         data = jo.GetValue("data")?.ToObject<WalletApiSolanaSignMessageRpcResponse>(serializer);
                         break;
+                    case "signTransaction":
+                        data = jo.GetValue("data")?.ToObject<WalletApiSolanaSignTransactionRpcResponse>(serializer);
+                        break;
+                    case "signAndSendTransaction":
+                        data = jo.GetValue("data")?.ToObject<WalletApiSolanaSignAndSendTransactionRpcResponse>(serializer);
+                        break;
                     default:
                         throw new JsonSerializationException($"Invalid RPC Method: {method}");
                 }
