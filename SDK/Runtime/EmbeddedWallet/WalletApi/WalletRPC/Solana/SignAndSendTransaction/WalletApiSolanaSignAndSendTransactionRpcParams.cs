@@ -12,6 +12,10 @@ namespace Privy
         [JsonProperty("encoding")]
         internal TransactionEncoding Encoding;
 
+        // The following fields are carried through from the public
+        // SolanaSendOptions type but are ignored by the server-side (TEE)
+        // implementation. They only have any effect when a webview/on-device
+        // wallet actually performs the JSON-RPC send itself.
         [JsonProperty("skipPreflight", NullValueHandling = NullValueHandling.Ignore)]
         internal bool? SkipPreflight;
 

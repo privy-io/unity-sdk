@@ -48,6 +48,11 @@ namespace Privy
         /// <summary>
         /// If true, skip the preflight transaction checks.
         /// </summary>
+        /// <remarks>
+        /// These options are only meaningful when the SDK is executing in the
+        /// on‑device (WebView) implementation. The TEE/wallet‑API path ignores
+        /// them entirely.
+        /// </remarks>
         public bool? SkipPreflight { get; set; }
 
         /// <summary>

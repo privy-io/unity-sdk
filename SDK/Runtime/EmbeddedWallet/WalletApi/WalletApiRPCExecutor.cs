@@ -199,17 +199,13 @@ namespace Privy
                                 EmbeddedWalletError.RpcRequestFailed);
                         }
 
-                        var sendOptions = signAndSendParams.Options == null ? null : new SolanaSendOptions
-                        {
-                            SkipPreflight = signAndSendParams.Options.SkipPreflight,
-                            PreflightCommitment = signAndSendParams.Options.PreflightCommitment,
-                            MaxRetries = signAndSendParams.Options.MaxRetries,
-                            MinContextSlot = signAndSendParams.Options.MinContextSlot
-                        };
-
+                        // The send options carried along by the websocket payload are
+                        // only meaningful on-device; the TEE/wallet-API backend does not
+                        // honour them. We pass <c>null</c> here so that the server always
+                        // uses its own defaults.
                         walletApiRequest = WalletApiRpcRequest.SolanaSignAndSendTransaction(
                             WalletApiSolanaSignAndSendTransactionRpcParams.FromString(
-                                signAndSendParams.Transaction, sendOptions),
+                                signAndSendParams.Transaction, null),
                             signAndSendParams.Cluster
                         );
                         response = await _walletApiRepository.Rpc(walletApiRequest, _walletId, accessToken);
