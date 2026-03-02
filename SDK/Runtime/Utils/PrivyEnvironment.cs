@@ -12,11 +12,19 @@ namespace Privy
 
         private static bool _isProduction = true; // Default to true, incase initialize is not called
 
+        // Indicates that the SDK should avoid using an iframe/webview and instead
+        // perform all wallet operations via the server API. This value is seeded
+        // from PrivyConfig.ForceServerWallets in Initialize().
+        private static bool _useServerWallets;
+
+        internal static bool UseServerWallets => _useServerWallets;
+
         internal static string BASE_URL => _isProduction ? "https://auth.privy.io" : "https://auth.staging.privy.io";
 
         internal static void Initialize(PrivyConfig config)
         {
             _isProduction = !IsInternalAppId(config.AppId);
+            _useServerWallets = config.ForceServerWallets;
         }
 
         private static bool IsInternalAppId(string appId)

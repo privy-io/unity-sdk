@@ -30,11 +30,21 @@ If you are contributing to the Privy SDK codebase, **read
 ```csharp
 var config = new PrivyConfig{
     AppId = "YOUR_APP_ID",
-    ClientId = "CLIENT_ID"
+    ClientId = "CLIENT_ID",
+    // For WebGL or other environments without a visible iframe,
+    // set this flag to force the SDK to use the server‑side wallet API
+    // instead of attempting to open an embedded iframe.
+    ForceServerWallets = true // <–– optional
 };
 
 PrivyManager.Initialize(config);
 ```
+
+> **Note:** the server may also configure this behaviour by returning
+> `embedded_wallet_config.mode = "user-controlled-server-wallets-only"` or
+> setting `force_server_wallets` in the application configuration.
+> The SDK checks all three sources when deciding whether to launch a
+> webview/iframe.
 
 ### Check user's authentication state
 

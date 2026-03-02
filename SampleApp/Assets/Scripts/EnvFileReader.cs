@@ -6,20 +6,64 @@ public static class EnvFileReader
 {
     private static Dictionary<string, string> _variables;
 
+    public static Dictionary<string, string> OverrideVariables { get; } = new Dictionary<string, string>();
+
+    /// <summary>
+    /// Optional ScriptableObject that provides configuration values.  The
+    /// reader will consult this object before falling back to the .env file.
+    /// Assign this reference either in a bootstrap MonoBehaviour or via an
+    /// editor script (see README comments).
+    /// </summary>
+    public static EnvConfig Config { get; set; }
+
+    /// <summary>
+    /// Return a configuration value by key.  Checks the following sources in order:
+    /// 1. <see cref="OverrideVariables"/> (useful for WebGL or when you want to hardcode values)
+    /// 2. Loaded .env file on disk (desktop/mobile builds)
+    /// </summary>
     public static string Get(string key)
     {
+        // override dictionary has highest precedence so that callers can inject values
+        if (OverrideVariables.TryGetValue(key, out var overrideVal))
+        {
+            return overrideVal;
+        }
+
+        // next, consult the ScriptableObject if one has been assigned
+        if (Config != null)
+        {
+            var cfgVal = Config.Get(key);
+            //logging here is helpful to ensure values are being read correctly from the ScriptableObject, which is required for WebGL builds
+            if (cfgVal == null)
+            {
+                Debug.LogWarning($"EnvFileReader: Key '{key}' not found in EnvConfig ScriptableObject.");
+            }
+            else
+            {
+                Debug.Log($"EnvFileReader: Key '{key}' read from EnvConfig ScriptableObject with value '{cfgVal}'.");
+            }
+            if (cfgVal != null)
+                return cfgVal;
+        }
+
         if (_variables == null)
         {
             Load();
         }
 
-        if (_variables.TryGetValue(key, out var value))
+        if (_variables != null && _variables.TryGetValue(key, out var value))
         {
             return value;
         }
 
+#if UNITY_WEBGL
+        // WebGL builds cannot read from the local filesystem; add a helpful message
+        Debug.LogError($"EnvFileReader: Key '{key}' not found. WebGL builds cannot access the .env file, " +
+                       "so set EnvFileReader.OverrideVariables[\"{key}\"] manually or hardcode values.");
+#else
         Debug.LogError($"EnvFileReader: Key '{key}' not found in .env file. " +
                        "Make sure you have a .env file in the project root (copy from .env.example).");
+#endif
         return null;
     }
 

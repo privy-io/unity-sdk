@@ -14,6 +14,10 @@ namespace Privy
     {
         [JsonProperty("mode")]
         internal EmbeddedWalletMode Mode;
+
+        // server may set this to true to force the SDK to avoid using an iframe/webview
+        [JsonProperty("force_server_wallets")]
+        internal bool ForceServerWallets;
     }
 
     [JsonConverter(typeof(StringEnumConverter))]
