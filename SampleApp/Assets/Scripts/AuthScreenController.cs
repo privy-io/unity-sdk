@@ -11,8 +11,7 @@ using Privy;
 /// </summary>
 public class AuthScreenController : MonoBehaviour
 {
-    // ── Shared send-code / login-with-code screens ──────────────────────────
-    public GameObject initialUI;
+    // ── Screen roots (referenced by UIManager for registration) ────────────
     public GameObject sendCodeUI;
 
     /// <summary>Optional label updated to show "Email" or "Phone Number" based on login method.</summary>
@@ -98,19 +97,38 @@ public class AuthScreenController : MonoBehaviour
     private void OnAuthStateChange(AuthState state)
     {
         if (state == AuthState.Authenticated)
-            ShowAuthorizedScreen();
+            UIManager.Instance.ShowAuthorizedScreen();
     }
 
-    private async void ShowAuthorizedScreen()
+    /// <summary>
+    /// Lifecycle callback invoked by UIManager when the authorized screen becomes visible.
+    /// Fetches fresh user data and updates the display.
+    /// </summary>
+    public async void OnAuthorizedScreenShown()
     {
-        initialUI.SetActive(false);
-        sendCodeUI.SetActive(false);
-        loginWithCodeUI.SetActive(false);
-        authorizedUI.SetActive(true);
+        try
+        {
+            PrivyUser user = await PrivyManager.Instance.GetUser();
+            if (user != null)
+            {
+                UpdateUserDisplay(user);
+                Debug.Log("User is authenticated: " + user.Id);
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError("Failed to load user data: " + ex.Message);
+        }
+    }
 
-        PrivyUser user = await PrivyManager.Instance.GetUser();
-        userObject.text = JsonConvert.SerializeObject(user);
-        Debug.Log("User is authenticated: " + user!.Id);
+    /// <summary>
+    /// Update the user-info display on the authorized screen.
+    /// Can be called externally to refresh after link/unlink operations.
+    /// </summary>
+    public void UpdateUserDisplay(PrivyUser user)
+    {
+        if (user != null)
+            userObject.text = JsonConvert.SerializeObject(user);
     }
 
     // ── Send code (email or SMS) ─────────────────────────────────────────────
@@ -234,7 +252,7 @@ public class AuthScreenController : MonoBehaviour
         {
             await PrivyManager.Instance.Sms.Link(phone, code);
             PrivyUser user = await PrivyManager.Instance.GetUser();
-            userObject.text = JsonConvert.SerializeObject(user);
+            UpdateUserDisplay(user);
             Debug.Log($"Phone {phone} linked successfully.");
         }
         catch (PrivyException.AuthenticationException ex) when (ex.Error == AuthenticationError.IncorrectOtpCode)
@@ -267,7 +285,7 @@ public class AuthScreenController : MonoBehaviour
         {
             await PrivyManager.Instance.Sms.Unlink(phone);
             PrivyUser user = await PrivyManager.Instance.GetUser();
-            userObject.text = JsonConvert.SerializeObject(user);
+            UpdateUserDisplay(user);
             Debug.Log($"Phone {phone} unlinked successfully.");
         }
         catch (Exception ex)
@@ -293,7 +311,7 @@ public class AuthScreenController : MonoBehaviour
         {
             await PrivyManager.Instance.Sms.UpdatePhoneNumber(phone, code);
             PrivyUser user = await PrivyManager.Instance.GetUser();
-            userObject.text = JsonConvert.SerializeObject(user);
+            UpdateUserDisplay(user);
             Debug.Log($"Phone number updated to {phone}.");
         }
         catch (PrivyException.AuthenticationException ex) when (ex.Error == AuthenticationError.IncorrectOtpCode)

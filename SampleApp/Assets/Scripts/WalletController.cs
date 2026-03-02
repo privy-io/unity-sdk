@@ -48,20 +48,6 @@ public class WalletController : MonoBehaviour
         
         solanaSignButton.onClick.AddListener(OnSolanaSignButtonClick);
     }
-    
-    private async void Start()
-    {
-        try {
-            PrivyUser user = await PrivyManager.Instance.GetUser();
-            if ( user != null ) {
-                _privyUser = user;
-                RefreshWalletDropdownOptions();
-                walletsDropdown.value = 0;
-            }
-        } catch {
-            Debug.Log("No wallet");
-        }
-    }
 
     private async void OnCreateWalletButtonClick()
     {
@@ -256,7 +242,7 @@ public class WalletController : MonoBehaviour
 
     private void OnBackButtonClick()
     {
-        UIManager.Instance.ShowAuthorizedScreen();
+        UIManager.Instance.GoBack();
     }
 
     private IEmbeddedEthereumWallet SelectedWallet {
@@ -325,29 +311,45 @@ public class WalletController : MonoBehaviour
         }
     }
 
-    public async void ShowWalletUI()
+    /// <summary>
+    /// Lifecycle callback invoked by UIManager when the wallet screen becomes visible.
+    /// Fetches fresh user and wallet data, then updates the display.
+    /// </summary>
+    public async void OnWalletScreenShown()
     {
-        //Update the wallet object
-        PrivyUser user = (await PrivyManager.Instance.GetUser()) ??
-                         throw new Exception("Must be logged in to access the wallet");
-        _privyUser = user;
-        IEmbeddedEthereumWallet embeddedWallet = user.EmbeddedWallets.FirstOrDefault();
-        if (embeddedWallet != null)
+        try
         {
-            walletAddress.text = "Address:" + embeddedWallet.Address;
+            PrivyUser user = await PrivyManager.Instance.GetUser();
+            if (user == null)
+            {
+                Debug.LogError("Must be logged in to access the wallet.");
+                UIManager.Instance.GoBack();
+                return;
+            }
+
+            _privyUser = user;
+            IEmbeddedEthereumWallet embeddedWallet = user.EmbeddedWallets.FirstOrDefault();
+            walletAddress.text = embeddedWallet != null
+                ? "Address:" + embeddedWallet.Address
+                : "No wallets";
+
+            RefreshWalletDropdownOptions();
         }
-        else
+        catch (Exception ex)
         {
-            walletAddress.text = "No wallets";
+            Debug.LogError("Failed to load wallet data: " + ex.Message);
         }
-
-        RefreshWalletDropdownOptions();
-
-        walletUI.SetActive(true);
     }
 
-    public void HideWalletUI()
+    /// <summary>
+    /// Lifecycle callback invoked by UIManager when the wallet screen is hidden.
+    /// </summary>
+    public void OnWalletScreenHidden()
     {
-        walletUI.SetActive(false);
+        // Cleanup when leaving the wallet screen (if needed).
     }
+
+    // Backward-compatibility wrappers — prefer UIManager.Instance.ShowWalletUI() / GoBack()
+    public void ShowWalletUI() => UIManager.Instance.ShowWalletUI();
+    public void HideWalletUI() => walletUI.SetActive(false);
 }
