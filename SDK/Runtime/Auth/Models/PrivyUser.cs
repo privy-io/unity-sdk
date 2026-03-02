@@ -340,7 +340,7 @@ namespace Privy
             string primaryWalletAddress =
                 await _embeddedWalletManager.CreateEthereumWallet(accessToken,
                     solanaAddress: existingSolanaAccount?.Address);
-            
+
             PrivyLogger.Debug($"Primary wallet created with address: {primaryWalletAddress}");
 
             return await PrepareAndConnectWallet(primaryWalletAddress);
