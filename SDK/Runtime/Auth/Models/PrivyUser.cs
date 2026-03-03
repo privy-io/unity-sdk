@@ -197,7 +197,7 @@ namespace Privy
         // This method is idempotent. Calling it multiple times with the same HD index will have the same effect as calling it once.
         public async Task<IEmbeddedEthereumWallet> CreateWalletAtHdIndex(int hdWalletIndex)
         {
-            
+
             if (hdWalletIndex < 0)
             {
                 // Negative HD index is invalid
