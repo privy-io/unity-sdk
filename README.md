@@ -30,21 +30,12 @@ If you are contributing to the Privy SDK codebase, **read
 ```csharp
 var config = new PrivyConfig{
     AppId = "YOUR_APP_ID",
-    ClientId = "CLIENT_ID",
-    // For WebGL or other environments without a visible iframe,
-    // set this flag to force the SDK to use the server‑side wallet API
-    // instead of attempting to open an embedded iframe.
-    ForceServerWallets = true // <–– optional
+    ClientId = "CLIENT_ID"
 };
 
 PrivyManager.Initialize(config);
 ```
 
-> **Note:** the server may also configure this behaviour by returning
-> `embedded_wallet_config.mode = "user-controlled-server-wallets-only"` or
-> setting `force_server_wallets` in the application configuration.
-> The SDK checks all three sources when deciding whether to launch a
-> webview/iframe.
 
 ### Check user's authentication state
 
@@ -174,3 +165,27 @@ iframe implementation, there are specific settings that need to be configured:
 By following these steps, you ensure that your WebGL builds are correctly configured
 to work with the Privy SDK, particularly in scenarios where you need to send messages
 from JavaScript to Unity using our iframe implementation.
+
+### IFrame Handling
+
+Because WebGL does not support Unity's native WebView, the SDK uses an
+invisible `<iframe>` injected into the page. You **must** include a custom
+WebGL template or modify your existing template to host the iframe and a
+bridge `GameObject` (as described in the third‑party
+[unity-webview](https://github.com/gree/unity-webview#webgl) README).
+The SDK supplies `BrowserDomIframeHandler` and `BrowserDomIframeObject` to
+manage the iframe and message passing; no additional code is required inside
+the SDK itself.  Once your template is set up, creating/connecting wallets
+works exactly the same as on any other platform and will render the UI inside
+that hidden iframe.
+
+### Environment configuration
+
+Reading a `.env` file is impossible in WebGL builds, so the sample app now
+includes a `ScriptableObject` type called `EnvConfig`.  You can create an
+asset via **Assets → Create → Privy → EnvConfig** and fill in your
+`PRIVY_APP_ID`, `PRIVY_WEB_CLIENT_ID`, etc.  Assign the asset to
+`InitialScreenController.envConfig` (or your own bootstrap script) and the
+SDK will use those values at runtime.  You also retain the existing override
+mechanism through `EnvFileReader.OverrideVariables` if you need to inject
+individual values programmatically.

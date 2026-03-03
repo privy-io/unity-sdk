@@ -32,8 +32,7 @@ public class InitialScreenController : MonoBehaviour
             ClientId = Application.platform == RuntimePlatform.WebGLPlayer
                 ? webClientId
                 : mobileClientId,
-            LogLevel = PrivyLogLevel.DEBUG,
-            ForceServerWallets = Application.platform == RuntimePlatform.WebGLPlayer
+            LogLevel = PrivyLogLevel.DEBUG
         });
 
         loginWithEmailButton.onClick.AddListener(OnLoginWithEmailButtonClick);

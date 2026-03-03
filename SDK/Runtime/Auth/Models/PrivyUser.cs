@@ -121,8 +121,7 @@ namespace Privy
         public async Task<IEmbeddedEthereumWallet> CreateWallet(bool allowAdditional = false)
         {
             var appConfig = await _appConfigRepository.LoadAppConfig();
-            bool useServerWallets = appConfig.EmbeddedWalletConfig.Mode == EmbeddedWalletMode.UserControlledServerWalletsOnly
-                                    || PrivyEnvironment.UseServerWallets;
+            bool useServerWallets = appConfig.EmbeddedWalletConfig.Mode == EmbeddedWalletMode.UserControlledServerWalletsOnly;
             if (useServerWallets)
             {
                 var result = await _walletApiWalletCreator.CreateWallet(ChainType.Ethereum, allowAdditional);
@@ -163,9 +162,7 @@ namespace Privy
         public async Task<IEmbeddedSolanaWallet> CreateSolanaWallet(bool allowAdditional = false)
         {
             var appConfig = await _appConfigRepository.LoadAppConfig();
-            bool useServerWallets = appConfig.EmbeddedWalletConfig.Mode == EmbeddedWalletMode.UserControlledServerWalletsOnly
-                                    || appConfig.EmbeddedWalletConfig.ForceServerWallets
-                                    || PrivyEnvironment.UseServerWallets;
+            bool useServerWallets = appConfig.EmbeddedWalletConfig.Mode == EmbeddedWalletMode.UserControlledServerWalletsOnly;
             if (useServerWallets)
             {
                 var result = await _walletApiWalletCreator.CreateWallet(ChainType.Solana, allowAdditional);
@@ -200,12 +197,7 @@ namespace Privy
         // This method is idempotent. Calling it multiple times with the same HD index will have the same effect as calling it once.
         public async Task<IEmbeddedEthereumWallet> CreateWalletAtHdIndex(int hdWalletIndex)
         {
-            // Respect the global configuration that may force server wallets.
-            if (PrivyEnvironment.UseServerWallets)
-            {
-                return await CreateWallet(allowAdditional: hdWalletIndex != 0);
-            }
-
+            
             if (hdWalletIndex < 0)
             {
                 // Negative HD index is invalid
