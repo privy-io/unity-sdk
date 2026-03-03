@@ -6,7 +6,6 @@ public static class EnvFileReader
 {
     private static Dictionary<string, string> _variables;
 
-    public static Dictionary<string, string> OverrideVariables { get; } = new Dictionary<string, string>();
 
     /// <summary>
     /// Optional ScriptableObject that provides configuration values.  The
@@ -18,16 +17,12 @@ public static class EnvFileReader
 
     /// <summary>
     /// Return a configuration value by key.  Checks the following sources in order:
-    /// 1. <see cref="OverrideVariables"/> (useful for WebGL or when you want to hardcode values)
+    /// 1. Assigned <see cref="Config"/> ScriptableObject (useful for WebGL builds)
     /// 2. Loaded .env file on disk (desktop/mobile builds)
     /// </summary>
     public static string Get(string key)
     {
-        // override dictionary has highest precedence so that callers can inject values
-        if (OverrideVariables.TryGetValue(key, out var overrideVal))
-        {
-            return overrideVal;
-        }
+        // consult the ScriptableObject first
 
         // next, consult the ScriptableObject if one has been assigned
         if (Config != null)
@@ -57,9 +52,10 @@ public static class EnvFileReader
         }
 
 #if UNITY_WEBGL
-        // WebGL builds cannot read from the local filesystem; add a helpful message
+        // WebGL builds cannot read from the local filesystem; the value should come
+        // from the assigned EnvConfig asset.  Log an error so the developer notices.
         Debug.LogError($"EnvFileReader: Key '{key}' not found. WebGL builds cannot access the .env file, " +
-                       "so set EnvFileReader.OverrideVariables[\"{key}\"] manually or hardcode values.");
+                       "or no EnvConfig has been assigned.");
 #else
         Debug.LogError($"EnvFileReader: Key '{key}' not found in .env file. " +
                        "Make sure you have a .env file in the project root (copy from .env.example).");

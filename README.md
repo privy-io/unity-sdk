@@ -166,19 +166,6 @@ By following these steps, you ensure that your WebGL builds are correctly config
 to work with the Privy SDK, particularly in scenarios where you need to send messages
 from JavaScript to Unity using our iframe implementation.
 
-### IFrame Handling
-
-Because WebGL does not support Unity's native WebView, the SDK uses an
-invisible `<iframe>` injected into the page. You **must** include a custom
-WebGL template or modify your existing template to host the iframe and a
-bridge `GameObject` (as described in the third‑party
-[unity-webview](https://github.com/gree/unity-webview#webgl) README).
-The SDK supplies `BrowserDomIframeHandler` and `BrowserDomIframeObject` to
-manage the iframe and message passing; no additional code is required inside
-the SDK itself.  Once your template is set up, creating/connecting wallets
-works exactly the same as on any other platform and will render the UI inside
-that hidden iframe.
-
 ### Environment configuration
 
 Reading a `.env` file is impossible in WebGL builds, so the sample app now
@@ -186,6 +173,4 @@ includes a `ScriptableObject` type called `EnvConfig`.  You can create an
 asset via **Assets → Create → Privy → EnvConfig** and fill in your
 `PRIVY_APP_ID`, `PRIVY_WEB_CLIENT_ID`, etc.  Assign the asset to
 `InitialScreenController.envConfig` (or your own bootstrap script) and the
-SDK will use those values at runtime.  You also retain the existing override
-mechanism through `EnvFileReader.OverrideVariables` if you need to inject
-individual values programmatically.
+SDK will use those values at runtime.

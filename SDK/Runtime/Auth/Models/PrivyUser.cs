@@ -121,8 +121,7 @@ namespace Privy
         public async Task<IEmbeddedEthereumWallet> CreateWallet(bool allowAdditional = false)
         {
             var appConfig = await _appConfigRepository.LoadAppConfig();
-            bool useServerWallets = appConfig.EmbeddedWalletConfig.Mode == EmbeddedWalletMode.UserControlledServerWalletsOnly;
-            if (useServerWallets)
+            if (appConfig.EmbeddedWalletConfig.Mode == EmbeddedWalletMode.UserControlledServerWalletsOnly)
             {
                 var result = await _walletApiWalletCreator.CreateWallet(ChainType.Ethereum, allowAdditional);
                 return await PrepareAndConnectWallet(result.Address);
@@ -162,8 +161,7 @@ namespace Privy
         public async Task<IEmbeddedSolanaWallet> CreateSolanaWallet(bool allowAdditional = false)
         {
             var appConfig = await _appConfigRepository.LoadAppConfig();
-            bool useServerWallets = appConfig.EmbeddedWalletConfig.Mode == EmbeddedWalletMode.UserControlledServerWalletsOnly;
-            if (useServerWallets)
+            if (appConfig.EmbeddedWalletConfig.Mode == EmbeddedWalletMode.UserControlledServerWalletsOnly)
             {
                 var result = await _walletApiWalletCreator.CreateWallet(ChainType.Solana, allowAdditional);
                 return await PrepareAndConnectSolanaWallet(result.Address);
@@ -197,7 +195,6 @@ namespace Privy
         // This method is idempotent. Calling it multiple times with the same HD index will have the same effect as calling it once.
         public async Task<IEmbeddedEthereumWallet> CreateWalletAtHdIndex(int hdWalletIndex)
         {
-
             if (hdWalletIndex < 0)
             {
                 // Negative HD index is invalid
@@ -301,12 +298,10 @@ namespace Privy
             // Some callers might have checked this already, but safer to double-check
             PrivyEmbeddedWalletAccount existingPrimaryWallet = LinkedAccounts.PrimaryEmbeddedWalletAccountOrNull();
 
-            PrivyLogger.Debug($"We are here in CreatePrimaryEthereumWallet. Existing primary wallet: {(existingPrimaryWallet != null ? existingPrimaryWallet.Address : "null")}, throwErrorIfPrimaryWalletExists: {throwErrorIfPrimaryWalletExists}");
             if (existingPrimaryWallet != null)
             {
                 if (throwErrorIfPrimaryWalletExists)
                 {
-                    PrivyLogger.Debug($"Wallet with HD index 0 already exists.");
                     throw new PrivyException.EmbeddedWalletException(
                         "Wallet Create Failed: Primary wallet already exists.",
                         EmbeddedWalletError.CreateFailed);
@@ -318,22 +313,14 @@ namespace Privy
                 }
             }
 
-            PrivyLogger.Debug($"Attempring to create primary wallet.");
-
             // This could throw an error if the access token needs a refresh, and the refresh fails
             string accessToken = await _authDelegator.GetAccessToken();
 
-            PrivyLogger.Debug($"Creating primary wallet with access token: {accessToken}");
-
             var existingSolanaAccount = LinkedAccounts.EmbeddedSolanaWalletAccounts()
                 .FirstOrDefault(account => account.WalletIndex == 0);
-
-            PrivyLogger.Debug($"Existing primary Solana wallet: {(existingSolanaAccount != null ? existingSolanaAccount.Address : "null")}");
             string primaryWalletAddress =
                 await _embeddedWalletManager.CreateEthereumWallet(accessToken,
                     solanaAddress: existingSolanaAccount?.Address);
-
-            PrivyLogger.Debug($"Primary wallet created with address: {primaryWalletAddress}");
 
             return await PrepareAndConnectWallet(primaryWalletAddress);
         }
