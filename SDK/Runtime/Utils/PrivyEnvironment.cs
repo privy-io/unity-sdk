@@ -12,8 +12,6 @@ namespace Privy
 
         private static bool _isProduction = true; // Default to true, incase initialize is not called
 
-        // (no longer used) previously controlled whether server wallets were forced
-
         internal static string BASE_URL => _isProduction ? "https://auth.privy.io" : "https://auth.staging.privy.io";
 
         internal static void Initialize(PrivyConfig config)
