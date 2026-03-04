@@ -23,8 +23,6 @@ public static class EnvFileReader
     public static string Get(string key)
     {
         // consult the ScriptableObject first
-
-        // next, consult the ScriptableObject if one has been assigned
         if (Config != null)
         {
             var cfgVal = Config.Get(key);
