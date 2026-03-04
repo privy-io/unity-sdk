@@ -199,6 +199,15 @@ namespace Privy
                                 EmbeddedWalletError.RpcRequestFailed);
                         }
 
+                        // Convert optional cluster URL into CAIP-2 for the backend. This
+                        // mirrors the behaviour above in the "signTransaction" case.
+                        string sendCaip2 = null;
+                        if (!string.IsNullOrEmpty(signAndSendParams.Cluster))
+                        {
+                            var clusterObj = SolanaCluster.FromRpcUrl(signAndSendParams.Cluster);
+                            sendCaip2 = clusterObj?.Caip2;
+                        }
+
                         // The send options carried along by the websocket payload are
                         // only meaningful on-device; the TEE/wallet-API backend does not
                         // honour them. We pass <c>null</c> here so that the server always
@@ -206,7 +215,7 @@ namespace Privy
                         walletApiRequest = WalletApiRpcRequest.SolanaSignAndSendTransaction(
                             WalletApiSolanaSignAndSendTransactionRpcParams.FromString(
                                 signAndSendParams.Transaction, null),
-                            signAndSendParams.Cluster
+                            sendCaip2
                         );
                         response = await _walletApiRepository.Rpc(walletApiRequest, _walletId, accessToken);
                         return new SolanaRpcResponseDetails
