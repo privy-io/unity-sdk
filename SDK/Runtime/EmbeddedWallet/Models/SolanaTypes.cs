@@ -38,6 +38,23 @@ namespace Privy
             "solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z",
             "https://api.testnet.solana.com"
         );
+
+        /// <summary>
+        /// Attempts to look up a <see cref="SolanaCluster"/> given its RPC URL.
+        /// Returns <c>null</c> if the URL isn't recognised.
+        /// </summary>
+        public static SolanaCluster FromRpcUrl(string rpcUrl)
+        {
+            if (string.IsNullOrEmpty(rpcUrl)) return null;
+            // compare ignoring trailing slashes
+            string norm(string s) => s?.TrimEnd('/');
+            rpcUrl = norm(rpcUrl);
+
+            if (rpcUrl == norm(Mainnet.RpcUrl)) return Mainnet;
+            if (rpcUrl == norm(Devnet.RpcUrl)) return Devnet;
+            if (rpcUrl == norm(Testnet.RpcUrl)) return Testnet;
+            return null;
+        }
     }
 
     /// <summary>
