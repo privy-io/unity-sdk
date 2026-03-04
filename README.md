@@ -36,6 +36,7 @@ var config = new PrivyConfig{
 PrivyManager.Initialize(config);
 ```
 
+
 ### Check user's authentication state
 
 When the Privy SDK is initialized, it will automatically begin to load its necessary
@@ -164,3 +165,12 @@ iframe implementation, there are specific settings that need to be configured:
 By following these steps, you ensure that your WebGL builds are correctly configured
 to work with the Privy SDK, particularly in scenarios where you need to send messages
 from JavaScript to Unity using our iframe implementation.
+
+### Environment configuration
+
+Reading a `.env` file is impossible in WebGL builds, so the sample app now
+includes a `ScriptableObject` type called `EnvConfig`.  You can create an
+asset via **Assets → Create → Privy → EnvConfig** and fill in your
+`PRIVY_APP_ID`, `PRIVY_WEB_CLIENT_ID`, etc.  Assign the asset to
+`InitialScreenController.envConfig` (or your own bootstrap script) and the
+SDK will use those values at runtime.

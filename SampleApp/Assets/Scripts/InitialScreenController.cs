@@ -12,6 +12,7 @@ public class InitialScreenController : MonoBehaviour
     public Button loginWithOAuthDiscordButton;
     public Button loginWithOAuthTwitterButton;
     public Button loginWithOAuthAppleButton;
+    public EnvConfig envConfig;
 
     private readonly string _redirectUri = Application.platform == RuntimePlatform.WebGLPlayer ? 
         (new Uri(Application.absoluteURL).GetLeftPart(UriPartial.Authority) + "/unity_callback.html") :
@@ -19,6 +20,8 @@ public class InitialScreenController : MonoBehaviour
     
     private void Awake()
     {
+        EnvFileReader.Config = envConfig;
+
         var appId = EnvFileReader.Get("PRIVY_APP_ID");
         var webClientId = EnvFileReader.Get("PRIVY_WEB_CLIENT_ID");
         var mobileClientId = EnvFileReader.Get("PRIVY_MOBILE_CLIENT_ID");
