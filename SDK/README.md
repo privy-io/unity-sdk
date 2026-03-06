@@ -1,7 +1,7 @@
 # Privy Unity SDK
 
 Welcome to the Privy Unity SDK! This SDK provides a set of tools and
-functionalities for integrating Privy services into your Unity projects. The
+functionalities for integrating Privy services into your Unity projects.
 The package can be consumed via the Unity Package Manager, OpenUPM or by
 copying the contents of the `SDK/` folder into your project's `Assets/`
 directory. The SDK bundles third-party libraries (Newtonsoft.Json, jsoncanonicalizer,
