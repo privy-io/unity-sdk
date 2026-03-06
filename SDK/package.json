@@ -4,9 +4,16 @@
   "version": "0.7.1",
   "unity": "2022.3",
   "description": "Privy Unity SDK for authentication and embedded wallet functionality.",
-  "keywords": ["privy", "sdk", "authentication", "wallet", "unity"],
+  "keywords": [
+    "privy",
+    "sdk",
+    "authentication",
+    "wallet",
+    "unity"
+  ],
   "author": {
     "name": "Privy",
     "url": "https://privy.io"
-  },  "dependencies": {}
+  },
+  "dependencies": {}
 }
