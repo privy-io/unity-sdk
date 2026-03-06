@@ -3,7 +3,8 @@
     "rootNamespace": "",
     "references": [
         "Privy.SDK.Runtime",
-        "Unity.TextMeshPro"
+        "Unity.TextMeshPro",
+        "IngameDebugConsole.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
