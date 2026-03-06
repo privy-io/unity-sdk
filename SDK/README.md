@@ -21,7 +21,7 @@ If you are contributing to the Privy SDK codebase, **read
 ## Importing the SDK
 
 1. Clone or copy the `SDK/` folder into your Unity project’s `Assets/`.
-2. Alternatively add the package via Package Manager (git URL or OpenUPM).
+2. Alternatively add the package via Package Manager (git URL or OpenUPM). Use https://github.com/privy-io/unity-sdk.git?path=SDK when adding via git URL.
 3. Verify the SDK installation by locating the Privy SDK components in your
    project’s `Packages` or `Assets` folder.
 
