@@ -1,8 +1,13 @@
 # Privy Unity SDK
 
 Welcome to the Privy Unity SDK! This SDK provides a set of tools and
-functionalities for integrating Privy services into your Unity projects. Follow
-the instructions below to get started with the SDK.
+functionalities for integrating Privy services into your Unity projects. The
+package can be consumed via the Unity Package Manager, .unitypackage import,
+OpenUPM or by copying the contents of the `SDK/` folder into your project's
+`Assets/` directory. The SDK bundles third-party libraries (Newtonsoft.Json, jsoncanonicalizer,
+and unity-webview) inside `SDK/ExternalDependencies`. No external package
+references are required; consumers simply import the SDK and the dependencies
+are included automatically.
 
 ## Contributing
 
@@ -13,31 +18,15 @@ If you are contributing to the Privy SDK codebase, **read
 
 - Unity Editor **2022.3.42f1**
 
-## Installing the SDK
+## Importing the SDK
 
-The Privy Unity SDK can be consumed through multiple mechanisms. The easiest
-method is to treat the `SDK/` folder as a Unity Package.
-
-- **Package Manager (git URL):** add the following to your project's
-  `Packages/manifest.json`:
-
-  ```json
-  "com.privy.unity-sdk": "https://github.com/<org>/unity-sdk.git?path=SDK"
-  ```
-
-- **OpenUPM:** run
-  ```sh
-  openupm add com.privy.unity-sdk
-  ```
-
-- **.unitypackage:** download the file from the GitHub release and import via
-  `Assets > Import Package > Custom Package...`.
-
-- **Manual:** copy the contents of the `SDK/` folder into your project's
-  `Assets/` directory.
-
-Once the SDK is imported or referenced as a package, see
-[SDK/README.md](SDK/README.md) for usage instructions and examples.
+1. Download the `.unitypackage` file.
+2. Open Your Unity Project.
+3. Import the `.unitypackage` package from the `Assets` menu
+   (`Import Package` > `CustomPackage ...`).
+4. Confirm the Import to bring the SDK into your project.
+5. Verify the SDK installation. You should see the Privy SDK components
+   appear in your project’s `Assets` folder.
 
 ## Usage
 
@@ -51,7 +40,6 @@ var config = new PrivyConfig{
 
 PrivyManager.Initialize(config);
 ```
-
 
 ### Check user's authentication state
 
@@ -181,12 +169,3 @@ iframe implementation, there are specific settings that need to be configured:
 By following these steps, you ensure that your WebGL builds are correctly configured
 to work with the Privy SDK, particularly in scenarios where you need to send messages
 from JavaScript to Unity using our iframe implementation.
-
-### Environment configuration
-
-Reading a `.env` file is impossible in WebGL builds, so the sample app now
-includes a `ScriptableObject` type called `EnvConfig`.  You can create an
-asset via **Assets → Create → Privy → EnvConfig** and fill in your
-`PRIVY_APP_ID`, `PRIVY_WEB_CLIENT_ID`, etc.  Assign the asset to
-`InitialScreenController.envConfig` (or your own bootstrap script) and the
-SDK will use those values at runtime.

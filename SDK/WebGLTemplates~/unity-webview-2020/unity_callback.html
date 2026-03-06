@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    <script type="text/javascript">
+      window.onload = function () {
+        const mainMessage = document.getElementById("main-message");
+        // NOTE: if we can't check the opener origin we set popupFlow to false otherwise
+        // the downstream code will attempt to check the opener and fail
+        let canAccessOpener = false;
+        try {
+          // This will throw is the opener is restricted
+          canAccessOpener = !!window.opener.location.origin;
+        } catch {
+          // Do nothing
+        }
+
+        if (window.opener === null || !canAccessOpener) {
+          mainMessage.innerText =
+            "Something went wrong. Please close this window.";
+          return;
+        }
+
+        const params = new URLSearchParams(window.location.search);
+        const authorizationCode = params.get("privy_oauth_code");
+        const stateCode = params.get("privy_oauth_state");
+        const provider = params.get("privy_oauth_provider");
+
+        if (!authorizationCode || !stateCode || !provider) {
+          window.opener.postMessage({
+            type: "PRIVY_OAUTH_ERROR",
+            error: "Missing required parameters.",
+          });
+          mainMessage.innerText =
+            "Something went wrong. Please close this window.";
+          return;
+        }
+
+        if (window.opener.location.origin !== window.location.origin) {
+          window.opener.postMessage({
+            type: "PRIVY_OAUTH_ERROR",
+            error: "Origins between parent and child windows do not match.",
+          });
+          mainMessage.innerText =
+            "Something went wrong. Please close this window.";
+          return;
+        }
+
+        if (authorizationCode === "error") {
+          window.opener.postMessage({
+            type: "PRIVY_OAUTH_ERROR",
+            error: "Something went wrong. Try again.",
+          });
+          mainMessage.innerText =
+            "Something went wrong. Please close this window.";
+          return;
+        }
+
+        window.opener.postMessage({
+          type: "PRIVY_OAUTH_RESPONSE",
+          stateCode: stateCode,
+          authorizationCode: authorizationCode,
+        });
+        mainMessage.innerText = "You can now close this window.";
+        return;
+      };
+    </script>
+  </head>
+  <body>
+    <p id="main-message"></p>
+  </body>
+</html>

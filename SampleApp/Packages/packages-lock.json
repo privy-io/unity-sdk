@@ -1,5 +1,11 @@
 {
   "dependencies": {
+    "com.privy.unity-sdk": {
+      "version": "file:../../SDK",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
+    },
     "com.unity.collab-proxy": {
       "version": "2.7.1",
       "depth": 0,
