@@ -2,9 +2,9 @@
 
 Welcome to the Privy Unity SDK! This SDK provides a set of tools and
 functionalities for integrating Privy services into your Unity projects. The
-package can be consumed via the Unity Package Manager, .unitypackage import,
-OpenUPM or by copying the contents of the `SDK/` folder into your project's
-`Assets/` directory. The SDK bundles third-party libraries (Newtonsoft.Json, jsoncanonicalizer,
+The package can be consumed via the Unity Package Manager, OpenUPM or by
+copying the contents of the `SDK/` folder into your project's `Assets/`
+directory. The SDK bundles third-party libraries (Newtonsoft.Json, jsoncanonicalizer,
 and unity-webview) inside `SDK/ExternalDependencies`. No external package
 references are required; consumers simply import the SDK and the dependencies
 are included automatically.
@@ -20,13 +20,10 @@ If you are contributing to the Privy SDK codebase, **read
 
 ## Importing the SDK
 
-1. Download the `.unitypackage` file.
-2. Open Your Unity Project.
-3. Import the `.unitypackage` package from the `Assets` menu
-   (`Import Package` > `CustomPackage ...`).
-4. Confirm the Import to bring the SDK into your project.
-5. Verify the SDK installation. You should see the Privy SDK components
-   appear in your project’s `Assets` folder.
+1. Clone or copy the `SDK/` folder into your Unity project’s `Assets/`.
+2. Alternatively add the package via Package Manager (git URL or OpenUPM).
+3. Verify the SDK installation by locating the Privy SDK components in your
+   project’s `Packages` or `Assets` folder.
 
 ## Usage
 
