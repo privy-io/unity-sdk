@@ -1,8 +1,13 @@
 # Privy Unity SDK
 
 Welcome to the Privy Unity SDK! This SDK provides a set of tools and
-functionalities for integrating Privy services into your Unity projects. Follow
-the instructions below to get started with the SDK.
+functionalities for integrating Privy services into your Unity projects.
+The package can be consumed via the Unity Package Manager, OpenUPM or by
+copying the contents of the `SDK/` folder into your project's `Assets/`
+directory. The SDK bundles third-party libraries (Newtonsoft.Json, jsoncanonicalizer,
+and unity-webview) inside `SDK/ExternalDependencies`. No external package
+references are required; consumers simply import the SDK and the dependencies
+are included automatically.
 
 ## Contributing
 
@@ -15,13 +20,10 @@ If you are contributing to the Privy SDK codebase, **read
 
 ## Importing the SDK
 
-1. Download the `.unitypackage` file.
-2. Open Your Unity Project.
-3. Import the `.unitypackage` package from the `Assets` menu
-   (`Import Package` > `CustomPackage ...`).
-4. Confirm the Import to bring the SDK into your project.
-5. Verify the SDK installation. You should see the Privy SDK components
-   appear in your project’s `Assets` folder.
+1. Clone or copy the `SDK/` folder into your Unity project’s `Assets/`.
+2. Alternatively add the package via Package Manager (git URL or OpenUPM).
+3. Verify the SDK installation by locating the Privy SDK components in your
+   project’s `Packages` or `Assets` folder.
 
 ## Usage
 
@@ -35,7 +37,6 @@ var config = new PrivyConfig{
 
 PrivyManager.Initialize(config);
 ```
-
 
 ### Check user's authentication state
 
@@ -138,7 +139,7 @@ iframe implementation, there are specific settings that need to be configured:
 1. Set the WebGL Template:
    - Navigate to `Edit > Project Settings > Player`.
    - Under the **WebGL** tab, find the **Resolution and Presentation** section.
-   - Set the **WebGL Template** to the custom template included in the `.unitypackage`.
+   - Set the **WebGL Template** to the custom template shipped with the SDK.
      - unity-webview-2020, for 2020 and newer versions
      - unity-webview for older versions
    - **Why is this necessary?**
@@ -165,12 +166,3 @@ iframe implementation, there are specific settings that need to be configured:
 By following these steps, you ensure that your WebGL builds are correctly configured
 to work with the Privy SDK, particularly in scenarios where you need to send messages
 from JavaScript to Unity using our iframe implementation.
-
-### Environment configuration
-
-Reading a `.env` file is impossible in WebGL builds, so the sample app now
-includes a `ScriptableObject` type called `EnvConfig`.  You can create an
-asset via **Assets → Create → Privy → EnvConfig** and fill in your
-`PRIVY_APP_ID`, `PRIVY_WEB_CLIENT_ID`, etc.  Assign the asset to
-`InitialScreenController.envConfig` (or your own bootstrap script) and the
-SDK will use those values at runtime.

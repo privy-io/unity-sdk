@@ -1,6 +1,11 @@
 {
     "name": "SampleApp",
-    "references": ["PrivySDK"],
+    "rootNamespace": "",
+    "references": [
+        "Privy.SDK.Runtime",
+        "Unity.TextMeshPro",
+        "IngameDebugConsole.Runtime"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

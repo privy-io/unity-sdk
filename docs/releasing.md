@@ -2,38 +2,41 @@
 
 ## Packaging
 
-The SDK ships as a `.unitypackage` file containing all SDK scripts and external
-dependencies.
+The SDK is distributed primarily as a UPM package (`com.privy.unity-sdk`).
+Consumers can obtain it via several mechanisms:
+
+* Clone/download `SDK/` into their project's `Assets` folder
+* Add as a git URL package in manifest.json (`"com.privy.unity-sdk": "https://github.com/<org>/unity-sdk.git?path=SDK"`)
+* Install via OpenUPM (`openupm add com.privy.unity-sdk`)
+
 
 ### What the package includes
 
 - All SDK scripts
-- External dependencies (WebView, Newtonsoft Json)
+- External dependencies (WebView, Newtonsoft Json, jsoncanonicalizer) located in `SDK/ExternalDependencies`
 
-### Why a .unitypackage
+Note: the package is structured as a standard UPM package. WebGL custom
+templates are copied via the installer script or manually placed in the
+consumer project; the package itself does not automatically install them.
 
-- **External dependencies** — Some dependencies, like WebView, do not exist in the
-  Unity package registry. Bundling them in the `.unitypackage` ensures they
-  install alongside the SDK.
-- **WebGL custom templates** — WebGL builds require a custom template that must
-  live in the user's `Assets` folder. The Unity package manager cannot place
-  files there, so the `.unitypackage` handles it.
+### Versioning and export script
 
-### Export script
+The [VersionedExport](../SampleApp/Assets/Editor/VersionedExport.cs) script
+can be used to update the `version` field in `SDK/package.json` so it matches
+`SdkVersion.cs`. It is primarily used during development and is **not required
+for UPM distribution**.
 
-The [VersionedExport](./SampleApp/Assets/Editor/VersionedExport.cs) script
-automates the packaging process. It:
+Follow the normal tagging procedure (see below) to release a new package
+version.
 
-1. Collects SDK assets, WebGL templates, and external dependencies.
-2. Moves them into the project's `Assets` folder so Unity can export them.
-3. Exports the `.unitypackage` file.
-4. Moves the files back to their original locations.
+### How to release
 
-The script also bumps the version number based on the value in [SdkVersion](./SDK/Runtime/Utils/SdkVersion.cs).
+1. Make your changes to the SDK and update `SDK/Runtime/Utils/SdkVersion.cs`.
+2. Optionally run `tools/bump-version.*` to sync `package.json`.
+3. Commit your changes, tag the commit (e.g. `git tag v0.7.2`), and push to
+   `main`.
+4. The GitHub workflow will validate the version and may perform additional
+   publishing steps.
 
-### How to export
-
-1. Make your changes to the SDK.
-2. Open the `SampleApp` in the Unity Editor.
-3. Go to `Tools` in the top menu.
-4. Select `Export Privy SDK`.
+For UPM releases, simply pushing the tag is sufficient; OpenUPM and Package
+Manager clients will pick up the new version automatically.
