@@ -139,7 +139,7 @@ iframe implementation, there are specific settings that need to be configured:
 1. Set the WebGL Template:
    - Navigate to `Edit > Project Settings > Player`.
    - Under the **WebGL** tab, find the **Resolution and Presentation** section.
-   - Set the **WebGL Template** to the custom template included in the `.unitypackage`.
+   - Set the **WebGL Template** to the custom template shipped with the SDK.
      - unity-webview-2020, for 2020 and newer versions
      - unity-webview for older versions
    - **Why is this necessary?**
