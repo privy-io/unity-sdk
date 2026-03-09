@@ -2,6 +2,7 @@ on:
   push:
     branches:
       - main
+      - lucasloisp/chore-set-up-release-please
 
 permissions:
   contents: write
