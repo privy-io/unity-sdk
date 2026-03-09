@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## [0.9.0-rc.2](https://github.com/privy-io/unity-sdk/compare/v0.9.0-rc.1...v0.9.0-rc.2) (2026-03-09)
+
+
+### Fixed
+
+* alice ([5bcdc6f](https://github.com/privy-io/unity-sdk/commit/5bcdc6f65b177dad510c22d52746503dd6c4bd0e))
+
 ## 0.7.1 - 2026-01-27
 
 ### Fixed
