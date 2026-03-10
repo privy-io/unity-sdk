@@ -19,7 +19,7 @@ namespace Privy.Wallets
             "eth_sendTransaction"
         };
 
-        public RpcProvider(IRpcExecutor rpcExecutor)
+        public EmbeddedEthereumWalletProvider(IRpcExecutor rpcExecutor)
         {
             _rpcExecutor = rpcExecutor;
         }
