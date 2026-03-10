@@ -61,7 +61,7 @@ namespace Privy.Auth
             string serializedRequest = JsonConvert.SerializeObject(requestData);
 
 
-            //TODO: Catch errors here, or return null
+            // errors from the HTTP layer are caught and re‑wrapped below
             try
             {
                 // Execute the request

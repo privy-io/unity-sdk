@@ -15,7 +15,7 @@ namespace Privy.Core
             {
                 if (_privyInstance == null)
                 {
-                    throw new Exception("Call PrivyManager.Initialize before attempting to get the Privy instance.");
+                    throw new InvalidOperationException("Call PrivyManager.Initialize before attempting to get the Privy instance.");
                 }
 
                 return _privyInstance;
