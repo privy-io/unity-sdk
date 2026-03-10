@@ -26,9 +26,8 @@
       "bump-minor-pre-major": false,
       "bump-patch-for-minor-pre-major": false,
       "draft": false,
-      "prerelease": true,
-      "prerelease-type": "rc"
+      "prerelease": true
     }
   },
-  "versioning": "prerelease"
+  "versioning": "default"
 }
