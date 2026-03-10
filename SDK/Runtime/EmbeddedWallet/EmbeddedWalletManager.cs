@@ -6,7 +6,7 @@ using Privy.Utils;
 
 namespace Privy.Wallets
 {
-    internal class EmbeddedWalletManager
+    internal class EmbeddedWalletManager : IDisposable
     {
         private WebViewManager _webViewManager;
         private AuthDelegator _authDelegator;
