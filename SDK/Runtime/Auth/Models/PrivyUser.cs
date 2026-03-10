@@ -249,26 +249,16 @@ namespace Privy.Auth.Models
                 EmbeddedWallets.FirstOrDefault(wallet =>
                     wallet.Address == walletAddress); //Get the first wallet with matching address, else null
 
-            // We could technically return null here, and it would be more performant if we did
-            // But to maintain consistency - I think we go with the approach of the dev catching errors, as oppose to parsing nulls
-            // If we returned a null here, the docs also become inconsistent, where in some places they'd be checking for nulls, and other places they'd be catching errors
             if (embeddedWallet == null)
             {
                 throw new PrivyWalletException(
                     "Wallet Create Failed: Wallet was not added to account.", EmbeddedWalletError.CreateFailed);
             }
 
-            //This mimics a background process while being non-blocking
-            //Mimics await functionality without waiting for result, by using a callback to process the result
-            Task connectTask = _embeddedWalletManager.AttemptConnectingToWallet(_authDelegator.GetAuthSession());
-            _ = connectTask.ContinueWith(task =>
-            {
-                if (task.IsFaulted)
-                {
-                    // Handle the error silently or log it without interrupting the main flow
-                    PrivyLogger.Error("Could not connect wallet", task.Exception);
-                }
-            });
+            // Fire-and-forget the wallet connection; log any exception via helper.
+            _embeddedWalletManager
+                .AttemptConnectingToWallet(_authDelegator.GetAuthSession())
+                .SafeFireAndForget(ex => PrivyLogger.Error("Could not connect wallet", ex));
 
             return embeddedWallet;
         }
@@ -284,17 +274,10 @@ namespace Privy.Auth.Models
                 throw new PrivyWalletException(
                     "Wallet Create Failed: Wallet was not added to account.", EmbeddedWalletError.CreateFailed);
 
-            //This mimics a background process while being non-blocking
-            //Mimics await functionality without waiting for result, by using a callback to process the result
-            Task connectTask = _embeddedWalletManager.AttemptConnectingToWallet(_authDelegator.GetAuthSession());
-            _ = connectTask.ContinueWith(task =>
-            {
-                if (task.IsFaulted)
-                {
-                    // Handle the error silently or log it without interrupting the main flow
-                    PrivyLogger.Error("Could not connect wallet", task.Exception);
-                }
-            });
+            // Fire-and-forget the connection; log any exceptions
+            _embeddedWalletManager
+                .AttemptConnectingToWallet(_authDelegator.GetAuthSession())
+                .SafeFireAndForget(ex => PrivyLogger.Error("Could not connect wallet", ex));
 
             return embeddedWallet;
         }
