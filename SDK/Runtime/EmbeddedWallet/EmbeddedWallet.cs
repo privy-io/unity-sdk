@@ -12,9 +12,9 @@ namespace Privy.Wallets
         public string RecoveryMethod { get; }
         public int HdWalletIndex { get; }
 
-        public IRpcProvider RpcProvider { get; } // Use IRpcProvider as the type
+        public IEmbeddedEthereumWalletProvider RpcProvider { get; } // Use IEmbeddedEthereumWalletProvider as the type
 
-        public EmbeddedWallet(PrivyEmbeddedWalletAccount account, IRpcProvider rpcProvider)
+        public EmbeddedWallet(PrivyEmbeddedWalletAccount account, IEmbeddedEthereumWalletProvider rpcProvider)
         {
             Id = account.Id;
             Address = account.Address;
@@ -31,7 +31,7 @@ namespace Privy.Wallets
             IRpcExecutor rpcExecutor = account.IsOnDevice
                 ? new WebViewRPCExecutor(walletEntropy, account.WalletIndex, embeddedWalletManager)
                 : new WalletApiRPCExecutor(walletApiRepository, authDelegator, account.Id);
-            var rpcProvider = new RpcProvider(rpcExecutor);
+            var rpcProvider = new EmbeddedEthereumWalletProvider(rpcExecutor);
 
             return new EmbeddedWallet(account, rpcProvider);
         }

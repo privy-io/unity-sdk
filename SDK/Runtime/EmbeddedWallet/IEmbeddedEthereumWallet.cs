@@ -13,7 +13,7 @@ namespace Privy.Wallets
         string ChainId { get; }
         string RecoveryMethod { get; }
         int HdWalletIndex { get; }
-        IRpcProvider RpcProvider { get; }
+        IEmbeddedEthereumWalletProvider RpcProvider { get; }
     }
 
     internal static class EmbeddedEthereumWalletExtensions
