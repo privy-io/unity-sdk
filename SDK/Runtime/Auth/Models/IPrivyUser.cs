@@ -82,4 +82,5 @@ namespace Privy.Auth.Models
         /// Creates a new Solana embedded wallet for the user.
         /// </summary>
         Task<IEmbeddedSolanaWallet> CreateSolanaWallet(bool allowAdditional = false);
-    }}
+    }
+}

@@ -17,7 +17,7 @@ namespace Privy.Core
     internal class PrivyImpl : IPrivy
     {
         private IHttpRequestHandler _httpRequestHandler;
-        
+
         // Expose auth state change notifications
         public event Action<AuthState> AuthStateChanged;
 

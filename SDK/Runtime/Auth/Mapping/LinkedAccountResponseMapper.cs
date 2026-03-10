@@ -3,7 +3,8 @@ using Privy.Auth.Models;
 using Privy.Utils;
 
 namespace Privy.Auth.Mapping
-{    internal static class LinkedAccountResponseMapper
+{
+    internal static class LinkedAccountResponseMapper
     {
         private static LinkedAccountType ParseType(string type)
         {
