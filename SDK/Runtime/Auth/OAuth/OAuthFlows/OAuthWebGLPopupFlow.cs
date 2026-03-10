@@ -2,10 +2,11 @@ using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Privy.Utils;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace Privy
+namespace Privy.Auth.OAuth
 {
     internal class OAuthWebGLPopupFlow : IOAuthFlow
     {
@@ -32,14 +33,14 @@ namespace Privy
                 }
                 catch
                 {
-                    oauthFlowTaskSource.SetException(new PrivyException.AuthenticationException("OAuth failure",
+                    oauthFlowTaskSource.SetException(new PrivyAuthenticationException("OAuth failure",
                         AuthenticationError.OAuthVerificationFailed));
                 }
             };
 
             interceptor.OnSignInFailed += () =>
             {
-                oauthFlowTaskSource.SetException(new PrivyException.AuthenticationException("OAuth failure",
+                oauthFlowTaskSource.SetException(new PrivyAuthenticationException("OAuth failure",
                     AuthenticationError.OAuthVerificationFailed));
             };
 

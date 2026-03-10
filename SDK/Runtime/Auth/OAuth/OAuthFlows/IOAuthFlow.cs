@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using Application = UnityEngine.Device.Application;
 
-namespace Privy
+namespace Privy.Auth.OAuth
 {
     internal interface IOAuthFlow
     {

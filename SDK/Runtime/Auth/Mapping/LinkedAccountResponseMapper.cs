@@ -1,7 +1,52 @@
-namespace Privy
-{
-    internal static class LinkedAccountResponseMapper
+using System;
+using Privy.Auth.Models;
+using Privy.Utils;
+
+namespace Privy.Auth.Mapping
+{    internal static class LinkedAccountResponseMapper
     {
+        private static LinkedAccountType ParseType(string type)
+        {
+            if (string.IsNullOrEmpty(type))
+                return LinkedAccountType.Unknown;
+
+            // normalize common server representations which may use underscores or hyphens
+            string normalized = type.Trim().ToLowerInvariant();
+            switch (normalized)
+            {
+                case "embedded_ethereum":
+                case "embeddedethereum":
+                case "embedded-ethereum":
+                    return LinkedAccountType.EmbeddedEthereum;
+                case "embedded_solana":
+                case "embeddedsolana":
+                case "embedded-solana":
+                    return LinkedAccountType.EmbeddedSolana;
+                case "external_wallet":
+                case "externalwallet":
+                case "external-wallet":
+                    return LinkedAccountType.ExternalWallet;
+                default:
+                    break;
+            }
+
+            // fall back to case‑insensitive enum parse for other values
+            if (Enum.TryParse<LinkedAccountType>(type, true, out var result))
+                return result;
+
+            return LinkedAccountType.Unknown;
+        }
+
+        private static DateTimeOffset FromUnixEpoch(long epoch)
+        {
+            if (epoch <= 0)
+                return default;
+            // guess if the value is milliseconds or seconds
+            if (epoch > 1_000_000_000_000) // approx > 2001-09-09 in ms
+                return DateTimeOffset.FromUnixTimeMilliseconds(epoch);
+            return DateTimeOffset.FromUnixTimeSeconds(epoch);
+        }
+
         public static PrivyLinkedAccount MapToPublic(LinkedAccountResponse response)
         {
             PrivyLogger.Debug($"Mapping response type: {response.GetType().Name}");
@@ -15,11 +60,11 @@ namespace Privy
                 {
                     return new ExternalWalletAccount
                     {
-                        Type = walletResponse.Type,
+                        Type = ParseType(walletResponse.Type),
                         Address = walletResponse.Address,
-                        VerifiedAt = walletResponse.VerifiedAt,
-                        FirstVerifiedAt = walletResponse.FirstVerifiedAt,
-                        LatestVerifiedAt = walletResponse.LatestVerifiedAt,
+                        VerifiedAt = FromUnixEpoch(walletResponse.VerifiedAt),
+                        FirstVerifiedAt = FromUnixEpoch(walletResponse.FirstVerifiedAt),
+                        LatestVerifiedAt = FromUnixEpoch(walletResponse.LatestVerifiedAt),
                         ChainType = walletResponse.ChainType,
                         WalletClientType = walletResponse.WalletClientType,
                         ConnectorType = walletResponse.ConnectorType
@@ -31,11 +76,11 @@ namespace Privy
                     return new PrivyEmbeddedSolanaWalletAccount
                     {
                         Id = walletResponse.Id,
-                        Type = walletResponse.Type,
+                        Type = ParseType(walletResponse.Type),
                         Address = walletResponse.Address,
-                        VerifiedAt = walletResponse.VerifiedAt,
-                        FirstVerifiedAt = walletResponse.FirstVerifiedAt,
-                        LatestVerifiedAt = walletResponse.LatestVerifiedAt,
+                        VerifiedAt = FromUnixEpoch(walletResponse.VerifiedAt),
+                        FirstVerifiedAt = FromUnixEpoch(walletResponse.FirstVerifiedAt),
+                        LatestVerifiedAt = FromUnixEpoch(walletResponse.LatestVerifiedAt),
                         Imported = walletResponse.Imported,
                         WalletIndex = walletResponse.WalletIndex,
                         RecoveryMethod = walletResponse.RecoveryMethod
@@ -45,11 +90,11 @@ namespace Privy
                 return new PrivyEmbeddedWalletAccount
                 {
                     Id = walletResponse.Id,
-                    Type = walletResponse.Type,
+                    Type = ParseType(walletResponse.Type),
                     Address = walletResponse.Address,
-                    VerifiedAt = walletResponse.VerifiedAt,
-                    FirstVerifiedAt = walletResponse.FirstVerifiedAt,
-                    LatestVerifiedAt = walletResponse.LatestVerifiedAt,
+                    VerifiedAt = FromUnixEpoch(walletResponse.VerifiedAt),
+                    FirstVerifiedAt = FromUnixEpoch(walletResponse.FirstVerifiedAt),
+                    LatestVerifiedAt = FromUnixEpoch(walletResponse.LatestVerifiedAt),
                     Imported = walletResponse.Imported,
                     WalletIndex = walletResponse.WalletIndex,
                     ChainId = walletResponse.ChainId,
@@ -65,22 +110,22 @@ namespace Privy
             {
                 return new PrivyEmailAccount
                 {
-                    Type = emailResponse.Type,
+                    Type = ParseType(emailResponse.Type),
                     Address = emailResponse.Address,
-                    VerifiedAt = emailResponse.VerifiedAt,
-                    FirstVerifiedAt = emailResponse.FirstVerifiedAt,
-                    LatestVerifiedAt = emailResponse.LatestVerifiedAt
+                    VerifiedAt = FromUnixEpoch(emailResponse.VerifiedAt),
+                    FirstVerifiedAt = FromUnixEpoch(emailResponse.FirstVerifiedAt),
+                    LatestVerifiedAt = FromUnixEpoch(emailResponse.LatestVerifiedAt)
                 };
             }
             else if (response is PhoneAccountResponse phoneResponse)
             {
                 return new PrivyPhoneAccount
                 {
-                    Type = phoneResponse.Type,
+                    Type = ParseType(phoneResponse.Type),
                     PhoneNumber = phoneResponse.PhoneNumber,
-                    VerifiedAt = phoneResponse.VerifiedAt,
-                    FirstVerifiedAt = phoneResponse.FirstVerifiedAt,
-                    LatestVerifiedAt = phoneResponse.LatestVerifiedAt
+                    VerifiedAt = FromUnixEpoch(phoneResponse.VerifiedAt),
+                    FirstVerifiedAt = FromUnixEpoch(phoneResponse.FirstVerifiedAt),
+                    LatestVerifiedAt = FromUnixEpoch(phoneResponse.LatestVerifiedAt)
                 };
             }
             else if (response is GoogleOAuthAccountResponse googleOAuthAccountResponse)
@@ -90,10 +135,10 @@ namespace Privy
                     Subject = googleOAuthAccountResponse.Subject,
                     Email = googleOAuthAccountResponse.Email,
                     Name = googleOAuthAccountResponse.Name,
-                    Type = googleOAuthAccountResponse.Type,
-                    VerifiedAt = googleOAuthAccountResponse.VerifiedAt,
-                    FirstVerifiedAt = googleOAuthAccountResponse.FirstVerifiedAt,
-                    LatestVerifiedAt = googleOAuthAccountResponse.LatestVerifiedAt
+                    Type = ParseType(googleOAuthAccountResponse.Type),
+                    VerifiedAt = FromUnixEpoch(googleOAuthAccountResponse.VerifiedAt),
+                    FirstVerifiedAt = FromUnixEpoch(googleOAuthAccountResponse.FirstVerifiedAt),
+                    LatestVerifiedAt = FromUnixEpoch(googleOAuthAccountResponse.LatestVerifiedAt)
                 };
             }
             else if (response is DiscordOAuthAccountResponse discordOAuthAccountResponse)
@@ -103,10 +148,10 @@ namespace Privy
                     Subject = discordOAuthAccountResponse.Subject,
                     Email = discordOAuthAccountResponse.Email,
                     UserName = discordOAuthAccountResponse.UserName,
-                    Type = discordOAuthAccountResponse.Type,
-                    VerifiedAt = discordOAuthAccountResponse.VerifiedAt,
-                    FirstVerifiedAt = discordOAuthAccountResponse.FirstVerifiedAt,
-                    LatestVerifiedAt = discordOAuthAccountResponse.LatestVerifiedAt
+                    Type = ParseType(discordOAuthAccountResponse.Type),
+                    VerifiedAt = FromUnixEpoch(discordOAuthAccountResponse.VerifiedAt),
+                    FirstVerifiedAt = FromUnixEpoch(discordOAuthAccountResponse.FirstVerifiedAt),
+                    LatestVerifiedAt = FromUnixEpoch(discordOAuthAccountResponse.LatestVerifiedAt)
                 };
             }
             else if (response is TwitterOAuthAccountResponse twitterOAuthAccountResponse)
@@ -117,10 +162,10 @@ namespace Privy
                     UserName = twitterOAuthAccountResponse.UserName,
                     Name = twitterOAuthAccountResponse.Name,
                     ProfilePictureUrl = twitterOAuthAccountResponse.ProfilePictureUrl,
-                    Type = twitterOAuthAccountResponse.Type,
-                    VerifiedAt = twitterOAuthAccountResponse.VerifiedAt,
-                    FirstVerifiedAt = twitterOAuthAccountResponse.FirstVerifiedAt,
-                    LatestVerifiedAt = twitterOAuthAccountResponse.LatestVerifiedAt
+                    Type = ParseType(twitterOAuthAccountResponse.Type),
+                    VerifiedAt = FromUnixEpoch(twitterOAuthAccountResponse.VerifiedAt),
+                    FirstVerifiedAt = FromUnixEpoch(twitterOAuthAccountResponse.FirstVerifiedAt),
+                    LatestVerifiedAt = FromUnixEpoch(twitterOAuthAccountResponse.LatestVerifiedAt)
                 };
             }
             else if (response is AppleOAuthAccountResponse appleOAuthAccountResponse)
@@ -129,10 +174,10 @@ namespace Privy
                 {
                     Subject = appleOAuthAccountResponse.Subject,
                     Email = appleOAuthAccountResponse.Email,
-                    Type = appleOAuthAccountResponse.Type,
-                    VerifiedAt = appleOAuthAccountResponse.VerifiedAt,
-                    FirstVerifiedAt = appleOAuthAccountResponse.FirstVerifiedAt,
-                    LatestVerifiedAt = appleOAuthAccountResponse.LatestVerifiedAt
+                    Type = ParseType(appleOAuthAccountResponse.Type),
+                    VerifiedAt = FromUnixEpoch(appleOAuthAccountResponse.VerifiedAt),
+                    FirstVerifiedAt = FromUnixEpoch(appleOAuthAccountResponse.FirstVerifiedAt),
+                    LatestVerifiedAt = FromUnixEpoch(appleOAuthAccountResponse.LatestVerifiedAt)
                 };
             }
             else

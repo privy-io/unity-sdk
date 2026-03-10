@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
+using Privy.Auth;
 
-namespace Privy
+namespace Privy.Wallets
 {
     /// <summary>
     /// A user's authorization key backed by the embedded iframe
@@ -8,10 +9,10 @@ namespace Privy
     internal class IframeBackedUserAuthorizationKey : IAuthorizationKey
     {
         private readonly EmbeddedWalletManager _embeddedWalletManager;
-        private readonly AuthDelegator _authDelegator;
+        private readonly Privy.Auth.AuthDelegator _authDelegator;
 
         internal IframeBackedUserAuthorizationKey(EmbeddedWalletManager embeddedWalletManager,
-            AuthDelegator authDelegator)
+            Privy.Auth.AuthDelegator authDelegator)
         {
             _embeddedWalletManager = embeddedWalletManager;
             _authDelegator = authDelegator;

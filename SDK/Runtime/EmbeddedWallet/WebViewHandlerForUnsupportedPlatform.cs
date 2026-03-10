@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Privy
+namespace Privy.Wallets
 {
     public class WebViewHandlerForUnsupportedPlatform : IWebViewHandler
     {

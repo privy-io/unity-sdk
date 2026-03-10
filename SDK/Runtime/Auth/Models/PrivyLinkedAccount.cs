@@ -1,18 +1,46 @@
+using System;
 using JetBrains.Annotations;
 
-namespace Privy
+namespace Privy.Auth.Models
 {
+    /// <summary>
+    /// Represents the various kinds of linked accounts a user may have.
+    /// </summary>
+    public enum LinkedAccountType
+    {
+        Email,
+        Phone,
+        Google,
+        Apple,
+        Discord,
+        Twitter,
+        EmbeddedEthereum,
+        EmbeddedSolana,
+        ExternalWallet,
+        Unknown
+    }
+
     public class PrivyLinkedAccount
     {
-        // TODO: convert type to enum
-        public string Type;
+        /// <summary>
+        /// The kind of linked account.
+        /// </summary>
+        public LinkedAccountType Type { get; set; } = LinkedAccountType.Unknown;
 
-        // TODO: convert below date longs to dates
-        public long VerifiedAt;
+        /// <summary>
+        /// When the account was verified (UTC).
+        /// </summary>
+        public DateTimeOffset VerifiedAt { get; set; }
 
-        public long FirstVerifiedAt;
+        /// <summary>
+        /// First time the account was verified (UTC).
+        /// </summary>
+        public DateTimeOffset FirstVerifiedAt { get; set; }
 
-        public long LatestVerifiedAt;
+        /// <summary>
+        /// Most recent verification time (UTC).
+        /// </summary>
+        public DateTimeOffset LatestVerifiedAt { get; set; }
     }
 
     //Privy Embedded Wallet Account

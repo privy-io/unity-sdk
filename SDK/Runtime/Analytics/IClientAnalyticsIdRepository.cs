@@ -1,4 +1,4 @@
-namespace Privy
+namespace Privy.Analytics
 {
     public interface IClientAnalyticsIdRepository
     {

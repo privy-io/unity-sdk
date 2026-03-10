@@ -25,7 +25,7 @@
 using System;
 using UnityEngine;
 
-namespace Privy
+namespace Privy.Wallets
 {
     internal class BrowserDomIframeHandler : IWebViewHandler
     {

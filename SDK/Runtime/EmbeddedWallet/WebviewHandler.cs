@@ -6,7 +6,7 @@
 #if UNITY_IOS || UNITY_ANDROID || UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
 using UnityEngine;
 
-namespace Privy
+namespace Privy.Wallets
 {
     internal class WebViewHandler : IWebViewHandler
     {

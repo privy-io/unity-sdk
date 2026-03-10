@@ -1,4 +1,8 @@
-namespace Privy
+using Privy.Auth;
+using Privy.Auth.Models;
+using Privy.Wallets.WalletApi;
+
+namespace Privy.Wallets
 {
     internal class EmbeddedWallet : IEmbeddedEthereumWallet
     {

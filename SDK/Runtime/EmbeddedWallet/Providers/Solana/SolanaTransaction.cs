@@ -1,6 +1,7 @@
+using Privy.Utils;
 using System;
 
-namespace Privy
+namespace Privy.Wallets
 {
     /// <summary>
     /// Parses and assembles a serialized Solana transaction.
@@ -17,21 +18,21 @@ namespace Privy
         /// Parses the encoded bytes of a Solana transaction and extracts the message portion.
         /// </summary>
         /// <param name="bytes">The serialized transaction bytes.</param>
-        /// <exception cref="PrivyException.EmbeddedWalletException">
+        /// <exception cref="PrivyWalletException">
         /// Thrown when the bytes are too short, the signature count cannot be read, or no message bytes are found.
         /// </exception>
         internal SolanaTransaction(byte[] bytes)
         {
             if (bytes == null || bytes.Length < 4)
             {
-                throw new PrivyException.EmbeddedWalletException(
+                throw new PrivyWalletException(
                     "Transactions have a minimum length of 4 bytes",
                     EmbeddedWalletError.RpcRequestFailed);
             }
 
             if (!TryReadCompactU16(bytes, 0, out ushort signatureCount, out int nextPosition))
             {
-                throw new PrivyException.EmbeddedWalletException(
+                throw new PrivyWalletException(
                     "Unable to read the signature count",
                     EmbeddedWalletError.RpcRequestFailed);
             }
@@ -45,7 +46,7 @@ namespace Privy
             int messagePosition = signatureBlockLength + 1;
             if (messagePosition >= bytes.Length)
             {
-                throw new PrivyException.EmbeddedWalletException(
+                throw new PrivyWalletException(
                     "No message bytes found after signatures",
                     EmbeddedWalletError.RpcRequestFailed);
             }
@@ -61,14 +62,14 @@ namespace Privy
         /// </summary>
         /// <param name="signature">The 64-byte Ed25519 signature over the message bytes.</param>
         /// <returns>The fully assembled signed transaction bytes.</returns>
-        /// <exception cref="PrivyException.EmbeddedWalletException">
+        /// <exception cref="PrivyWalletException">
         /// Thrown when the signature is not exactly 64 bytes.
         /// </exception>
         internal byte[] AddSignature(byte[] signature)
         {
             if (signature == null || signature.Length != 64)
             {
-                throw new PrivyException.EmbeddedWalletException(
+                throw new PrivyWalletException(
                     "The computed signature for the transaction must be 64 bytes long",
                     EmbeddedWalletError.RpcRequestFailed);
             }

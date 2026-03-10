@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using Org.Webpki.JsonCanonicalizer;
 
-namespace Privy
+namespace Privy.Wallets
 {
     internal struct WalletApiPayload
     {

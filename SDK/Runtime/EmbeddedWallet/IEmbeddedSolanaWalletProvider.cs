@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace Privy
+namespace Privy.Wallets
 {
     /// <summary>
     /// Interface for acting on an embedded Solana wallet.

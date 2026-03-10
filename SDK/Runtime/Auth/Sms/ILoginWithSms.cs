@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace Privy
+namespace Privy.Auth.Sms
 {
     /// <summary>
     /// Interface for SMS-based (phone number) authentication methods.
@@ -14,7 +14,7 @@ namespace Privy
         /// </summary>
         /// <param name="phoneNumber">The phone number to which the OTP code will be sent. Must be in E.164 format (e.g. "+15551234567").</param>
         /// <returns>A task that represents the asynchronous operation. The task result is a boolean indicating whether the code was successfully sent.</returns>
-        /// <exception cref="PrivyException.AuthenticationException">Thrown if there is an error while sending the OTP code.</exception>
+        /// <exception cref="PrivyAuthenticationException">Thrown if there is an error while sending the OTP code.</exception>
         Task<bool> SendCode(string phoneNumber);
 
         /// <summary>
@@ -23,7 +23,7 @@ namespace Privy
         /// <param name="phoneNumber">The phone number associated with the OTP code. Must be the same phone number used to request the code.</param>
         /// <param name="code">The OTP code received via SMS. Must be a valid, non-empty code.</param>
         /// <returns>A task that represents the asynchronous operation. The task result is the authentication state indicating whether the login was successful.</returns>
-        /// <exception cref="PrivyException.AuthenticationException">Thrown if the authentication fails due to an invalid OTP code.</exception>
+        /// <exception cref="PrivyAuthenticationException">Thrown if the authentication fails due to an invalid OTP code.</exception>
         Task<AuthState> LoginWithCode(string phoneNumber, string code);
 
         /// <summary>
@@ -34,7 +34,7 @@ namespace Privy
         /// <param name="phoneNumber">The phone number to link. Must be in E.164 format.</param>
         /// <param name="code">The OTP code received via SMS after calling <see cref="SendCode"/>.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        /// <exception cref="PrivyException.AuthenticationException">Thrown if the user is not authenticated or if the link operation fails.</exception>
+        /// <exception cref="PrivyAuthenticationException">Thrown if the user is not authenticated or if the link operation fails.</exception>
         Task Link(string phoneNumber, string code);
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace Privy
         /// </summary>
         /// <param name="phoneNumber">The phone number to unlink. Must be in E.164 format.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        /// <exception cref="PrivyException.AuthenticationException">Thrown if the user is not authenticated or if the unlink operation fails.</exception>
+        /// <exception cref="PrivyAuthenticationException">Thrown if the user is not authenticated or if the unlink operation fails.</exception>
         Task Unlink(string phoneNumber);
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace Privy
         /// <param name="phoneNumber">The new phone number to replace the existing one with. Must be in E.164 format.</param>
         /// <param name="code">The OTP code sent to the new phone number via <see cref="SendCode"/>.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        /// <exception cref="PrivyException.AuthenticationException">Thrown if the user is not authenticated, the OTP is incorrect, or the update fails.</exception>
+        /// <exception cref="PrivyAuthenticationException">Thrown if the user is not authenticated, the OTP is incorrect, or the update fails.</exception>
         Task UpdatePhoneNumber(string phoneNumber, string code);
     }
 }

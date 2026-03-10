@@ -1,14 +1,17 @@
 using System;
 using System.Threading.Tasks;
+using Privy.Auth.Models;
+using Privy.Internal.Session;
+using Privy.Utils;
 
-namespace Privy
+namespace Privy.Auth
 {
     internal class AuthDelegator : IAuthDelegator
     {
         private IAuthRepository _authRepository;
         private InternalAuthSessionStorage _internalAuthSessionStorage;
         private InternalAuthSession _internalAuthSession;
-        public AuthState CurrentAuthState; //Public property for privy class to access
+        public AuthState CurrentAuthState { get; private set; } //Public property for privy class to access
         private Task _refreshSessionTask;
 
         private void UpdateAuthState(AuthState newState)
@@ -32,11 +35,8 @@ namespace Privy
             UpdateAuthState(AuthState.NotReady);
         }
 
-        public void SetAuthStateChangeCallback(Action<AuthState> callback)
-        {
-            OnAuthStateChanged += new AuthStateChangedHandler(callback);
-            callback(CurrentAuthState);
-        }
+        // The SDK-hosted object will subscribe directly to this event and re‑expose it publicly.
+        // No need for a convenience setter anymore.
 
 
         //Methods to trigger Auth Repository
@@ -45,7 +45,7 @@ namespace Privy
             if (string.IsNullOrEmpty(email))
             {
                 //This check saves us from making a request we know will faill
-                throw new PrivyException.AuthenticationException("Email cannot be null or empty",
+                throw new PrivyAuthenticationException("Email cannot be null or empty",
                     AuthenticationError.EmailEmpty);
             }
 
@@ -60,13 +60,13 @@ namespace Privy
         {
             if (string.IsNullOrEmpty(email))
             {
-                throw new PrivyException.AuthenticationException("Email cannot be null or empty",
+                throw new PrivyAuthenticationException("Email cannot be null or empty",
                     AuthenticationError.EmailEmpty);
             }
 
             if (string.IsNullOrEmpty(code))
             {
-                throw new PrivyException.AuthenticationException("Code cannot be null or empty",
+                throw new PrivyAuthenticationException("Code cannot be null or empty",
                     AuthenticationError.OtpEmpty);
             }
 
@@ -77,7 +77,7 @@ namespace Privy
             {
                 UpdateAuthState(AuthState.Unauthenticated);
                 //This gets thrown if request is successful, but the internal auth session does not have accurate data
-                throw new PrivyException.AuthenticationException("Could not sign in, invalid OTP",
+                throw new PrivyAuthenticationException("Could not sign in, invalid OTP",
                     AuthenticationError.WrongOtpCode);
             }
 
@@ -90,19 +90,19 @@ namespace Privy
         {
             if (string.IsNullOrEmpty(codeChallenge))
             {
-                throw new PrivyException.AuthenticationException("Code Challenge cannot be null or empty",
+                throw new PrivyAuthenticationException("Code Challenge cannot be null or empty",
                     AuthenticationError.CodeChallengeEmpty);
             }
 
             if (string.IsNullOrEmpty(stateCode))
             {
-                throw new PrivyException.AuthenticationException("State Code cannot be null or empty",
+                throw new PrivyAuthenticationException("State Code cannot be null or empty",
                     AuthenticationError.StateCodeEmpty);
             }
 
             if (string.IsNullOrEmpty(redirectUri))
             {
-                throw new PrivyException.AuthenticationException("Redirect URI cannot be null or empty",
+                throw new PrivyAuthenticationException("Redirect URI cannot be null or empty",
                     AuthenticationError.RedirectUriEmpty);
             }
 
@@ -115,19 +115,19 @@ namespace Privy
         {
             if (string.IsNullOrEmpty(authorizationCode))
             {
-                throw new PrivyException.AuthenticationException("Authorization Code cannot be null or empty",
+                throw new PrivyAuthenticationException("Authorization Code cannot be null or empty",
                     AuthenticationError.AuthorizationCodeEmpty);
             }
 
             if (string.IsNullOrEmpty(codeVerifier))
             {
-                throw new PrivyException.AuthenticationException("Code Verifier cannot be null or empty",
+                throw new PrivyAuthenticationException("Code Verifier cannot be null or empty",
                     AuthenticationError.CodeVerifierEmpty);
             }
 
             if (string.IsNullOrEmpty(stateCode))
             {
-                throw new PrivyException.AuthenticationException("State Code cannot be null or empty",
+                throw new PrivyAuthenticationException("State Code cannot be null or empty",
                     AuthenticationError.StateCodeEmpty);
             }
 
@@ -138,7 +138,7 @@ namespace Privy
             if (authSession == null || authSession.User == null)
             {
                 UpdateAuthState(AuthState.Unauthenticated);
-                throw new PrivyException.AuthenticationException("Could not sign in, invalid OAuth result",
+                throw new PrivyAuthenticationException("Could not sign in, invalid OAuth result",
                     AuthenticationError.InvalidOAuthResult);
             }
 
@@ -150,7 +150,7 @@ namespace Privy
         {
             if (string.IsNullOrEmpty(phoneNumber))
             {
-                throw new PrivyException.AuthenticationException("Phone number cannot be null or empty",
+                throw new PrivyAuthenticationException("Phone number cannot be null or empty",
                     AuthenticationError.PhoneNumberEmpty);
             }
 
@@ -165,13 +165,13 @@ namespace Privy
         {
             if (string.IsNullOrEmpty(phoneNumber))
             {
-                throw new PrivyException.AuthenticationException("Phone number cannot be null or empty",
+                throw new PrivyAuthenticationException("Phone number cannot be null or empty",
                     AuthenticationError.PhoneNumberEmpty);
             }
 
             if (string.IsNullOrEmpty(code))
             {
-                throw new PrivyException.AuthenticationException("Code cannot be null or empty",
+                throw new PrivyAuthenticationException("Code cannot be null or empty",
                     AuthenticationError.OtpEmpty);
             }
 
@@ -180,7 +180,7 @@ namespace Privy
             if (authSession == null || authSession.User == null)
             {
                 UpdateAuthState(AuthState.Unauthenticated);
-                throw new PrivyException.AuthenticationException("Could not sign in, invalid OTP",
+                throw new PrivyAuthenticationException("Could not sign in, invalid OTP",
                     AuthenticationError.WrongOtpCode);
             }
 
@@ -192,13 +192,13 @@ namespace Privy
         {
             if (string.IsNullOrEmpty(phoneNumber))
             {
-                throw new PrivyException.AuthenticationException("Phone number cannot be null or empty",
+                throw new PrivyAuthenticationException("Phone number cannot be null or empty",
                     AuthenticationError.PhoneNumberEmpty);
             }
 
             if (string.IsNullOrEmpty(code))
             {
-                throw new PrivyException.AuthenticationException("Code cannot be null or empty",
+                throw new PrivyAuthenticationException("Code cannot be null or empty",
                     AuthenticationError.OtpEmpty);
             }
 
@@ -214,7 +214,7 @@ namespace Privy
         {
             if (string.IsNullOrEmpty(phoneNumber))
             {
-                throw new PrivyException.AuthenticationException("Phone number cannot be null or empty",
+                throw new PrivyAuthenticationException("Phone number cannot be null or empty",
                     AuthenticationError.PhoneNumberEmpty);
             }
 
@@ -230,13 +230,13 @@ namespace Privy
         {
             if (string.IsNullOrEmpty(phoneNumber))
             {
-                throw new PrivyException.AuthenticationException("Phone number cannot be null or empty",
+                throw new PrivyAuthenticationException("Phone number cannot be null or empty",
                     AuthenticationError.PhoneNumberEmpty);
             }
 
             if (string.IsNullOrEmpty(code))
             {
-                throw new PrivyException.AuthenticationException("Code cannot be null or empty",
+                throw new PrivyAuthenticationException("Code cannot be null or empty",
                     AuthenticationError.OtpEmpty);
             }
 
@@ -342,7 +342,7 @@ namespace Privy
         {
             if (_internalAuthSession == null || CurrentAuthState != AuthState.Authenticated)
             {
-                throw new PrivyException.AuthenticationException($"User is not authenticated",
+                throw new PrivyAuthenticationException($"User is not authenticated",
                     AuthenticationError.NotAuthenticated);
             }
 
@@ -360,24 +360,23 @@ namespace Privy
         {
             //Either a new session, or a refreshed session
 
-
-            string sessionUpdateAction = authSession.SessionUpdateAction; //make this an enum
+            SessionUpdateAction sessionUpdateAction = authSession.SessionUpdateAction;
 
             switch (sessionUpdateAction)
             {
-                case "set":
+                case SessionUpdateAction.Set:
                     // Save tokens in keychain and update auth state to authenticated
                     _internalAuthSessionStorage.SaveInternalAuthSessionInStorage(authSession);
                     _internalAuthSession = authSession;
                     UpdateAuthState(AuthState.Authenticated);
                     break;
 
-                case "clear":
+                case SessionUpdateAction.Clear:
                     // Log user out, which handles clearing session state
                     Logout();
                     break;
 
-                case "ignore":
+                case SessionUpdateAction.Ignore:
                     //Handle ignore
                     _internalAuthSessionStorage.SaveInternalAuthSessionInStorage(authSession);
                     _internalAuthSession = authSession;

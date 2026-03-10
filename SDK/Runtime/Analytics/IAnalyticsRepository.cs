@@ -1,8 +1,10 @@
 using System;
 using System.Threading.Tasks;
+using Privy.Internal.Networking;
 using Newtonsoft.Json;
+using Privy.Utils;
 
-namespace Privy
+namespace Privy.Analytics
 {
     internal interface IAnalyticsRepository
     {
@@ -12,10 +14,10 @@ namespace Privy
     internal class AnalyticsEventRequestData
     {
         [JsonProperty("event_name")]
-        public string EventName;
+        public string EventName { get; set; }
 
         [JsonProperty("client_id")]
-        public string ClientId;
+        public string ClientId { get; set; }
     }
 
     class AnalyticsRepository : IAnalyticsRepository

@@ -1,11 +1,25 @@
 using System;
 using System.Threading.Tasks;
+using Privy.Auth;
+using Privy.Auth.Email;
+using Privy.Auth.Sms;
+using Privy.Auth.OAuth;
+using Privy.Auth.Models;
+using Privy.Config;
+using Privy.Wallets;
+using Privy.Analytics;
+using Privy.Internal.Storage;
+using Privy.Internal.Networking;
+using Privy.Utils;
 
-namespace Privy
+namespace Privy.Core
 {
     internal class PrivyImpl : IPrivy
     {
         private IHttpRequestHandler _httpRequestHandler;
+        
+        // Expose auth state change notifications
+        public event Action<AuthState> AuthStateChanged;
 
         private PlayerPrefsDataManager _playerPrefsDataManager;
 
@@ -92,6 +106,8 @@ namespace Privy
             _appConfigRepository = new AppConfigRepository(config, _httpRequestHandler);
             _authRepository = new AuthRepository(_httpRequestHandler);
             _authDelegator = new AuthDelegator(_authRepository, _internalAuthSessionStorage);
+            // forward internal auth changes
+            _authDelegator.OnAuthStateChanged += state => AuthStateChanged?.Invoke(state);
             _embeddedWalletManager = new EmbeddedWalletManager(_webViewManager, _authDelegator);
             _analyticsRepository = new AnalyticsRepository(_httpRequestHandler, _clientAnalyticsIdRepository);
             _analyticsManager = new AnalyticsManager(_analyticsRepository);
@@ -119,10 +135,8 @@ namespace Privy
         }
 
 
-        public void SetAuthStateChangeCallback(Action<AuthState> callback)
-        {
-            _authDelegator.SetAuthStateChangeCallback(callback);
-        }
+        // Authentication state changes are surfaced via the public AuthStateChanged event.
+        // Consumers subscribe directly to this event so no helper method is required.
 
         public void Logout()
         {

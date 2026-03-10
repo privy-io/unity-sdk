@@ -2,7 +2,7 @@
 //It also ties the connected state to the wallet address
 //Essentially, if the state is connected, you can also get the address from that call, without needing to call EmbeddedWallets and parse the primary address
 
-namespace Privy
+namespace Privy.Wallets
 {
     public abstract class EmbeddedWalletState
     {

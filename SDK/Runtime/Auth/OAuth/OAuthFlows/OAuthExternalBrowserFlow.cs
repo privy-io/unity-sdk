@@ -1,8 +1,9 @@
 using System;
 using System.Threading.Tasks;
 using UnityEngine;
+using Privy.Utils;
 
-namespace Privy
+namespace Privy.Auth.OAuth
 {
     internal class OAuthExternalBrowserFlow : IOAuthFlow
     {

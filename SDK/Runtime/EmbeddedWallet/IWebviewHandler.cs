@@ -7,7 +7,9 @@
 // this interface ensures that the WebViewManager can manage these components in a unified manner, 
 // without needing to worry about the underlying implementation details.
 
-namespace Privy
+using Privy.Config;
+
+namespace Privy.Wallets
 {
     public interface IWebViewHandler
     {

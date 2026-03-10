@@ -1,4 +1,4 @@
-namespace Privy
+namespace Privy.Wallets
 {
     /// <summary>
     /// Represents an embedded Solana wallet within the Privy SDK.

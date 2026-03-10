@@ -4,8 +4,11 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
+using Privy.Config;
+using Privy.Analytics;
+using Privy.Utils;
 
-namespace Privy
+namespace Privy.Internal.Networking
 {
     internal class HttpRequestHandler : IHttpRequestHandler
     {

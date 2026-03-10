@@ -2,8 +2,13 @@ using System;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Privy.Auth.Models;
+using Privy.Auth.Mapping;
+using Privy.Auth.Converters;
+using Privy.Internal.Networking;
+using Privy.Utils;
 
-namespace Privy
+namespace Privy.Auth
 {
     internal class AuthRepository : IAuthRepository
     {
@@ -36,8 +41,8 @@ namespace Privy
             }
             catch (Exception ex)
             {
-                throw new PrivyException.AuthenticationException($"Failed to send email code: {ex.Message}",
-                    AuthenticationError.SendCodeFailed);
+                throw new PrivyAuthenticationException($"Failed to send email code: {ex.Message}",
+                    AuthenticationError.SendCodeFailed, ex);
             }
         }
 
@@ -73,8 +78,8 @@ namespace Privy
             catch (Exception ex)
             {
                 //This catches request failures
-                throw new PrivyException.AuthenticationException($"Failed to login with email code: {ex.Message}",
-                    AuthenticationError.WrongOtpCode);
+                throw new PrivyAuthenticationException($"Failed to login with email code: {ex.Message}",
+                    AuthenticationError.WrongOtpCode, ex);
             }
         }
 
@@ -104,8 +109,8 @@ namespace Privy
             }
             catch (Exception ex)
             {
-                throw new PrivyException.AuthenticationException($"Failed to initiate OAuth: {ex.Message}",
-                    AuthenticationError.OAuthInitFailed);
+                throw new PrivyAuthenticationException($"Failed to initiate OAuth: {ex.Message}",
+                    AuthenticationError.OAuthInitFailed, ex);
             }
         }
 
@@ -135,8 +140,8 @@ namespace Privy
             }
             catch (Exception ex)
             {
-                throw new PrivyException.AuthenticationException($"Failed to authenticate with OAuth: {ex.Message}",
-                    AuthenticationError.OAuthAuthenticateFailed);
+                throw new PrivyAuthenticationException($"Failed to authenticate with OAuth: {ex.Message}",
+                    AuthenticationError.OAuthAuthenticateFailed, ex);
             }
         }
 
@@ -176,8 +181,8 @@ namespace Privy
             }
             catch (Exception ex)
             {
-                throw new PrivyException.AuthenticationException($"Failed to refresh session: {ex.Message}",
-                    AuthenticationError.RefreshFailed);
+                throw new PrivyAuthenticationException($"Failed to refresh session: {ex.Message}",
+                    AuthenticationError.RefreshFailed, ex);
             }
         }
 
@@ -224,13 +229,13 @@ namespace Privy
             catch (Exception ex) when (ex.Message.Contains("422"))
             {
                 // backend returns 422 for invalid phone format or similar
-                throw new PrivyException.AuthenticationException("Invalid phone number format.",
-                    AuthenticationError.InvalidPhoneNumber);
+                throw new PrivyAuthenticationException("Invalid phone number format.",
+                    AuthenticationError.InvalidPhoneNumber, ex);
             }
             catch (Exception ex)
             {
-                throw new PrivyException.AuthenticationException($"Failed to send SMS code: {ex.Message}",
-                    AuthenticationError.SendCodeFailed);
+                throw new PrivyAuthenticationException($"Failed to send SMS code: {ex.Message}",
+                    AuthenticationError.SendCodeFailed, ex);
             }
         }
 
@@ -253,13 +258,13 @@ namespace Privy
             }
             catch (Exception ex) when (ex.Message.Contains("422"))
             {
-                throw new PrivyException.AuthenticationException("Incorrect OTP code.",
+                throw new PrivyAuthenticationException("Incorrect OTP code.",
                     AuthenticationError.IncorrectOtpCode);
             }
             catch (Exception ex)
             {
-                throw new PrivyException.AuthenticationException($"Failed to login with SMS code: {ex.Message}",
-                    AuthenticationError.WrongOtpCode);
+                throw new PrivyAuthenticationException($"Failed to login with SMS code: {ex.Message}",
+                    AuthenticationError.WrongOtpCode, ex);
             }
         }
 
@@ -287,13 +292,13 @@ namespace Privy
             }
             catch (Exception ex) when (ex.Message.Contains("422"))
             {
-                throw new PrivyException.AuthenticationException("Incorrect OTP code.",
+                throw new PrivyAuthenticationException("Incorrect OTP code.",
                     AuthenticationError.IncorrectOtpCode);
             }
             catch (Exception ex)
             {
-                throw new PrivyException.AuthenticationException($"Failed to link SMS: {ex.Message}",
-                    AuthenticationError.LinkFailed);
+                throw new PrivyAuthenticationException($"Failed to link SMS: {ex.Message}",
+                    AuthenticationError.LinkFailed, ex);
             }
         }
 
@@ -321,13 +326,13 @@ namespace Privy
             }
             catch (Exception ex) when (ex.Message.Contains("422"))
             {
-                throw new PrivyException.AuthenticationException("Incorrect OTP code.",
+                throw new PrivyAuthenticationException("Incorrect OTP code.",
                     AuthenticationError.IncorrectOtpCode);
             }
             catch (Exception ex)
             {
-                throw new PrivyException.AuthenticationException($"Failed to update SMS phone number: {ex.Message}",
-                    AuthenticationError.LinkFailed);
+                throw new PrivyAuthenticationException($"Failed to update SMS phone number: {ex.Message}",
+                    AuthenticationError.LinkFailed, ex);
             }
         }
 
@@ -354,8 +359,8 @@ namespace Privy
             }
             catch (Exception ex)
             {
-                throw new PrivyException.AuthenticationException($"Failed to unlink SMS: {ex.Message}",
-                    AuthenticationError.UnlinkFailed);
+                throw new PrivyAuthenticationException($"Failed to unlink SMS: {ex.Message}",
+                    AuthenticationError.UnlinkFailed, ex);
             }
         }
     }

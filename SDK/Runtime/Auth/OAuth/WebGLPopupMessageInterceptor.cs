@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Privy
+namespace Privy.Auth.OAuth
 {
     public class WebGLPopupMessageInterceptor : MonoBehaviour
     {

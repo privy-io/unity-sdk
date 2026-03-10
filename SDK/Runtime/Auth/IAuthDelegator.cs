@@ -1,11 +1,11 @@
 using System;
 using System.Threading.Tasks;
+using Privy.Auth.Models;
 
-namespace Privy
+namespace Privy.Auth
 {
     internal interface IAuthDelegator
     {
-        void SetAuthStateChangeCallback(Action<AuthState> callback);
         Task<bool> SendEmailCode(string email);
         Task<AuthState> LoginWithEmailCode(string email, string code);
 

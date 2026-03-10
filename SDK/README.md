@@ -30,11 +30,15 @@ If you are contributing to the Privy SDK codebase, **read
 ### Initialization
 
 ```csharp
+using Privy.Core;
+using Privy.Config;
+
 var config = new PrivyConfig{
     AppId = "YOUR_APP_ID",
     ClientId = "CLIENT_ID"
 };
 
+// synchronous initialization – returns the SDK instance immediately
 PrivyManager.Initialize(config);
 ```
 
@@ -42,8 +46,8 @@ PrivyManager.Initialize(config);
 
 When the Privy SDK is initialized, it will automatically begin to load its necessary
 dependencies and restoring user session data.
-By awaiting on `GetAuthState` you can ensure the SDK will be ready to use in full
-after returning.
+By awaiting on `GetAuthState` you can ensure the SDK has finished its
+background setup before proceeding; this call will block until initialization completes.
 
 ```csharp
 var authState = await PrivyManager.Instance.GetAuthState();
@@ -95,7 +99,7 @@ try {
     PrivyUser privyUser = PrivyManager.Instance.User;
 
     if (privyUser != null) {
-        IEmbeddedWallet wallet = await PrivyManager.Instance.User.CreateWallet();
+        IEmbeddedEthereumWallet wallet = await PrivyManager.Instance.User.CreateWallet();
         Debug.Log("New wallet created with address: " + wallet.address);
     }
 } catch {
@@ -107,7 +111,7 @@ try {
 
 ```csharp
 try {
-    IEmbeddedWallet embeddedWallet = PrivyManager.Instance.User.EmbeddedWallets[0];
+    IEmbeddedEthereumWallet embeddedWallet = PrivyManager.Instance.User.EmbeddedWallets[0];
 
     var rpcRequest = new RpcRequest
     {

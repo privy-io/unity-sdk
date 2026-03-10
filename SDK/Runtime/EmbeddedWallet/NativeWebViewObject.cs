@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Privy
+namespace Privy.Wallets
 {
     /// <summary>
     /// An <see href="https://refactoring.guru/design-patterns/adapter">adapter</see> class for the <see cref="WebViewObject"/>

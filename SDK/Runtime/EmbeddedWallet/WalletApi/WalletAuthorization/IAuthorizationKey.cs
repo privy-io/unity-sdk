@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace Privy
+namespace Privy.Wallets
 {
     /// <summary>
     /// Keys used for authorizing requests to the Wallet API.

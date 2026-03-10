@@ -1,6 +1,7 @@
+using Privy.Utils;
 using System.Threading.Tasks;
 
-namespace Privy
+namespace Privy.Auth.OAuth
 {
     internal class NativeAppleSignInFlow
     {
@@ -11,7 +12,7 @@ namespace Privy
             {
                 if (error != null && error.Code != 0)
                 {
-                    taskSource.SetException(new PrivyException.AuthenticationException(error.Message,
+                    taskSource.SetException(new PrivyAuthenticationException(error.Message,
                         AuthenticationError.OAuthVerificationFailed));
                     return;
                 }

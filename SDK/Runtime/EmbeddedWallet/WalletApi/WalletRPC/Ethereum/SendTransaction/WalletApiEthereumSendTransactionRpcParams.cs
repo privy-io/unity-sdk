@@ -2,7 +2,7 @@ using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Privy
+namespace Privy.Wallets
 {
     internal struct WalletApiEthereumSendTransactionRpcParams
     {

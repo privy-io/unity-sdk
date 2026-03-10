@@ -2,7 +2,7 @@ using System;
 using System.Web;
 using Newtonsoft.Json;
 
-namespace Privy
+namespace Privy.Auth.OAuth
 {
     internal class OAuthResultData
     {

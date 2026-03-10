@@ -1,11 +1,9 @@
 using System.Threading.Tasks;
-using static Privy.RpcRequestData;
-using static Privy.RpcResponseData;
 
-namespace Privy
+namespace Privy.Wallets
 {
     internal interface IRpcExecutor
     {
-        internal Task<IRpcResponseDetails> Evaluate(IRpcRequestDetails request);
+        internal Task<RpcResponseData.IRpcResponseDetails> Evaluate(RpcRequestData.IRpcRequestDetails request);
     }
 }

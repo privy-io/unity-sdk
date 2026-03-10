@@ -1,10 +1,10 @@
-namespace Privy
+namespace Privy.Internal.Storage
 {
     internal interface IPlayerPrefsDataManager
     {
         //Generic Types here
         void SaveData<T>(string key, T data);
-        string LoadData<T>(string key);
+        T LoadData<T>(string key);
         void DeleteData(string key);
     }
 }

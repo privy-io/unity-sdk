@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
+using Privy.Auth.Models;
 
-namespace Privy
+namespace Privy.Auth.OAuth
 {
     /// <summary>
     ///     Interface for oauth-based authentication methods.
@@ -15,7 +16,7 @@ namespace Privy
         ///     A task that represents the asynchronous operation. The task result is the authentication state (Authenticated,
         ///     Unauthenticated), indicating whether the login was successful or failed.
         /// </returns>
-        /// <exception cref="PrivyException.AuthenticationException">Thrown if the authentication fails.</exception>
+        /// <exception cref="PrivyAuthenticationException">Thrown if the authentication fails.</exception>
         Task<AuthState> LoginWithProvider(OAuthProvider provider, string redirectUri);
     }
 }

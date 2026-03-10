@@ -2,8 +2,10 @@ using System;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Privy.Config;
+using Privy.Utils;
 
-namespace Privy
+namespace Privy.Wallets
 {
     internal class WebViewManager
     {
@@ -293,7 +295,7 @@ namespace Privy
             }
             else
             {
-                throw new PrivyException.EmbeddedWalletException($"Failed to create wallet",
+                throw new PrivyWalletException($"Failed to create wallet",
                     EmbeddedWalletError.CreateFailed); //This bubbles up to top level
             }
         }
@@ -325,7 +327,7 @@ namespace Privy
             }
             else
             {
-                throw new PrivyException.EmbeddedWalletException($"Failed to create wallet",
+                throw new PrivyWalletException($"Failed to create wallet",
                     EmbeddedWalletError.CreateFailed); //This bubbles up to top level
             }
         }
@@ -361,7 +363,7 @@ namespace Privy
             }
             else
             {
-                throw new PrivyException.EmbeddedWalletException($"Failed to create additional wallet",
+                throw new PrivyWalletException($"Failed to create additional wallet",
                     EmbeddedWalletError.CreateAdditionalFailed); //This bubbles up to top level
             }
         }
@@ -396,7 +398,7 @@ namespace Privy
             }
             else
             {
-                throw new PrivyException.EmbeddedWalletException($"Failed to connect wallet",
+                throw new PrivyWalletException($"Failed to connect wallet",
                     EmbeddedWalletError.ConnectionFailed);
             }
         }
@@ -429,7 +431,7 @@ namespace Privy
             }
             else
             {
-                throw new PrivyException.EmbeddedWalletException($"Failed to recover wallet",
+                throw new PrivyWalletException($"Failed to recover wallet",
                     EmbeddedWalletError.RecoverFailed);
             }
         }
@@ -466,7 +468,7 @@ namespace Privy
             }
             else
             {
-                throw new PrivyException.EmbeddedWalletException($"Failed to execute request",
+                throw new PrivyWalletException($"Failed to execute request",
                     EmbeddedWalletError.RpcRequestFailed);
             }
         }
@@ -498,7 +500,7 @@ namespace Privy
                 return errorResponse;
             }
 
-            throw new PrivyException.EmbeddedWalletException($"Failed to sign with the user's authorization key",
+            throw new PrivyWalletException($"Failed to sign with the user's authorization key",
                 EmbeddedWalletError.UserSignerRequestFailed);
         }
     }

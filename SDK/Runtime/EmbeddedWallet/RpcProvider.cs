@@ -1,7 +1,8 @@
+using Privy.Utils;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Privy
+namespace Privy.Wallets
 {
     internal class RpcProvider : IRpcProvider
     {
@@ -43,7 +44,7 @@ namespace Privy
                     };
                 }
 
-                throw new PrivyException.EmbeddedWalletException($"Failed to execute RPC Request",
+                throw new PrivyWalletException($"Failed to execute RPC Request",
                     EmbeddedWalletError.RpcRequestFailed);
             }
             else

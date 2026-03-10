@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace Privy
+namespace Privy.Auth.Sms
 {
     internal class LoginWithSms : ILoginWithSms
     {

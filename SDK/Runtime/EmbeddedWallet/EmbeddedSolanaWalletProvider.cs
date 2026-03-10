@@ -1,8 +1,9 @@
 using System.Threading.Tasks;
-using static Privy.RpcRequestData;
-using static Privy.RpcResponseData;
+using Privy.Utils;
+using static Privy.Wallets.RpcRequestData;
+using static Privy.Wallets.RpcResponseData;
 
-namespace Privy
+namespace Privy.Wallets
 {
     internal class EmbeddedSolanaWalletProvider : IEmbeddedSolanaWalletProvider
     {
@@ -27,7 +28,7 @@ namespace Privy
                 solanaResponse.Data is SolanaSignMessageRpcResponseData signatureData)
                 return signatureData.Signature;
 
-            throw new PrivyException.EmbeddedWalletException("Failed to execute message signature",
+            throw new PrivyWalletException("Failed to execute message signature",
                 EmbeddedWalletError.RpcRequestFailed);
         }
 
@@ -45,7 +46,7 @@ namespace Privy
                 solanaResponse.Data is SolanaSignTransactionRpcResponseData txData)
                 return txData.SignedTransaction;
 
-            throw new PrivyException.EmbeddedWalletException("Failed to sign transaction",
+            throw new PrivyWalletException("Failed to sign transaction",
                 EmbeddedWalletError.RpcRequestFailed);
         }
 
@@ -79,7 +80,7 @@ namespace Privy
                 solanaResponse.Data is SolanaSignAndSendTransactionRpcResponseData hashData)
                 return hashData.Hash;
 
-            throw new PrivyException.EmbeddedWalletException("Failed to sign and send transaction",
+            throw new PrivyWalletException("Failed to sign and send transaction",
                 EmbeddedWalletError.RpcRequestFailed);
         }
     }

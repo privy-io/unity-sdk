@@ -1,3 +1,4 @@
+using Privy.Utils;
 using System.IO;
 using System.Text.RegularExpressions;
 using UnityEditor;
@@ -69,7 +70,7 @@ public class VersionedExport
 
     private static string ReadVersionNumber()
     {
-        var version = Privy.SdkVersion.VersionNumber;
+        var version = SdkVersion.VersionNumber;
 
         if (!SemverRegex.IsMatch(version))
         {

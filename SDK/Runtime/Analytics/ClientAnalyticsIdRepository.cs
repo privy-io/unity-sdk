@@ -1,6 +1,8 @@
 using System;
+using Privy.Internal.Storage;
+using Privy.Utils;
 
-namespace Privy
+namespace Privy.Analytics
 {
     public class ClientAnalyticsIdRepository : IClientAnalyticsIdRepository
     {

@@ -1,7 +1,8 @@
 using System;
 using System.Threading.Tasks;
+using Privy.Config;
 
-namespace Privy
+namespace Privy.Core
 {
     public class PrivyManager
     {
@@ -21,31 +22,19 @@ namespace Privy
             }
         }
 
-        // Method to initialize a single Privy instance
+        // Synchronous initialization.  Returns the SDK instance immediately and
+        // begins background setup.  Consumers do **not** need to await this call.
         public static IPrivy Initialize(PrivyConfig config)
         {
             if (_privyInstance == null)
             {
                 _privyInstance = new PrivyImpl(config);
-                //This function is called from a static class, which lets us bypass the inability to call async functions in a constructor
-                _ = _privyInstance.InitializeAsync(); // Start async initialization without awaiting
+                // fire-and-forget initialization; any calls to GetAuthState/GetUser will
+                // await internally until initialization completes.
+                _ = _privyInstance.InitializeAsync();
             }
 
-            return _privyInstance; // Return the instance immediately
-        }
-
-        [Obsolete("Use privy.GetAuthState() instead, which handles awaiting ready under the hood.")]
-        public static async Task AwaitReady()
-        {
-            //Accesses _privyInstance, which is static
-            if (_privyInstance != null)
-            {
-                await _privyInstance.InitializationTask; // Await the completion of the initialization task
-            }
-            else
-            {
-                throw new InvalidOperationException("Privy has not been initialized.");
-            }
+            return _privyInstance; // return immediately
         }
     }
 }

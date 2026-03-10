@@ -4,7 +4,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using IngameDebugConsole;
 using Newtonsoft.Json;
-using Privy;
+using Privy.Core;
+using Privy.Auth;
+using Privy.Auth.Models;
+using Privy.Wallets;
 using UnityEngine;
 
 /// <summary>

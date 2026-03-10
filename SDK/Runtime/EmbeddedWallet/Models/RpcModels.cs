@@ -1,4 +1,4 @@
-namespace Privy
+namespace Privy.Wallets
 {
     public class RpcRequest
     {

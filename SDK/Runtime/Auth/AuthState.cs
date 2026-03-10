@@ -1,4 +1,4 @@
-namespace Privy
+namespace Privy.Auth
 {
     public enum AuthState
     {

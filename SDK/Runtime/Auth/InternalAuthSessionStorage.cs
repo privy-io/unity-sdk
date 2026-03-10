@@ -1,6 +1,8 @@
-using Newtonsoft.Json;
+using Privy.Utils;
+using Privy.Internal.Storage;
+using Privy.Auth.Models;
 
-namespace Privy
+namespace Privy.Auth
 {
     internal class InternalAuthSessionStorage
     {
@@ -13,21 +15,9 @@ namespace Privy
 
         internal InternalAuthSession RetrieveInternalAuthSessionFromStorage()
         {
-            string persistedSession =
-                _playerPrefsDataManager.LoadData<InternalAuthSession>(Constants
-                    .INTERNAL_AUTH_SESSION_KEY); //key should be a constant
-
-            if (string.IsNullOrEmpty(persistedSession))
-            {
-                return null;
-            }
-
-            JsonSerializerSettings settings = new JsonSerializerSettings
-            {
-                TypeNameHandling = TypeNameHandling.All,
-            };
-
-            return JsonConvert.DeserializeObject<InternalAuthSession>(persistedSession, settings);
+            // generic load will already deserialize or return default
+            return _playerPrefsDataManager.LoadData<InternalAuthSession>(
+                Constants.INTERNAL_AUTH_SESSION_KEY);
         }
 
         internal void SaveInternalAuthSessionInStorage(InternalAuthSession internalAuthSession)

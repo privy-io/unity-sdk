@@ -4,6 +4,10 @@ using UnityEngine.UI;
 using TMPro;
 using Newtonsoft.Json;
 using Privy;
+using Privy.Core;
+using Privy.Auth;
+using Privy.Auth.Models;
+using Privy.Utils;
 
 /// <summary>
 /// Controls all auth screens: send-code, login-with-code (both Email and SMS),
@@ -71,7 +75,7 @@ public class AuthScreenController : MonoBehaviour
         if (updateSmsPhoneButton != null)
             updateSmsPhoneButton.onClick.AddListener(OnUpdateSmsPhoneButtonClick);
 
-        PrivyManager.Instance.SetAuthStateChangeCallback(OnAuthStateChange);
+        PrivyManager.Instance.AuthStateChanged += OnAuthStateChange;
     }
 
     // ── Login method switching ───────────────────────────────────────────────
@@ -164,7 +168,7 @@ public class AuthScreenController : MonoBehaviour
                 else
                     Debug.LogError("Failed to send SMS code.");
             }
-            catch (PrivyException.AuthenticationException ex) when (ex.Error == AuthenticationError.InvalidPhoneNumber)
+            catch (PrivyAuthenticationException ex) when (ex.Error == AuthenticationError.InvalidPhoneNumber)
             {
                 Debug.LogError("Server rejected phone number as invalid: " + ex.Message);
             }
@@ -203,7 +207,7 @@ public class AuthScreenController : MonoBehaviour
             else
                 await PrivyManager.Instance.Email.LoginWithCode(input, code);
         }
-        catch (PrivyException.AuthenticationException ex) when (ex.Error == AuthenticationError.IncorrectOtpCode)
+        catch (PrivyAuthenticationException ex) when (ex.Error == AuthenticationError.IncorrectOtpCode)
         {
             Debug.LogError("Incorrect OTP code — please try again.");
         }
@@ -255,7 +259,7 @@ public class AuthScreenController : MonoBehaviour
             UpdateUserDisplay(user);
             Debug.Log($"Phone {phone} linked successfully.");
         }
-        catch (PrivyException.AuthenticationException ex) when (ex.Error == AuthenticationError.IncorrectOtpCode)
+        catch (PrivyAuthenticationException ex) when (ex.Error == AuthenticationError.IncorrectOtpCode)
         {
             Debug.LogError("Incorrect OTP code for link.");
         }
@@ -314,7 +318,7 @@ public class AuthScreenController : MonoBehaviour
             UpdateUserDisplay(user);
             Debug.Log($"Phone number updated to {phone}.");
         }
-        catch (PrivyException.AuthenticationException ex) when (ex.Error == AuthenticationError.IncorrectOtpCode)
+        catch (PrivyAuthenticationException ex) when (ex.Error == AuthenticationError.IncorrectOtpCode)
         {
             Debug.LogError("Incorrect OTP code for phone update.");
         }

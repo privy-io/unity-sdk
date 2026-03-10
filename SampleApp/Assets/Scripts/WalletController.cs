@@ -5,7 +5,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using Newtonsoft.Json;
-using Privy;
+using Privy.Core;
+using Privy.Wallets;
+using Privy.Auth.Models;
+using Privy.Utils;
 
 public class WalletController : MonoBehaviour
 {
@@ -66,7 +69,7 @@ public class WalletController : MonoBehaviour
                 walletsDropdown.value = privyUser.EmbeddedWallets.Length - 1;
             }
         }
-        catch (PrivyException.EmbeddedWalletException ex)
+        catch (PrivyWalletException ex)
         {
             Debug.LogError($"Could not create wallet due to error: {ex.Error} {ex.Message}");
         }
@@ -93,7 +96,7 @@ public class WalletController : MonoBehaviour
             Debug.Log("Personal Sign Response: " + personalSignResponse.Data);
             signature.text = "Last sig:" + personalSignResponse.Data;
         }
-        catch (PrivyException.EmbeddedWalletException ex)
+        catch (PrivyWalletException ex)
         {
             Debug.LogError($"Could not sign message due to error: {ex.Error} {ex.Message}");
         }
@@ -209,7 +212,7 @@ public class WalletController : MonoBehaviour
             // Select the last entry, as it is the newest.
             solanaWalletsDropdown.value = user.EmbeddedSolanaWallets.Length - 1;
         }
-        catch (PrivyException.EmbeddedWalletException ex)
+        catch (PrivyWalletException ex)
         {
             Debug.LogError($"Could not create wallet due to error: {ex.Error} {ex.Message}");
         }
@@ -230,7 +233,7 @@ public class WalletController : MonoBehaviour
             Debug.Log("Solana Sign Response: " + signature);
             solanaSignature.text = "Last sig: " + signature;
         }
-        catch (PrivyException.EmbeddedWalletException ex)
+        catch (PrivyWalletException ex)
         {
             Debug.LogError($"Could not sign message due to error: {ex.Error} {ex.Message}");
         }
@@ -301,7 +304,7 @@ public class WalletController : MonoBehaviour
                 walletsDropdown.value = _privyUser.EmbeddedWallets.Length - 1;
             }
         }
-        catch (PrivyException.EmbeddedWalletException ex)
+        catch (PrivyWalletException ex)
         {
             Debug.LogError($"Could not create wallet due to error: {ex.Error} {ex.Message}");
         }

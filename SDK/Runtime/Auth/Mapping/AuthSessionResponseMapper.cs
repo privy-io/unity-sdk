@@ -1,6 +1,8 @@
 using System.Linq;
+using Privy.Auth.Models;
+using Privy.Utils;
 
-namespace Privy
+namespace Privy.Auth.Mapping
 {
     internal static class AuthSessionResponseMapper
     {
@@ -12,7 +14,7 @@ namespace Privy
                 AccessToken = authResponse.Token,
                 IdentityToken = authResponse.IdentityToken,
                 RefreshToken = authResponse.RefreshToken,
-                SessionUpdateAction = authResponse.SessionUpdateAction //TEMP
+                SessionUpdateAction = authResponse.SessionUpdateAction
             };
         }
 

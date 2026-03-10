@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace Privy
+namespace Privy.Analytics
 {
     internal interface IAnalyticsManager
     {
