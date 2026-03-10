@@ -36,7 +36,7 @@ public class WalletController : MonoBehaviour
     public Button createWalletWithIndexButton;
     public TMP_InputField hdWalletIndexInput;
 
-    private PrivyUser _privyUser;
+    private IPrivyUser _privyUser;
 
     private void Awake()
     {
@@ -56,7 +56,7 @@ public class WalletController : MonoBehaviour
     {
         try
         {
-            PrivyUser privyUser = await PrivyManager.Instance.GetUser();
+            IPrivyUser privyUser = await PrivyManager.Instance.GetUser();
 
             if (privyUser != null)
             {
@@ -322,7 +322,7 @@ public class WalletController : MonoBehaviour
     {
         try
         {
-            PrivyUser user = await PrivyManager.Instance.GetUser();
+            IPrivyUser user = await PrivyManager.Instance.GetUser();
             if (user == null)
             {
                 Debug.LogError("Must be logged in to access the wallet.");

@@ -37,7 +37,7 @@ namespace Privy.Core
         /// <summary>
         /// The currently authenticated user, if any.
         /// </summary>
-        Task<PrivyUser> GetUser();
+        Task<IPrivyUser> GetUser();
 
         /// <summary>
         /// The current authentication state.  This call will block until SDK initialization completes.

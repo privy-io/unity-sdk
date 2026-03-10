@@ -53,7 +53,7 @@ namespace Privy.Core
         private PrivyUser _user;
 
         [Obsolete("Use privy.GetUser() instead, which handles awaiting ready under the hood.")]
-        public PrivyUser User
+        public IPrivyUser User
         {
             get
             {
@@ -66,7 +66,7 @@ namespace Privy.Core
             }
         }
 
-        public async Task<PrivyUser> GetUser()
+        public async Task<IPrivyUser> GetUser()
         {
             return await GetAuthState() switch
             {

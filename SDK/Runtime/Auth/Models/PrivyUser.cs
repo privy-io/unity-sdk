@@ -9,7 +9,7 @@ using Privy.Wallets;
 
 namespace Privy.Auth.Models
 {
-    public class PrivyUser : IPrivyUser
+    internal class PrivyUser : IPrivyUser
     {
         public string Id
         {

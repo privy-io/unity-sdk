@@ -21,7 +21,7 @@ public static class DebugConsoleCommands
     //  Helpers
     // ──────────────────────────────────────────────
 
-    private static async Task<PrivyUser> GetUserOrThrow()
+    private static async Task<IPrivyUser> GetUserOrThrow()
     {
         var user = await PrivyManager.Instance.GetUser();
         if (user == null)

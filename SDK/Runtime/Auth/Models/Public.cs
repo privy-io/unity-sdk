@@ -96,6 +96,8 @@ namespace Privy.Auth.Models
 
     public class PrivyAuthSession
     {
-        public PrivyUser User;
+        // public-facing session should expose the interface so the concrete
+        // implementation can remain internal.
+        public IPrivyUser User;
     }
 }

@@ -112,7 +112,7 @@ public class AuthScreenController : MonoBehaviour
     {
         try
         {
-            PrivyUser user = await PrivyManager.Instance.GetUser();
+            IPrivyUser user = await PrivyManager.Instance.GetUser();
             if (user != null)
             {
                 UpdateUserDisplay(user);
@@ -129,7 +129,7 @@ public class AuthScreenController : MonoBehaviour
     /// Update the user-info display on the authorized screen.
     /// Can be called externally to refresh after link/unlink operations.
     /// </summary>
-    public void UpdateUserDisplay(PrivyUser user)
+    public void UpdateUserDisplay(IPrivyUser user)
     {
         if (user != null)
             userObject.text = JsonConvert.SerializeObject(user);
@@ -255,7 +255,7 @@ public class AuthScreenController : MonoBehaviour
         try
         {
             await PrivyManager.Instance.Sms.Link(phone, code);
-            PrivyUser user = await PrivyManager.Instance.GetUser();
+            IPrivyUser user = await PrivyManager.Instance.GetUser();
             UpdateUserDisplay(user);
             Debug.Log($"Phone {phone} linked successfully.");
         }
@@ -288,7 +288,7 @@ public class AuthScreenController : MonoBehaviour
         try
         {
             await PrivyManager.Instance.Sms.Unlink(phone);
-            PrivyUser user = await PrivyManager.Instance.GetUser();
+            IPrivyUser user = await PrivyManager.Instance.GetUser();
             UpdateUserDisplay(user);
             Debug.Log($"Phone {phone} unlinked successfully.");
         }
@@ -314,7 +314,7 @@ public class AuthScreenController : MonoBehaviour
         try
         {
             await PrivyManager.Instance.Sms.UpdatePhoneNumber(phone, code);
-            PrivyUser user = await PrivyManager.Instance.GetUser();
+            IPrivyUser user = await PrivyManager.Instance.GetUser();
             UpdateUserDisplay(user);
             Debug.Log($"Phone number updated to {phone}.");
         }
@@ -337,14 +337,14 @@ public class AuthScreenController : MonoBehaviour
 
     private async void OnGetAccessTokenButtonClick()
     {
-        var user = await PrivyManager.Instance.GetUser();
+        IPrivyUser user = await PrivyManager.Instance.GetUser();
         string accessToken = await user!.GetAccessToken();
         Debug.Log("Access token: " + accessToken);
     }
 
     private async void OnGetIdentityTokenButtonClick()
     {
-        var user = await PrivyManager.Instance.GetUser();
+        IPrivyUser user = await PrivyManager.Instance.GetUser();
         string identityToken = await user!.GetIdentityToken();
         Debug.Log("Identity token: " + identityToken);
     }

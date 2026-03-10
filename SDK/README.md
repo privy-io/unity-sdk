@@ -55,8 +55,8 @@ var authState = await PrivyManager.Instance.GetAuthState();
 switch (authState) {
     case AuthState.Authenticated:
         // User is authenticated. Grab the user's linked accounts
-        var privyUser = await PrivyManager.Instance.GetUser();
-        var linkedAccounts = privyUser.LinkedAccounts;
+        var user = await PrivyManager.Instance.GetUser();
+        var linkedAccounts = user?.LinkedAccounts; // user is null if unauthenticated
         break;
     case AuthState.Unauthenticated:
         // User is not authenticated.
@@ -86,21 +86,23 @@ try {
 }
 ```
 
-### PrivyUser
+### PrivyUser (`IPrivyUser`)
+
+The SDK exposes the authenticated user as an interface. Refer to `IPrivyUser` for
+details; you never need to refer to `PrivyUser` directly.
 
 ```csharp
-PrivyUser user = PrivyManager.Instance.User;
+IPrivyUser user = await PrivyManager.Instance.GetUser();
 ```
-
 ### Creating an Embedded Wallet
 
 ```csharp
 try {
-    PrivyUser privyUser = PrivyManager.Instance.User;
+    IPrivyUser privyUser = await PrivyManager.Instance.GetUser();
 
     if (privyUser != null) {
-        IEmbeddedEthereumWallet wallet = await PrivyManager.Instance.User.CreateWallet();
-        Debug.Log("New wallet created with address: " + wallet.address);
+        IEmbeddedEthereumWallet wallet = await privyUser.CreateWallet();
+        Debug.Log("New wallet created with address: " + wallet.Address);
     }
 } catch {
     Debug.Log("Error creating embedded wallet.");
