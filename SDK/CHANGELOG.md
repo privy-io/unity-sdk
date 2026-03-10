@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## [0.9.0](https://github.com/privy-io/unity-sdk/compare/v0.8.0...v0.9.0) (2026-03-10)
+
+
+* release 0.9.0 ([34054ed](https://github.com/privy-io/unity-sdk/commit/34054ed0d428527a6f2df6edc93c47db3c0edc2e))
+
+
+### Fixed
+
+* solana signAndSend needs caip2 in TEE mode and not rpcUrl ([#5](https://github.com/privy-io/unity-sdk/issues/5)) ([edc3067](https://github.com/privy-io/unity-sdk/commit/edc306757e9352be71d4c150c7626c0e01f03313))
+
 ## 0.7.1 - 2026-01-27
 
 ### Fixed
