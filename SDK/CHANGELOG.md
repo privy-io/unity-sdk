@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+## [0.9.0](https://github.com/privy-io/unity-sdk/compare/v0.8.0...v0.9.0) (2026-03-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* The SDK is no longer distributed as a `.unitypackage`. It is now a standard Unity Package Manager (UPM) package. Install via one of: Git URL or OpenUPM.
+
+* release 0.9.0 ([#12](https://github.com/privy-io/unity-sdk/issues/12)) ([45dde11](https://github.com/privy-io/unity-sdk/commit/45dde1192e07ede78c984b01ee1d4c2404cea7e0))
+* UPM reorg for SDK distribution ([300cde2](https://github.com/privy-io/unity-sdk/commit/300cde2880a5540139ff27b1464a318cc6704112))
+
+
+### Added
+
+* added `IEmbeddedSolanaWalletProvider.SignAndSendTransaction` for signing and broadcasting Solana transactions to a specified cluster. ([5ba3c6c](https://github.com/privy-io/unity-sdk/commit/5ba3c6c61aac726144790bf1d0b9834f7ceecb1e))
+* added `IEmbeddedSolanaWalletProvider.SignTransaction` for signing Solana transactions without broadcasting. ([5ba3c6c](https://github.com/privy-io/unity-sdk/commit/5ba3c6c61aac726144790bf1d0b9834f7ceecb1e))
+* added a WebGL template installer under **Tools &gt; Privy &gt; Install WebGL Templates** for projects consuming the SDK as a UPM package. ([300cde2](https://github.com/privy-io/unity-sdk/commit/300cde2880a5540139ff27b1464a318cc6704112))
+* added support for solana `signTransaction` and `signAndSendTransaction`. ([5ba3c6c](https://github.com/privy-io/unity-sdk/commit/5ba3c6c61aac726144790bf1d0b9834f7ceecb1e))
+
+
+### Fixed
+
+* solana signAndSend needs caip2 in TEE mode and not rpcUrl ([#5](https://github.com/privy-io/unity-sdk/issues/5)) ([edc3067](https://github.com/privy-io/unity-sdk/commit/edc306757e9352be71d4c150c7626c0e01f03313))
+
 ## 0.7.1 - 2026-01-27
 
 ### Fixed
