@@ -20,8 +20,15 @@ namespace Privy.Auth.Models
         PrivyLinkedAccount[] LinkedAccounts { get; }
 
         /// <summary>
-        /// Gets the list of the user's embedded wallets.
+        /// Gets the list of the user's embedded Ethereum wallets.
         /// </summary>
+        IEmbeddedEthereumWallet[] EmbeddedEthereumWallets { get; }
+
+        /// <summary>
+        /// **DEPRECATED**: use <see cref="EmbeddedEthereumWallets"/> instead.
+        /// The old name is retained for compatibility and simply forwards to the new property.
+        /// </summary>
+        [System.Obsolete("Use EmbeddedEthereumWallets instead.")]
         IEmbeddedEthereumWallet[] EmbeddedWallets { get; }
 
         /// <summary>

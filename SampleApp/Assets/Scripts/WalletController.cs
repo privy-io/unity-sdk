@@ -66,7 +66,7 @@ public class WalletController : MonoBehaviour
 
                 RefreshWalletDropdownOptions();
                 // Select the last entry, as it is the newest.
-                walletsDropdown.value = privyUser.EmbeddedWallets.Length - 1;
+                walletsDropdown.value = privyUser.EmbeddedEthereumWallets.Length - 1;
             }
         }
         catch (PrivyWalletException ex)
@@ -251,7 +251,7 @@ public class WalletController : MonoBehaviour
     private IEmbeddedEthereumWallet SelectedWallet {
         get {
             int selectedWalletIndex = walletsDropdown.value;
-            var embeddedWallets = _privyUser.EmbeddedWallets;
+            var embeddedWallets = _privyUser.EmbeddedEthereumWallets;
             return embeddedWallets[selectedWalletIndex];
         }
     }
@@ -266,7 +266,7 @@ public class WalletController : MonoBehaviour
 
     private void SelectWalletDropdownOption(int index)
     {
-        IEmbeddedEthereumWallet embeddedWallet = _privyUser.EmbeddedWallets[index];
+        IEmbeddedEthereumWallet embeddedWallet = _privyUser.EmbeddedEthereumWallets[index];
         if ( embeddedWallet != null) {
             walletAddress.text = "Address:" + embeddedWallet.Address;
         }
@@ -274,7 +274,7 @@ public class WalletController : MonoBehaviour
 
     private void RefreshWalletDropdownOptions()
     {
-        List<string> walletAddresses = _privyUser.EmbeddedWallets.Select(wallet =>
+        List<string> walletAddresses = _privyUser.EmbeddedEthereumWallets.Select(wallet =>
             $"{wallet.Address.Substring(0, 6)}...{wallet.Address.Substring(wallet.Address.Length - 4)}").ToList();
         walletsDropdown.ClearOptions();
         walletsDropdown.AddOptions(walletAddresses);
@@ -301,7 +301,7 @@ public class WalletController : MonoBehaviour
 
                 RefreshWalletDropdownOptions();
                 // Select the last entry, as it is the newest.
-                walletsDropdown.value = _privyUser.EmbeddedWallets.Length - 1;
+                walletsDropdown.value = _privyUser.EmbeddedEthereumWallets.Length - 1;
             }
         }
         catch (PrivyWalletException ex)
@@ -331,7 +331,7 @@ public class WalletController : MonoBehaviour
             }
 
             _privyUser = user;
-            IEmbeddedEthereumWallet embeddedWallet = user.EmbeddedWallets.FirstOrDefault();
+            IEmbeddedEthereumWallet embeddedWallet = user.EmbeddedEthereumWallets.FirstOrDefault();
             walletAddress.text = embeddedWallet != null
                 ? "Address:" + embeddedWallet.Address
                 : "No wallets";

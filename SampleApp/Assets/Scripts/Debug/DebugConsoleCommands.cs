@@ -144,7 +144,7 @@ public static class DebugConsoleCommands
             Debug.Log($"[privy.user] User ID: {user.Id}");
             Debug.Log($"[privy.user] Linked accounts: {user.LinkedAccounts.Length}");
 
-            var ethWallets = user.EmbeddedWallets;
+            var ethWallets = user.EmbeddedEthereumWallets;
             Debug.Log($"[privy.user] Ethereum wallets: {ethWallets.Length}");
             for (int i = 0; i < ethWallets.Length; i++)
             {
@@ -219,7 +219,7 @@ public static class DebugConsoleCommands
         try
         {
             var user = await GetUserOrThrow();
-            var wallets = user.EmbeddedWallets;
+            var wallets = user.EmbeddedEthereumWallets;
 
             if (wallets.Length == 0)
             {
@@ -245,7 +245,7 @@ public static class DebugConsoleCommands
         try
         {
             var user = await GetUserOrThrow();
-            var wallets = user.EmbeddedWallets;
+            var wallets = user.EmbeddedEthereumWallets;
             if (walletIndex < 0 || walletIndex >= wallets.Length)
                 throw new Exception($"Wallet index {walletIndex} out of range (0..{wallets.Length - 1}).");
 
@@ -271,7 +271,7 @@ public static class DebugConsoleCommands
         try
         {
             var user = await GetUserOrThrow();
-            var wallets = user.EmbeddedWallets;
+            var wallets = user.EmbeddedEthereumWallets;
             if (walletIndex < 0 || walletIndex >= wallets.Length)
                 throw new Exception($"Wallet index {walletIndex} out of range (0..{wallets.Length - 1}).");
 
@@ -339,7 +339,7 @@ public static class DebugConsoleCommands
         try
         {
             var user = await GetUserOrThrow();
-            var wallets = user.EmbeddedWallets;
+            var wallets = user.EmbeddedEthereumWallets;
             if (walletIndex < 0 || walletIndex >= wallets.Length)
                 throw new Exception($"Wallet index {walletIndex} out of range (0..{wallets.Length - 1}).");
 

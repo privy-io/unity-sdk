@@ -122,7 +122,8 @@ try {
     }
 
     // make sure there is at least one embedded wallet available
-    var wallets = privyUser.EmbeddedWallets;
+    // use the new, more explicit property name; the old "EmbeddedWallets" still exists but is deprecated
+    var wallets = privyUser.EmbeddedEthereumWallets;
     if (wallets == null || wallets.Count == 0)
     {
         Debug.LogWarning("No embedded wallets found for user.");

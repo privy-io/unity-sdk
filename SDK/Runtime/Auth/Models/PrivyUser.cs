@@ -48,7 +48,7 @@ namespace Privy.Auth.Models
         private readonly Dictionary<string, IEmbeddedSolanaWallet> _solWalletCache =
             new Dictionary<string, IEmbeddedSolanaWallet>();
 
-        public IEmbeddedEthereumWallet[] EmbeddedWallets
+        public IEmbeddedEthereumWallet[] EmbeddedEthereumWallets
         {
             get
             {
@@ -70,6 +70,10 @@ namespace Privy.Auth.Models
                     .ToArray<IEmbeddedEthereumWallet>();
             }
         }
+
+        // deprecated alias to help existing consumers transition
+        [Obsolete("Use EmbeddedEthereumWallets instead.")]
+        public IEmbeddedEthereumWallet[] EmbeddedWallets => EmbeddedEthereumWallets;
 
         public IEmbeddedSolanaWallet[] EmbeddedSolanaWallets
         {
