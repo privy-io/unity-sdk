@@ -250,7 +250,7 @@ namespace Privy.Auth.Models
             await _authDelegator.RefreshSession(true); //Forces refresh even if token is valid
 
             var embeddedWallet =
-                EmbeddedWallets.FirstOrDefault(wallet =>
+                EmbeddedEthereumWallets.FirstOrDefault(wallet =>
                     wallet.Address == walletAddress); //Get the first wallet with matching address, else null
 
             if (embeddedWallet == null)
