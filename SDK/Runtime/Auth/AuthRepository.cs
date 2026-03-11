@@ -75,7 +75,7 @@ namespace Privy.Auth
 
                 return _internalAuthSession;
             }
-            catch (Exception ex) when (ex.Message.Contains("422"))
+            catch (HttpRequestException ex) when (ex.StatusCode == 422)
             {
                 // server returned a 422 Unprocessable Entity, which means the OTP was wrong
                 throw new PrivyAuthenticationException("Incorrect OTP code.",
@@ -232,7 +232,7 @@ namespace Privy.Auth
                 var response = JsonConvert.DeserializeObject<SendCodeResponseData>(jsonResponse);
                 return response.Success;
             }
-            catch (Exception ex) when (ex.Message.Contains("422"))
+            catch (HttpRequestException ex) when (ex.StatusCode == 422)
             {
                 // backend returns 422 for invalid phone format or similar
                 throw new PrivyAuthenticationException("Invalid phone number format.",
@@ -262,7 +262,7 @@ namespace Privy.Auth
                 ValidSessionResponse authResponse = DeserializeSessionResponse(jsonResponse);
                 return AuthSessionResponseMapper.MapToInternalSession(authResponse);
             }
-            catch (Exception ex) when (ex.Message.Contains("422"))
+            catch (HttpRequestException ex) when (ex.StatusCode == 422)
             {
                 throw new PrivyAuthenticationException("Incorrect OTP code.",
                     AuthenticationError.IncorrectOtpCode);
@@ -296,7 +296,7 @@ namespace Privy.Auth
                 UserResponse userResponse = DeserializeUserResponse(jsonResponse);
                 return AuthSessionResponseMapper.MapToInternalUser(userResponse);
             }
-            catch (Exception ex) when (ex.Message.Contains("422"))
+            catch (HttpRequestException ex) when (ex.StatusCode == 422)
             {
                 throw new PrivyAuthenticationException("Incorrect OTP code.",
                     AuthenticationError.IncorrectOtpCode);
@@ -330,7 +330,7 @@ namespace Privy.Auth
                 UserResponse userResponse = DeserializeUserResponse(jsonResponse);
                 return AuthSessionResponseMapper.MapToInternalUser(userResponse);
             }
-            catch (Exception ex) when (ex.Message.Contains("422"))
+            catch (HttpRequestException ex) when (ex.StatusCode == 422)
             {
                 throw new PrivyAuthenticationException("Incorrect OTP code.",
                     AuthenticationError.IncorrectOtpCode);

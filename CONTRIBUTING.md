@@ -11,9 +11,8 @@ highlighting:
 
 * `dotnet_style_prefer_auto_properties = true` – always prefer auto‑properties
   to manually backed fields.
-* `dotnet_style_prefer_expression_bodied_methods = true` – use expression
-  bodies for short methods.
-* Naming rules enforce `PascalCase` for enums, types, constants and public
+* `csharp_style_expression_bodied_methods = true` – use expression
+  bodies for short methods.* Naming rules enforce `PascalCase` for enums, types, constants and public
   members, and `I` prefix for interfaces.
 
 The `.editorconfig` in the repo contains additional options; see the

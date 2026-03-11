@@ -96,15 +96,17 @@ namespace Privy.Internal.Networking
                 }
                 else
                 {
-                    string errorMessage = $"HTTP request failed: {request.error}";
+                    int statusCode = (int)request.responseCode;
+                    string errorMessage = $"HTTP request failed (status {statusCode}): {request.error}";
 
+                    string responseBody = null;
                     if (request.downloadHandler != null)
                     {
-                        string responseBody = request.downloadHandler.text;
+                        responseBody = request.downloadHandler.text;
                         errorMessage += $" Response Body: {responseBody}";
                     }
 
-                    throw new Exception(errorMessage);
+                    throw new HttpRequestException(errorMessage, statusCode, responseBody);
                 }
             }
         }
