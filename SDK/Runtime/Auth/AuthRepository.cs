@@ -75,11 +75,17 @@ namespace Privy.Auth
 
                 return _internalAuthSession;
             }
+            catch (Exception ex) when (ex.Message.Contains("422"))
+            {
+                // server returned a 422 Unprocessable Entity, which means the OTP was wrong
+                throw new PrivyAuthenticationException("Incorrect OTP code.",
+                    AuthenticationError.IncorrectOtpCode);
+            }
             catch (Exception ex)
             {
-                //This catches request failures
+                // this catch now handles any other underlying failure (network, deserialization, etc.)
                 throw new PrivyAuthenticationException($"Failed to login with email code: {ex.Message}",
-                    AuthenticationError.WrongOtpCode, ex);
+                    AuthenticationError.InternalError, ex);
             }
         }
 

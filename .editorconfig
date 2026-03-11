@@ -39,7 +39,7 @@ csharp_space_after_colon_in_inheritance_clause = true
 dotnet_style_prefer_auto_properties = true:suggestion
 
 # prefer expression-bodied members when simple
-dotnet_style_prefer_expression_bodied_methods = true:suggestion
+csharp_style_expression_bodied_methods = true:suggestion
 
 dotnet_style_object_initializer = true:error
 dotnet_style_collection_initializer = true:error

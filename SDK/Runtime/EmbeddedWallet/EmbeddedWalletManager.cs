@@ -310,9 +310,8 @@ namespace Privy.Wallets
                 return Convert.FromBase64String(signatureAsBase64);
             }
 
-            throw new PrivyWalletException($"Failed to create additional wallet",
-                EmbeddedWalletError
-                    .CreateAdditionalFailed); //Let this bubble up to HandleAuthStateChanged and AwaitConnected
+            throw new PrivyWalletException($"Failed to sign with user signer",
+                EmbeddedWalletError.CreateAdditionalFailed); //Let this bubble up to HandleAuthStateChanged and AwaitConnected
         }
     }
 }

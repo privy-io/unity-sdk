@@ -78,6 +78,15 @@ public class AuthScreenController : MonoBehaviour
         PrivyManager.Instance.AuthStateChanged += OnAuthStateChange;
     }
 
+    private void OnDestroy()
+    {
+        // remove event handler to prevent memory leaks when this object is destroyed
+        if (PrivyManager.Instance != null)
+        {
+            PrivyManager.Instance.AuthStateChanged -= OnAuthStateChange;
+        }
+    }
+
     // ── Login method switching ───────────────────────────────────────────────
 
     /// <summary>Called by UIManager before showing the send-code screen.</summary>
@@ -338,15 +347,41 @@ public class AuthScreenController : MonoBehaviour
     private async void OnGetAccessTokenButtonClick()
     {
         IPrivyUser user = await PrivyManager.Instance.GetUser();
-        string accessToken = await user!.GetAccessToken();
-        Debug.Log("Access token: " + accessToken);
+        if (user == null)
+        {
+            Debug.LogWarning("No authenticated user available to fetch access token.");
+            return;
+        }
+
+        try
+        {
+            string accessToken = await user.GetAccessToken();
+            Debug.Log("Access token: " + accessToken);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError("Failed to get access token: " + ex.Message);
+        }
     }
 
     private async void OnGetIdentityTokenButtonClick()
     {
         IPrivyUser user = await PrivyManager.Instance.GetUser();
-        string identityToken = await user!.GetIdentityToken();
-        Debug.Log("Identity token: " + identityToken);
+        if (user == null)
+        {
+            Debug.LogWarning("No authenticated user available to fetch identity token.");
+            return;
+        }
+
+        try
+        {
+            string identityToken = await user.GetIdentityToken();
+            Debug.Log("Identity token: " + identityToken);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError("Failed to get identity token: " + ex.Message);
+        }
     }
 
     private void OnLogOutButtonClick()

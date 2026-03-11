@@ -55,7 +55,8 @@ namespace Privy.Utils
         InvalidPhoneNumber,
         LinkFailed,
         UnlinkFailed,
-        IncorrectOtpCode
+        IncorrectOtpCode,
+        InternalError
     }
 
     public enum EmbeddedWalletError

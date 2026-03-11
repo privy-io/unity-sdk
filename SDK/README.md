@@ -113,7 +113,23 @@ try {
 
 ```csharp
 try {
-    IEmbeddedEthereumWallet embeddedWallet = PrivyManager.Instance.User.EmbeddedWallets[0];
+    // obtain the current user and ensure they're authenticated
+    IPrivyUser privyUser = await PrivyManager.Instance.GetUser();
+    if (privyUser == null)
+    {
+        Debug.LogWarning("No authenticated user – cannot perform RPC request.");
+        return;
+    }
+
+    // make sure there is at least one embedded wallet available
+    var wallets = privyUser.EmbeddedWallets;
+    if (wallets == null || wallets.Count == 0)
+    {
+        Debug.LogWarning("No embedded wallets found for user.");
+        return;
+    }
+
+    IEmbeddedEthereumWallet embeddedWallet = wallets[0];
 
     var rpcRequest = new RpcRequest
     {

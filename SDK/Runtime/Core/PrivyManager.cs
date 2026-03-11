@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Privy.Config;
+using Privy.Utils;
 
 namespace Privy.Core
 {
@@ -30,8 +31,10 @@ namespace Privy.Core
             {
                 _privyInstance = new PrivyImpl(config);
                 // fire-and-forget initialization; any calls to GetAuthState/GetUser will
-                // await internally until initialization completes.
-                _ = _privyInstance.InitializeAsync();
+                // await internally until initialization completes.  catch errors so
+                // they don't get swallowed silently.
+                _privyInstance.InitializeAsync()
+                    .SafeFireAndForget(ex => PrivyLogger.Error("Privy initialization failed", ex));
             }
 
             return _privyInstance; // return immediately

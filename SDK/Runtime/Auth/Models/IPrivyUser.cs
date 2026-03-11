@@ -49,7 +49,7 @@ namespace Privy.Auth.Models
         /// <summary>
         /// Creates a new embedded wallet for the user.
         /// </summary>
-        /// <param name="allowAditional">Whether to allow the creation of additional wallets derived from the primary HD wallet</param>
+        /// <param name="allowAdditional">Whether to allow the creation of additional wallets derived from the primary HD wallet</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the newly created embedded wallet.</returns>
         /// <exception cref="PrivyAuthenticationException">
         /// Thrown if there is an issue with authentication, such as a failure to refresh the access token.

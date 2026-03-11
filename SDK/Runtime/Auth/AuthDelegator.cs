@@ -44,7 +44,7 @@ namespace Privy.Auth
         {
             if (string.IsNullOrEmpty(email))
             {
-                //This check saves us from making a request we know will faill
+                //This check saves us from making a request we know will fail
                 throw new PrivyAuthenticationException("Email cannot be null or empty",
                     AuthenticationError.EmailEmpty);
             }
