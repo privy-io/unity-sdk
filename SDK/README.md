@@ -100,7 +100,7 @@ try {
     IPrivyUser privyUser = await PrivyManager.Instance.GetUser();
 
     if (privyUser != null) {
-        IEmbeddedEthereumWallet wallet = await privyUser.CreateWallet();
+        IEmbeddedEthereumWallet wallet = await privyUser.CreateEthereumWallet();
         Debug.Log("New wallet created with address: " + wallet.Address);
     }
 } catch {

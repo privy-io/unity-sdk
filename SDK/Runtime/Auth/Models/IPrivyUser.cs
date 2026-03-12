@@ -54,7 +54,7 @@ namespace Privy.Auth.Models
         Task<string> GetIdentityToken();
 
         /// <summary>
-        /// Creates a new embedded wallet for the user.
+        /// Creates a new embedded Ethereum wallet for the user.
         /// </summary>
         /// <param name="allowAdditional">Whether to allow the creation of additional wallets derived from the primary HD wallet</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the newly created embedded wallet.</returns>
@@ -64,7 +64,7 @@ namespace Privy.Auth.Models
         /// <exception cref="PrivyWalletException">
         /// Thrown if the wallet creation fails or the wallet cannot be added to the user's account.
         /// </exception>
-        Task<IEmbeddedEthereumWallet> CreateWallet(bool allowAdditional = false);
+        Task<IEmbeddedEthereumWallet> CreateEthereumWallet(bool allowAdditional = false);
 
 
         /// <summary>

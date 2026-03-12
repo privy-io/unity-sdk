@@ -174,7 +174,7 @@ public static class DebugConsoleCommands
         try
         {
             var user = await GetUserOrThrow();
-            var wallet = await user.CreateWallet(allowAdditional: false);
+            var wallet = await user.CreateEthereumWallet(allowAdditional: false);
             Debug.Log($"[privy.eth.create] Wallet created: {wallet.Address}");
         }
         catch (Exception ex)
@@ -189,7 +189,7 @@ public static class DebugConsoleCommands
         try
         {
             var user = await GetUserOrThrow();
-            var wallet = await user.CreateWallet(allowAdditional: true);
+            var wallet = await user.CreateEthereumWallet(allowAdditional: true);
             Debug.Log($"[privy.eth.create_additional] Wallet created: {wallet.Address}");
         }
         catch (Exception ex)

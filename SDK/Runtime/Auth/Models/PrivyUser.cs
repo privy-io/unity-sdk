@@ -144,7 +144,7 @@ namespace Privy.Auth.Models
         }
 
         // Public Methods
-        public async Task<IEmbeddedEthereumWallet> CreateWallet(bool allowAdditional = false)
+        public async Task<IEmbeddedEthereumWallet> CreateEthereumWallet(bool allowAdditional = false)
         {
             var appConfig = await _appConfigRepository.LoadAppConfig();
             if (appConfig.EmbeddedWalletConfig.Mode == EmbeddedWalletMode.UserControlledServerWalletsOnly)

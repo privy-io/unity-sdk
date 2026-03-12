@@ -61,7 +61,7 @@ public class WalletController : MonoBehaviour
             if (privyUser != null)
             {
                 bool allowAdditionalWallets = allowAdditionalWalletsToggle.isOn;
-                IEmbeddedEthereumWallet wallet = await privyUser.CreateWallet(allowAdditionalWallets);
+                IEmbeddedEthereumWallet wallet = await privyUser.CreateEthereumWallet(allowAdditionalWallets);
                 Debug.Log("New wallet created with address: " + wallet.Address);
 
                 RefreshWalletDropdownOptions();
