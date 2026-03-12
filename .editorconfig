@@ -95,3 +95,6 @@ dotnet_naming_rule.types_should_be_pascal_case.style = pascal_case_style
 
 dotnet_naming_symbols.types.applicable_kinds = class, struct, enum, delegate
 dotnet_naming_symbols.types.applicable_accessibilities = *
+
+# Modifier order preferences
+csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:suggestion
