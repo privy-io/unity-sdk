@@ -56,7 +56,7 @@ switch (authState) {
     case AuthState.Authenticated:
         // User is authenticated. Grab the user's linked accounts
         var user = await PrivyManager.Instance.GetUser();
-        var linkedAccounts = user?.LinkedAccounts; // user is null if unauthenticated
+        var linkedAccounts = user.LinkedAccounts;
         break;
     case AuthState.Unauthenticated:
         // User is not authenticated.
