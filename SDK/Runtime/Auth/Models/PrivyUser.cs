@@ -219,7 +219,7 @@ namespace Privy.Auth.Models
 
         // Creates an Ethereum wallet at the specified HD index, or returns the existing wallet if one already exists at that index.
         // This method is idempotent. Calling it multiple times with the same HD index will have the same effect as calling it once.
-        public async Task<IEmbeddedEthereumWallet> CreateWalletAtHdIndex(int hdWalletIndex)
+        public async Task<IEmbeddedEthereumWallet> CreateEthereumWalletAtHdIndex(int hdWalletIndex)
         {
             if (hdWalletIndex < 0)
             {
@@ -232,7 +232,7 @@ namespace Privy.Auth.Models
             else if (hdWalletIndex == 0)
             {
                 // Dev wants to create primary wallet
-                // CreatePrimaryWallet should not throw if a primary wallet already exists, because CreateWalletAtHdIndex
+                // CreatePrimaryEthereumWallet should not throw if a primary wallet already exists, because CreateEthereumWalletAtHdIndex
                 // is idempotent and either creates a wallet or returns an existing one.
                 return await CreatePrimaryEthereumWallet(throwErrorIfPrimaryWalletExists: false);
             }

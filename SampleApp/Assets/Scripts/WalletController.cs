@@ -47,7 +47,7 @@ public class WalletController : MonoBehaviour
         signTransactionButton.onClick.AddListener(OnSignTransactionButtonClick);
         backButton.onClick.AddListener(OnBackButtonClick);
         walletsDropdown.onValueChanged.AddListener(SelectWalletDropdownOption);
-        createWalletWithIndexButton.onClick.AddListener(OnCreateWalletWithIndex);
+        createWalletWithIndexButton.onClick.AddListener(OnCreateEthereumWalletWithIndex);
         
         solanaSignButton.onClick.AddListener(OnSolanaSignButtonClick);
     }
@@ -285,7 +285,7 @@ public class WalletController : MonoBehaviour
         solanaWalletsDropdown.AddOptions(solanaWalletAddresses);
     }
     
-    private async void OnCreateWalletWithIndex()
+    private async void OnCreateEthereumWalletWithIndex()
     {
         try
         {
@@ -295,7 +295,7 @@ public class WalletController : MonoBehaviour
             if (_privyUser != null)
             {
                 Debug.Log($"Attempting to create HD wallet at index: {hdWalletIndex}");
-                IEmbeddedEthereumWallet wallet = await _privyUser.CreateWalletAtHdIndex(hdWalletIndex: hdWalletIndex);
+                IEmbeddedEthereumWallet wallet = await _privyUser.CreateEthereumWalletAtHdIndex(hdWalletIndex: hdWalletIndex);
                 
                 Debug.Log($"Wallet received with address: {wallet.Address} and index: {wallet.HdWalletIndex}");
 

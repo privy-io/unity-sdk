@@ -204,7 +204,7 @@ public static class DebugConsoleCommands
         try
         {
             var user = await GetUserOrThrow();
-            var wallet = await user.CreateWalletAtHdIndex(hdWalletIndex: hdIndex);
+            var wallet = await user.CreateEthereumWalletAtHdIndex(hdWalletIndex: hdIndex);
             Debug.Log($"[privy.eth.create_at_index] Wallet created: {wallet.Address} (HD index: {wallet.HdWalletIndex})");
         }
         catch (Exception ex)

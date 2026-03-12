@@ -83,7 +83,7 @@ namespace Privy.Auth.Models
         /// Can also be thrown if an invalid HD wallet index is supplied, i.e. hdWalletIndex is less than 0,
         /// or if HD wallet index is greater than 0 while user has no wallet with HD index 0.
         /// </exception>
-        Task<IEmbeddedEthereumWallet> CreateWalletAtHdIndex(int hdWalletIndex);
+        Task<IEmbeddedEthereumWallet> CreateEthereumWalletAtHdIndex(int hdWalletIndex);
 
         /// <summary>
         /// Creates a new Solana embedded wallet for the user.
