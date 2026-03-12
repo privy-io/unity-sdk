@@ -1,8 +1,10 @@
 using System.Threading.Tasks;
-using static Privy.RpcRequestData;
-using static Privy.RpcResponseData;
+using Privy.Auth;
+using Privy.Utils;
+using static Privy.Wallets.RpcRequestData;
+using static Privy.Wallets.RpcResponseData;
 
-namespace Privy
+namespace Privy.Wallets.WalletApi
 {
     internal class WalletApiRPCExecutor : IRpcExecutor
     {
@@ -32,7 +34,7 @@ namespace Privy
                     case "personal_sign":
                         if (!(requestParams.Length == 2 && !string.IsNullOrEmpty(requestParams[0])))
                         {
-                            throw new PrivyException.EmbeddedWalletException(
+                            throw new PrivyWalletException(
                                 "The params array should be [message, address]",
                                 EmbeddedWalletError.RpcRequestFailed);
                         }
@@ -50,7 +52,7 @@ namespace Privy
                     case "eth_sign":
                         if (!(requestParams.Length == 2 && !string.IsNullOrEmpty(requestParams[1])))
                         {
-                            throw new PrivyException.EmbeddedWalletException(
+                            throw new PrivyWalletException(
                                 "The params array should be [address, hash]",
                                 EmbeddedWalletError.RpcRequestFailed);
                         }
@@ -70,7 +72,7 @@ namespace Privy
                     case "secp256k1_sign":
                         if (!(requestParams.Length == 1 && !string.IsNullOrEmpty(requestParams[0])))
                         {
-                            throw new PrivyException.EmbeddedWalletException(
+                            throw new PrivyWalletException(
                                 "The params array should be [hash]",
                                 EmbeddedWalletError.RpcRequestFailed);
                         }
@@ -89,13 +91,13 @@ namespace Privy
                         };
                     case "eth_populateTransactionRequest":
                         // eth_populateTransactionRequest is explicitly not supported under TEE execution.
-                        throw new PrivyException.EmbeddedWalletException(
+                        throw new PrivyWalletException(
                             $"The {ethereumRequest.Method} request is not supported by this wallet",
                             EmbeddedWalletError.RpcRequestFailed);
                     case "eth_signTypedData_v4":
                         if (!(requestParams.Length == 2 && !string.IsNullOrEmpty(requestParams[1])))
                         {
-                            throw new PrivyException.EmbeddedWalletException(
+                            throw new PrivyWalletException(
                                 "The params array should be [address, typedData]",
                                 EmbeddedWalletError.RpcRequestFailed);
                         }
@@ -112,7 +114,7 @@ namespace Privy
                     case "eth_sendTransaction":
                         if (!(requestParams.Length == 1 && !string.IsNullOrEmpty(requestParams[0])))
                         {
-                            throw new PrivyException.EmbeddedWalletException(
+                            throw new PrivyWalletException(
                                 "The params array should be [transaction]",
                                 EmbeddedWalletError.RpcRequestFailed);
                         }
@@ -129,7 +131,7 @@ namespace Privy
                     case "eth_signTransaction":
                         if (!(requestParams.Length == 1 && !string.IsNullOrEmpty(requestParams[0])))
                         {
-                            throw new PrivyException.EmbeddedWalletException(
+                            throw new PrivyWalletException(
                                 "The params array should be [transaction]",
                                 EmbeddedWalletError.RpcRequestFailed);
                         }
@@ -154,7 +156,7 @@ namespace Privy
                     case "signMessage":
                         if (solanaRequest.Params is not SolanaSignMessageRpcRequestParams signMessageParams)
                         {
-                            throw new PrivyException.EmbeddedWalletException(
+                            throw new PrivyWalletException(
                                 "signMessage requires SolanaSignMessageRpcRequestParams",
                                 EmbeddedWalletError.RpcRequestFailed);
                         }
@@ -174,7 +176,7 @@ namespace Privy
                     case "signTransaction":
                         if (solanaRequest.Params is not SolanaSignTransactionRpcRequestParams signTxParams)
                         {
-                            throw new PrivyException.EmbeddedWalletException(
+                            throw new PrivyWalletException(
                                 "signTransaction requires SolanaSignTransactionRpcRequestParams",
                                 EmbeddedWalletError.RpcRequestFailed);
                         }
@@ -194,7 +196,7 @@ namespace Privy
                     case "signAndSendTransaction":
                         if (solanaRequest.Params is not SolanaSignAndSendTransactionRpcRequestParams signAndSendParams)
                         {
-                            throw new PrivyException.EmbeddedWalletException(
+                            throw new PrivyWalletException(
                                 "signAndSendTransaction requires SolanaSignAndSendTransactionRpcRequestParams",
                                 EmbeddedWalletError.RpcRequestFailed);
                         }
@@ -229,7 +231,7 @@ namespace Privy
                 }
             }
 
-            throw new PrivyException.EmbeddedWalletException("RPC request could not be evaluated",
+            throw new PrivyWalletException("RPC request could not be evaluated",
                 EmbeddedWalletError.RpcRequestFailed);
         }
     }

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Privy
+namespace Privy.Wallets
 {
     /// <summary>
     /// A <see cref="MonoBehaviour"/> for enabling communication between an iframe element in the browser's dom and Unity.

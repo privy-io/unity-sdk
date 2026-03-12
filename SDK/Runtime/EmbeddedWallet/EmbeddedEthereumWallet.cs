@@ -1,6 +1,10 @@
-namespace Privy
+using Privy.Auth;
+using Privy.Auth.Models;
+using Privy.Wallets.WalletApi;
+
+namespace Privy.Wallets
 {
-    internal class EmbeddedWallet : IEmbeddedEthereumWallet
+    internal class EmbeddedEthereumWallet : IEmbeddedEthereumWallet
     {
         public string Id { get; }
         public string Address { get; }
@@ -8,9 +12,9 @@ namespace Privy
         public string RecoveryMethod { get; }
         public int HdWalletIndex { get; }
 
-        public IRpcProvider RpcProvider { get; } // Use IRpcProvider as the type
+        public IEmbeddedEthereumWalletProvider RpcProvider { get; } // Use IEmbeddedEthereumWalletProvider as the type
 
-        public EmbeddedWallet(PrivyEmbeddedWalletAccount account, IRpcProvider rpcProvider)
+        public EmbeddedEthereumWallet(PrivyEmbeddedWalletAccount account, IEmbeddedEthereumWalletProvider rpcProvider)
         {
             Id = account.Id;
             Address = account.Address;
@@ -20,16 +24,16 @@ namespace Privy
             RpcProvider = rpcProvider;
         }
 
-        internal static EmbeddedWallet Create(PrivyEmbeddedWalletAccount account, WalletEntropy walletEntropy,
+        internal static EmbeddedEthereumWallet Create(PrivyEmbeddedWalletAccount account, WalletEntropy walletEntropy,
             EmbeddedWalletManager embeddedWalletManager, WalletApiRepository walletApiRepository,
             AuthDelegator authDelegator)
         {
             IRpcExecutor rpcExecutor = account.IsOnDevice
                 ? new WebViewRPCExecutor(walletEntropy, account.WalletIndex, embeddedWalletManager)
                 : new WalletApiRPCExecutor(walletApiRepository, authDelegator, account.Id);
-            var rpcProvider = new RpcProvider(rpcExecutor);
+            var rpcProvider = new EmbeddedEthereumWalletProvider(rpcExecutor);
 
-            return new EmbeddedWallet(account, rpcProvider);
+            return new EmbeddedEthereumWallet(account, rpcProvider);
         }
     }
 }

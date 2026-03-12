@@ -1,22 +1,22 @@
 using Newtonsoft.Json;
 
-namespace Privy
+namespace Privy.Auth.Models
 {
     internal class LinkedAccountResponse
     {
         // TODO: convert type to enum
         [JsonProperty("type")]
-        public string Type;
+        public string Type { get; set; }
 
         // TODO: convert below date longs to dates
         [JsonProperty("verified_at", NullValueHandling = NullValueHandling.Ignore)]
-        public long VerifiedAt;
+        public long VerifiedAt { get; set; }
 
         [JsonProperty("first_verified_at", NullValueHandling = NullValueHandling.Ignore)]
-        public long FirstVerifiedAt;
+        public long FirstVerifiedAt { get; set; }
 
         [JsonProperty("latest_verified_at", NullValueHandling = NullValueHandling.Ignore)]
-        public long LatestVerifiedAt;
+        public long LatestVerifiedAt { get; set; }
     }
 
     internal class WalletAccountResponse : LinkedAccountResponse

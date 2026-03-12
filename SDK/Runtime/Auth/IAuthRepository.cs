@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
+using Privy.Auth.Models;
 
-namespace Privy
+namespace Privy.Auth
 {
     internal interface IAuthRepository
     {

@@ -1,4 +1,4 @@
-namespace Privy
+namespace Privy.Wallets
 {
     /// <summary>
     /// Representes the identity of an embedded wallet's entropy, namely via its id and verifier.

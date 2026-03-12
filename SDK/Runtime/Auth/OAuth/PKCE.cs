@@ -2,7 +2,7 @@ using System;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Privy
+namespace Privy.Auth.OAuth
 {
     /// <summary>
     ///     Provides a randomly generating PKCE code verifier and it's corresponding code challenge.

@@ -1,9 +1,11 @@
 using System;
 using System.Threading.Tasks;
-using static Privy.RpcRequestData;
-using static Privy.RpcResponseData;
+using Privy.Utils;
+using static Privy.Wallets.RpcRequestData;
+using static Privy.Wallets.RpcResponseData;
 
-namespace Privy
+
+namespace Privy.Wallets
 {
     internal class WebViewRPCExecutor : IRpcExecutor
     {
@@ -21,7 +23,7 @@ namespace Privy
             _solanaJsonRpcClient = new SolanaJsonRpcClient();
         }
 
-        async Task<IRpcResponseDetails> IRpcExecutor.Evaluate(IRpcRequestDetails request)
+        async Task<RpcResponseData.IRpcResponseDetails> IRpcExecutor.Evaluate(RpcRequestData.IRpcRequestDetails request)
         {
             // Intercept Solana transaction operations which require client-side decomposition
             // before forwarding to the webview (the iframe only handles signMessage for Solana).
@@ -40,7 +42,7 @@ namespace Privy
             {
                 EthereumRpcRequestDetails => ChainType.Ethereum,
                 SolanaRpcRequestDetails => ChainType.Solana,
-                _ => throw new PrivyException.EmbeddedWalletException("Unsupported wallet request type.",
+                _ => throw new PrivyWalletException("Unsupported wallet request type.",
                     EmbeddedWalletError.RpcRequestFailed)
             };
             return await _embeddedWalletManager.Request(_entropy, chainType, _hdWalletIndex, request);
@@ -58,7 +60,7 @@ namespace Privy
             if (request.Params is not SolanaSignTransactionRpcRequestParams txParams ||
                 string.IsNullOrEmpty(txParams.Transaction))
             {
-                throw new PrivyException.EmbeddedWalletException(
+                throw new PrivyWalletException(
                     "signTransaction requires a valid SolanaSignTransactionRpcRequestParams",
                     EmbeddedWalletError.RpcRequestFailed);
             }
@@ -85,7 +87,7 @@ namespace Privy
                 string.IsNullOrEmpty(txParams.Transaction) ||
                 string.IsNullOrEmpty(txParams.Cluster))
             {
-                throw new PrivyException.EmbeddedWalletException(
+                throw new PrivyWalletException(
                     "signAndSendTransaction requires a valid SolanaSignAndSendTransactionRpcRequestParams with a cluster RPC URL",
                     EmbeddedWalletError.RpcRequestFailed);
             }
@@ -135,7 +137,7 @@ namespace Privy
                 signatureDetails.Data is not SolanaSignMessageRpcResponseData signatureData ||
                 string.IsNullOrEmpty(signatureData.Signature))
             {
-                throw new PrivyException.EmbeddedWalletException(
+                throw new PrivyWalletException(
                     "Failed to obtain signature from webview signMessage",
                     EmbeddedWalletError.RpcRequestFailed);
             }

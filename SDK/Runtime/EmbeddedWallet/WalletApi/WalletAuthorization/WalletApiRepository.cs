@@ -2,8 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Privy.Config;
+using Privy.Internal.Networking;
+using Privy.Utils;
 
-namespace Privy
+namespace Privy.Wallets
 {
     internal class WalletApiRepository
     {
@@ -39,7 +42,7 @@ namespace Privy
             }
             catch (Exception errorResponse)
             {
-                throw new PrivyException.EmbeddedWalletException($"Failed to create wallet: {errorResponse.Message}",
+                throw new PrivyWalletException($"Failed to create wallet: {errorResponse.Message}",
                     EmbeddedWalletError.CreateFailed);
             }
         }
@@ -78,7 +81,7 @@ namespace Privy
             }
             catch (Exception errorResponse)
             {
-                throw new PrivyException.EmbeddedWalletException($"Failed to execute RPC: {errorResponse.Message}",
+                throw new PrivyWalletException($"Failed to execute RPC: {errorResponse.Message}",
                     EmbeddedWalletError.RpcRequestFailed);
             }
         }

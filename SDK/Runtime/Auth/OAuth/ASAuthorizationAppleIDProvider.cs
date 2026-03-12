@@ -5,7 +5,7 @@ using AOT;
 using System.Runtime.InteropServices;
 #endif
 
-namespace Privy
+namespace Privy.Auth.OAuth
 {
     internal class ASAuthorizationAppleIDProvider : IDisposable
     {

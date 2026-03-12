@@ -1,9 +1,12 @@
 using System;
 using System.Threading.Tasks;
+using Privy.Auth;
+using Privy.Auth.Models;
+using Privy.Utils;
 
-namespace Privy
+namespace Privy.Wallets
 {
-    internal class EmbeddedWalletManager
+    internal class EmbeddedWalletManager : IDisposable
     {
         private WebViewManager _webViewManager;
         private AuthDelegator _authDelegator;
@@ -62,7 +65,7 @@ namespace Privy
 
             PrivyLogger.Debug("Attempting connect");
             var walletEntropy = authSession.User.LinkedAccounts.WalletEntropyOrNull() ??
-                                throw new PrivyException.EmbeddedWalletException(
+                                throw new PrivyWalletException(
                                     $"Failed to connect wallet: wallet does not exist",
                                     EmbeddedWalletError
                                         .WalletDoesNotExist); //Let this bubble up to await connected or handle auth state change, as they are caught there
@@ -94,7 +97,7 @@ namespace Privy
 
             if (result is IframeResponseError errorResponse)
             {
-                throw new PrivyException.EmbeddedWalletException(
+                throw new PrivyWalletException(
                     $"Failed to create wallet: {errorResponse.Error.Message}",
                     EmbeddedWalletError.CreateFailed); //Let this bubble up to Create
             }
@@ -105,7 +108,7 @@ namespace Privy
             }
             else
             {
-                throw new PrivyException.EmbeddedWalletException($"Failed to create wallet",
+                throw new PrivyWalletException($"Failed to create wallet",
                     EmbeddedWalletError.CreateFailed); //Let this bubble up to HandleAuthStateChanged and AwaitConnected
             }
         }
@@ -116,7 +119,7 @@ namespace Privy
 
             if (result is IframeResponseError errorResponse)
             {
-                throw new PrivyException.EmbeddedWalletException(
+                throw new PrivyWalletException(
                     $"Failed to create wallet: {errorResponse.Error.Message}",
                     EmbeddedWalletError.CreateFailed); //Let this bubble up to Create
             }
@@ -126,7 +129,7 @@ namespace Privy
             }
             else
             {
-                throw new PrivyException.EmbeddedWalletException($"Failed to create wallet",
+                throw new PrivyWalletException($"Failed to create wallet",
                     EmbeddedWalletError.CreateFailed); //Let this bubble up to HandleAuthStateChanged and AwaitConnected
             }
         }
@@ -139,7 +142,7 @@ namespace Privy
 
             if (result is IframeResponseError errorResponse)
             {
-                throw new PrivyException.EmbeddedWalletException(
+                throw new PrivyWalletException(
                     $"Failed to create additional wallet: {errorResponse.Error.Message}",
                     EmbeddedWalletError.CreateAdditionalFailed); //Let this bubble up to Create
             }
@@ -150,7 +153,7 @@ namespace Privy
             }
             else
             {
-                throw new PrivyException.EmbeddedWalletException($"Failed to create additional wallet",
+                throw new PrivyWalletException($"Failed to create additional wallet",
                     EmbeddedWalletError
                         .CreateAdditionalFailed); //Let this bubble up to HandleAuthStateChanged and AwaitConnected
             }
@@ -211,7 +214,7 @@ namespace Privy
                 else
                 {
                     // Handle other errors or return null
-                    throw new PrivyException.EmbeddedWalletException(
+                    throw new PrivyWalletException(
                         $"Failed to connect wallet: {errorResponse.Error.Message}",
                         EmbeddedWalletError
                             .ConnectionFailed); //Let this bubble up to HandleAuthStateChanged and AwaitConnected
@@ -227,7 +230,7 @@ namespace Privy
             }
             else
             {
-                throw new PrivyException.EmbeddedWalletException($"Failed to connect wallet",
+                throw new PrivyWalletException($"Failed to connect wallet",
                     EmbeddedWalletError
                         .ConnectionFailed); //Let this bubble up to HandleAuthStateChanged and AwaitConnected
             }
@@ -249,13 +252,13 @@ namespace Privy
             }
             else if (result is IframeResponseError errorResponse)
             {
-                throw new PrivyException.EmbeddedWalletException(
+                throw new PrivyWalletException(
                     $"Failed to recover wallet: {errorResponse.Error.Message}",
                     EmbeddedWalletError.RecoverFailed); //Let this bubble up to connect wallet without lock
             }
             else
             {
-                throw new PrivyException.EmbeddedWalletException($"Failed to recover wallet",
+                throw new PrivyWalletException($"Failed to recover wallet",
                     EmbeddedWalletError.RecoverFailed); //Let this bubble up to connect wallet without lock
             }
         }
@@ -279,13 +282,13 @@ namespace Privy
             }
             else if (result is IframeResponseError errorResponse)
             {
-                throw new PrivyException.EmbeddedWalletException(
+                throw new PrivyWalletException(
                     $"Failed to execute RPC Request: {errorResponse.Error.Message}",
                     EmbeddedWalletError.RpcRequestFailed); //Let this bubble up to developer RPC Request
             }
             else
             {
-                throw new PrivyException.EmbeddedWalletException($"Failed to execute RPC Request",
+                throw new PrivyWalletException($"Failed to execute RPC Request",
                     EmbeddedWalletError.RpcRequestFailed); //Let this bubble up to developer RPC Request
             }
         }
@@ -296,7 +299,7 @@ namespace Privy
 
             if (result is IframeResponseError errorResponse)
             {
-                throw new PrivyException.EmbeddedWalletException(
+                throw new PrivyWalletException(
                     $"Failed to sign with the user's authorization key: {errorResponse.Error.Message}",
                     EmbeddedWalletError.UserSignerRequestFailed);
             }
@@ -307,9 +310,8 @@ namespace Privy
                 return Convert.FromBase64String(signatureAsBase64);
             }
 
-            throw new PrivyException.EmbeddedWalletException($"Failed to create additional wallet",
-                EmbeddedWalletError
-                    .CreateAdditionalFailed); //Let this bubble up to HandleAuthStateChanged and AwaitConnected
+            throw new PrivyWalletException($"Failed to sign with user signer",
+                EmbeddedWalletError.CreateAdditionalFailed); //Let this bubble up to HandleAuthStateChanged and AwaitConnected
         }
     }
 }

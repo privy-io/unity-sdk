@@ -1,5 +1,9 @@
 using System;
 using Privy;
+using Privy.Auth.Models;
+using Privy.Config;
+using Privy.Core;
+using Privy.Utils;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -32,7 +36,7 @@ public class InitialScreenController : MonoBehaviour
             ClientId = Application.platform == RuntimePlatform.WebGLPlayer
                 ? webClientId
                 : mobileClientId,
-            LogLevel = PrivyLogLevel.DEBUG
+            LogLevel = PrivyLogLevel.Debug
         });
 
         loginWithEmailButton.onClick.AddListener(OnLoginWithEmailButtonClick);

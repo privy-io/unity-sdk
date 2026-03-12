@@ -1,15 +1,14 @@
-namespace Privy
+namespace Privy.Utils
 {
     public enum PrivyLogLevel
     {
         /** No logs. */
-        NONE,
-        DEBUG,
-        INFO,
-        WARNING,
-        ERROR,
-
+        None = 0,
+        Error = 1,
+        Warning = 2,
+        Info = 3,
+        Debug = 4,
         /** Logs everything */
-        VERBOSE,
+        Verbose = 5,
     }
 }

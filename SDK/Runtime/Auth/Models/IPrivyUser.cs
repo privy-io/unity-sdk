@@ -1,7 +1,8 @@
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Privy.Wallets;
 
-namespace Privy
+namespace Privy.Auth.Models
 {
     /// <summary>
     /// Represents a Privy user with properties and methods for managing the user's identity and embedded wallets.
@@ -19,8 +20,15 @@ namespace Privy
         PrivyLinkedAccount[] LinkedAccounts { get; }
 
         /// <summary>
-        /// Gets the list of the user's embedded wallets.
+        /// Gets the list of the user's embedded Ethereum wallets.
         /// </summary>
+        IEmbeddedEthereumWallet[] EmbeddedEthereumWallets { get; }
+
+        /// <summary>
+        /// **DEPRECATED**: use <see cref="EmbeddedEthereumWallets"/> instead.
+        /// The old name is retained for compatibility and simply forwards to the new property.
+        /// </summary>
+        [System.Obsolete("Use EmbeddedEthereumWallets instead.")]
         IEmbeddedEthereumWallet[] EmbeddedWallets { get; }
 
         /// <summary>
@@ -46,17 +54,17 @@ namespace Privy
         Task<string> GetIdentityToken();
 
         /// <summary>
-        /// Creates a new embedded wallet for the user.
+        /// Creates a new embedded Ethereum wallet for the user.
         /// </summary>
-        /// <param name="allowAditional">Whether to allow the creation of additional wallets derived from the primary HD wallet</param>
+        /// <param name="allowAdditional">Whether to allow the creation of additional wallets derived from the primary HD wallet</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the newly created embedded wallet.</returns>
-        /// <exception cref="PrivyException.AuthenticationException">
+        /// <exception cref="PrivyAuthenticationException">
         /// Thrown if there is an issue with authentication, such as a failure to refresh the access token.
         /// </exception>
-        /// <exception cref="PrivyException.EmbeddedWalletException">
+        /// <exception cref="PrivyWalletException">
         /// Thrown if the wallet creation fails or the wallet cannot be added to the user's account.
         /// </exception>
-        Task<IEmbeddedEthereumWallet> CreateWallet(bool allowAdditional = false);
+        Task<IEmbeddedEthereumWallet> CreateEthereumWallet(bool allowAdditional = false);
 
 
         /// <summary>
@@ -67,14 +75,19 @@ namespace Privy
         /// </summary>
         /// <param name="hdWalletIndex">The specified HD wallet index of the wallet.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the newly created embedded wallet.</returns>
-        /// <exception cref="PrivyException.AuthenticationException">
+        /// <exception cref="PrivyAuthenticationException">
         /// Thrown if there is an issue with authentication, such as a failure to refresh the access token.
         /// </exception>
-        /// <exception cref="PrivyException.EmbeddedWalletException">
+        /// <exception cref="PrivyWalletException">
         /// Thrown if the wallet creation fails or the wallet cannot be added to the user's account.
         /// Can also be thrown if an invalid HD wallet index is supplied, i.e. hdWalletIndex is less than 0,
         /// or if HD wallet index is greater than 0 while user has no wallet with HD index 0.
         /// </exception>
-        Task<IEmbeddedEthereumWallet> CreateWalletAtHdIndex(int hdWalletIndex);
+        Task<IEmbeddedEthereumWallet> CreateEthereumWalletAtHdIndex(int hdWalletIndex);
+
+        /// <summary>
+        /// Creates a new Solana embedded wallet for the user.
+        /// </summary>
+        Task<IEmbeddedSolanaWallet> CreateSolanaWallet(bool allowAdditional = false);
     }
 }

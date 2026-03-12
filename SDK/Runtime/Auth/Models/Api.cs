@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Newtonsoft.Json.Converters;
 
-namespace Privy
+namespace Privy.Auth.Models
 {
     //Request Models
 
@@ -12,88 +12,88 @@ namespace Privy
     internal class SendCodeRequestData
     {
         [JsonProperty("email")]
-        public string Email;
+        public string Email { get; set; }
     }
 
     internal class LogInRequestData
     {
         [JsonProperty("email")]
-        public string Email;
+        public string Email { get; set; }
 
         [JsonProperty("code")]
-        public string Code;
+        public string Code { get; set; }
     }
 
     internal class SendSmsCodeRequestData
     {
         [JsonProperty("phoneNumber")]
-        public string PhoneNumber;
+        public string PhoneNumber { get; set; }
     }
 
     internal class SmsLoginRequestData
     {
         [JsonProperty("phoneNumber")]
-        public string PhoneNumber;
+        public string PhoneNumber { get; set; }
 
         [JsonProperty("code")]
-        public string Code;
+        public string Code { get; set; }
     }
 
     internal class SmsLinkRequestData
     {
         [JsonProperty("phoneNumber")]
-        public string PhoneNumber;
+        public string PhoneNumber { get; set; }
 
         [JsonProperty("code")]
-        public string Code;
+        public string Code { get; set; }
     }
 
     internal class SmsUnlinkRequestData
     {
         [JsonProperty("phoneNumber")]
-        public string PhoneNumber;
+        public string PhoneNumber { get; set; }
     }
 
     internal class SmsUpdateRequestData
     {
         [JsonProperty("phoneNumber")]
-        public string PhoneNumber;
+        public string PhoneNumber { get; set; }
 
         [JsonProperty("code")]
-        public string Code;
+        public string Code { get; set; }
     }
 
     internal class SendRefreshRequestData
     {
         [JsonProperty("refresh_token")]
-        public string RefreshToken;
+        public string RefreshToken { get; set; }
     }
 
     internal class InitiateOAuthFlowRequestData
     {
         [JsonProperty("provider")]
-        public OAuthProvider ProviderName;
+        public OAuthProvider ProviderName { get; set; }
 
         [JsonProperty("redirect_to")]
-        public string RedirectUri;
+        public string RedirectUri { get; set; }
 
         [JsonProperty("code_challenge")]
-        public string CodeChallenge;
+        public string CodeChallenge { get; set; }
 
         [JsonProperty("state_code")]
-        public string StateCode;
+        public string StateCode { get; set; }
     }
 
     internal class AuthenticateOAuthFlowRequestData
     {
         [JsonProperty("authorization_code")]
-        public string AuthorizationCode;
+        public string AuthorizationCode { get; set; }
 
         [JsonProperty("code_verifier")]
-        public string CodeVerifier;
+        public string CodeVerifier { get; set; }
 
         [JsonProperty("state_code")]
-        public string StateCode;
+        public string StateCode { get; set; }
 
         [JsonProperty("code_type", NullValueHandling = NullValueHandling.Ignore)]
         public AuthenticateOAuthFlowCodeType? CodeType;
@@ -110,20 +110,20 @@ namespace Privy
     internal class SendCodeResponseData
     {
         [JsonProperty("success")]
-        public bool Success;
+        public bool Success { get; set; }
     }
 
     internal class UserResponse
     {
         [JsonProperty("id")]
-        public string Id;
+        public string Id { get; set; }
 
         // TODO: convert these to dates
         [JsonProperty("created_at")]
-        public long CreatedAt;
+        public long CreatedAt { get; set; }
 
         [JsonProperty("has_accepted_terms")]
-        public bool HasAcceptedTerms;
+        public bool HasAcceptedTerms { get; set; }
 
         [JsonProperty("linked_accounts")]
         public LinkedAccountResponse[] LinkedAccounts;
@@ -134,29 +134,43 @@ namespace Privy
         // TODO: implement mfa_methods
     }
 
+    /// <summary>
+    /// Instructs the SDK how to process the returned session.
+    /// </summary>
+    [JsonConverter(typeof(StringEnumConverter))]
+    internal enum SessionUpdateAction
+    {
+        [EnumMember(Value = "set")]
+        Set,
+        [EnumMember(Value = "clear")]
+        Clear,
+        [EnumMember(Value = "ignore")]
+        Ignore
+    }
+
     internal class ValidSessionResponse
     {
         [JsonProperty("user")]
-        public UserResponse User;
+        public UserResponse User { get; set; }
 
         [JsonProperty("is_new_user")]
-        public bool IsNewUser;
+        public bool IsNewUser { get; set; }
 
-        public string Token;
+        public string Token { get; set; }
 
         [JsonProperty("refresh_token")]
-        public string RefreshToken;
+        public string RefreshToken { get; set; }
 
         [JsonProperty("identity_token")]
-        public string IdentityToken;
+        public string IdentityToken { get; set; }
 
         [JsonProperty("session_update_action")]
-        public string SessionUpdateAction;
+        public SessionUpdateAction SessionUpdateAction { get; set; }
     }
 
     internal class InitiateOAuthFlowResponse
     {
         [JsonProperty("url")]
-        public string OAuthUrl;
+        public string OAuthUrl { get; set; }
     }
 }

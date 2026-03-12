@@ -1,9 +1,10 @@
+using Privy.Utils;
 using System;
 using System.Net;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace Privy
+namespace Privy.Auth.OAuth
 {
     internal class OAuthInEditorFlow : IOAuthFlow
     {

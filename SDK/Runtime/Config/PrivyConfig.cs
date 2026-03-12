@@ -1,9 +1,11 @@
-namespace Privy
+using Privy.Utils;
+
+namespace Privy.Config
 {
     public class PrivyConfig
     {
-        public string AppId;
-        public string ClientId;
-        public PrivyLogLevel LogLevel = PrivyLogLevel.NONE;
+        public string AppId { get; set; }
+        public string ClientId { get; set; }
+        public PrivyLogLevel LogLevel { get; set; } = PrivyLogLevel.None;
     }
 }

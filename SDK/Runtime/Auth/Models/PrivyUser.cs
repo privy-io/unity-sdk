@@ -2,10 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Privy.Auth;
+using Privy.Config;
+using Privy.Utils;
+using Privy.Wallets;
 
-namespace Privy
+namespace Privy.Auth.Models
 {
-    public class PrivyUser : IPrivyUser
+    internal class PrivyUser : IPrivyUser
     {
         public string Id
         {
@@ -38,23 +42,26 @@ namespace Privy
             }
         }
 
-        //This getter parses EmbeddedWalletAccounts from the Linked Accounts, and then converts them to type EmbeddedWallet, and returns an array of them
-        public IEmbeddedEthereumWallet[] EmbeddedWallets
+
+        public IEmbeddedEthereumWallet[] EmbeddedEthereumWallets
         {
             get
             {
                 var walletEntropy = LinkedAccounts.WalletEntropyOrNull();
 
-                // Return an empty array if no wallet "entropy" exists for the user, i.e. there are no wallets
                 if (walletEntropy == null) return Array.Empty<IEmbeddedEthereumWallet>();
 
-                // Otherwise, create the array of embedded wallets using the primary wallet's address
                 return LinkedAccounts.EmbeddedWalletAccounts()
-                    .Select(account => EmbeddedWallet.Create(account, walletEntropy.Value, _embeddedWalletManager,
-                        _walletApiRepository, _authDelegator))
+                    .Select(account =>
+                        EmbeddedEthereumWallet.Create(account, walletEntropy.Value, _embeddedWalletManager,
+                            _walletApiRepository, _authDelegator))
                     .ToArray<IEmbeddedEthereumWallet>();
             }
         }
+
+        // deprecated alias to help existing consumers transition
+        [Obsolete("Use EmbeddedEthereumWallets instead.")]
+        public IEmbeddedEthereumWallet[] EmbeddedWallets => EmbeddedEthereumWallets;
 
         public IEmbeddedSolanaWallet[] EmbeddedSolanaWallets
         {
@@ -62,12 +69,12 @@ namespace Privy
             {
                 var walletEntropy = LinkedAccounts.WalletEntropyOrNull();
 
-                // Return an empty array if no wallet "entropy" exists for the user, i.e. there are no wallets
                 if (walletEntropy == null) return Array.Empty<IEmbeddedSolanaWallet>();
 
                 return LinkedAccounts.EmbeddedSolanaWalletAccounts()
-                    .Select(account => EmbeddedSolanaWallet.Create(account, walletEntropy.Value, _embeddedWalletManager,
-                        _walletApiRepository, _authDelegator))
+                    .Select(account =>
+                        EmbeddedSolanaWallet.Create(account, walletEntropy.Value, _embeddedWalletManager,
+                            _walletApiRepository, _authDelegator))
                     .ToArray<IEmbeddedSolanaWallet>();
             }
         }
@@ -118,7 +125,7 @@ namespace Privy
         }
 
         // Public Methods
-        public async Task<IEmbeddedEthereumWallet> CreateWallet(bool allowAdditional = false)
+        public async Task<IEmbeddedEthereumWallet> CreateEthereumWallet(bool allowAdditional = false)
         {
             var appConfig = await _appConfigRepository.LoadAppConfig();
             if (appConfig.EmbeddedWalletConfig.Mode == EmbeddedWalletMode.UserControlledServerWalletsOnly)
@@ -134,7 +141,7 @@ namespace Privy
             else if (!allowAdditional)
             {
                 // User has primary wallet, but didn't explicitly set allowAdditional to true, so throw error
-                throw new PrivyException.EmbeddedWalletException(
+                throw new PrivyWalletException(
                     "Wallet Create Failed: Primary wallet already exists. To create an additional wallet, set allowAdditional to true.",
                     EmbeddedWalletError.CreateFailed);
             }
@@ -146,7 +153,7 @@ namespace Privy
                 if (walletWithHighestIndex == null)
                 {
                     // This should never happen due to the precondition checks above, but adding a check to just in case
-                    throw new PrivyException.EmbeddedWalletException(
+                    throw new PrivyWalletException(
                         "No existing wallet found, so can't determine new wallet's HD index.",
                         EmbeddedWalletError.CreateFailed);
                 }
@@ -186,19 +193,19 @@ namespace Privy
             }
 
             // User has primary wallet, but didn't explicitly set allowAdditional to true, so throw error
-            throw new PrivyException.EmbeddedWalletException(
+            throw new PrivyWalletException(
                 "Wallet Create Failed: Primary wallet already exists. To create an additional wallet, set allowAdditional to true.",
                 EmbeddedWalletError.CreateFailed);
         }
 
         // Creates an Ethereum wallet at the specified HD index, or returns the existing wallet if one already exists at that index.
         // This method is idempotent. Calling it multiple times with the same HD index will have the same effect as calling it once.
-        public async Task<IEmbeddedEthereumWallet> CreateWalletAtHdIndex(int hdWalletIndex)
+        public async Task<IEmbeddedEthereumWallet> CreateEthereumWalletAtHdIndex(int hdWalletIndex)
         {
             if (hdWalletIndex < 0)
             {
                 // Negative HD index is invalid
-                throw new PrivyException.EmbeddedWalletException(
+                throw new PrivyWalletException(
                     "A negative HD wallet index is invalid.",
                     EmbeddedWalletError.CreateAdditionalFailed
                 );
@@ -206,7 +213,7 @@ namespace Privy
             else if (hdWalletIndex == 0)
             {
                 // Dev wants to create primary wallet
-                // CreatePrimaryWallet should not throw if a primary wallet already exists, because CreateWalletAtHdIndex
+                // CreatePrimaryEthereumWallet should not throw if a primary wallet already exists, because CreateEthereumWalletAtHdIndex
                 // is idempotent and either creates a wallet or returns an existing one.
                 return await CreatePrimaryEthereumWallet(throwErrorIfPrimaryWalletExists: false);
             }
@@ -224,29 +231,19 @@ namespace Privy
             await _authDelegator.RefreshSession(true); //Forces refresh even if token is valid
 
             var embeddedWallet =
-                EmbeddedWallets.FirstOrDefault(wallet =>
+                EmbeddedEthereumWallets.FirstOrDefault(wallet =>
                     wallet.Address == walletAddress); //Get the first wallet with matching address, else null
 
-            // We could technically return null here, and it would be more performant if we did
-            // But to maintain consistency - I think we go with the approach of the dev catching errors, as oppose to parsing nulls
-            // If we returned a null here, the docs also become inconsistent, where in some places they'd be checking for nulls, and other places they'd be catching errors
             if (embeddedWallet == null)
             {
-                throw new PrivyException.EmbeddedWalletException(
+                throw new PrivyWalletException(
                     "Wallet Create Failed: Wallet was not added to account.", EmbeddedWalletError.CreateFailed);
             }
 
-            //This mimics a background process while being non-blocking
-            //Mimics await functionality without waiting for result, by using a callback to process the result
-            Task connectTask = _embeddedWalletManager.AttemptConnectingToWallet(_authDelegator.GetAuthSession());
-            _ = connectTask.ContinueWith(task =>
-            {
-                if (task.IsFaulted)
-                {
-                    // Handle the error silently or log it without interrupting the main flow
-                    PrivyLogger.Error("Could not connect wallet", task.Exception);
-                }
-            });
+            // Fire-and-forget the wallet connection; log any exception via helper.
+            _embeddedWalletManager
+                .AttemptConnectingToWallet(_authDelegator.GetAuthSession())
+                .SafeFireAndForget(ex => PrivyLogger.Error("Could not connect wallet", ex));
 
             return embeddedWallet;
         }
@@ -259,20 +256,13 @@ namespace Privy
                 EmbeddedSolanaWallets.FirstOrDefault(wallet => wallet.Address == walletAddress);
 
             if (embeddedWallet == null)
-                throw new PrivyException.EmbeddedWalletException(
+                throw new PrivyWalletException(
                     "Wallet Create Failed: Wallet was not added to account.", EmbeddedWalletError.CreateFailed);
 
-            //This mimics a background process while being non-blocking
-            //Mimics await functionality without waiting for result, by using a callback to process the result
-            Task connectTask = _embeddedWalletManager.AttemptConnectingToWallet(_authDelegator.GetAuthSession());
-            _ = connectTask.ContinueWith(task =>
-            {
-                if (task.IsFaulted)
-                {
-                    // Handle the error silently or log it without interrupting the main flow
-                    PrivyLogger.Error("Could not connect wallet", task.Exception);
-                }
-            });
+            // Fire-and-forget the connection; log any exceptions
+            _embeddedWalletManager
+                .AttemptConnectingToWallet(_authDelegator.GetAuthSession())
+                .SafeFireAndForget(ex => PrivyLogger.Error("Could not connect wallet", ex));
 
             return embeddedWallet;
         }
@@ -302,7 +292,7 @@ namespace Privy
             {
                 if (throwErrorIfPrimaryWalletExists)
                 {
-                    throw new PrivyException.EmbeddedWalletException(
+                    throw new PrivyWalletException(
                         "Wallet Create Failed: Primary wallet already exists.",
                         EmbeddedWalletError.CreateFailed);
                 }
@@ -335,14 +325,14 @@ namespace Privy
         {
             // Ensure user has a primary wallet
             if (LinkedAccounts.PrimaryEmbeddedWalletAccountOrNull() is null)
-                throw new PrivyException.EmbeddedWalletException(
+                throw new PrivyWalletException(
                     "A user must have a wallet at HD index 0 before creating a wallet at greater HD indices.",
                     EmbeddedWalletError.CreateFailed
                 );
 
             // Ensure user has wallet entropy
             var walletEntropy = LinkedAccounts.WalletEntropyOrNull() ??
-                                throw new PrivyException.EmbeddedWalletException(
+                                throw new PrivyWalletException(
                                     "A user must have a primary wallet before creating a wallet at HD indices >= 1.",
                                     EmbeddedWalletError.CreateFailed
                                 );
@@ -379,14 +369,14 @@ namespace Privy
 
             // Ensure user has a primary SOL wallet
             if (solWalletAccounts.All(account => account.WalletIndex != 0))
-                throw new PrivyException.EmbeddedWalletException(
+                throw new PrivyWalletException(
                     "A user must have a wallet at HD index 0 before creating a wallet at greater HD indices.",
                     EmbeddedWalletError.CreateFailed
                 );
 
             // Ensure user has wallet entropy
             var walletEntropy = LinkedAccounts.WalletEntropyOrNull() ??
-                                throw new PrivyException.EmbeddedWalletException(
+                                throw new PrivyWalletException(
                                     "A user must have a primary wallet before creating a wallet at HD indices >= 1.",
                                     EmbeddedWalletError.CreateFailed
                                 );

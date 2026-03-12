@@ -4,6 +4,10 @@ using UnityEngine.UI;
 using TMPro;
 using Newtonsoft.Json;
 using Privy;
+using Privy.Core;
+using Privy.Auth;
+using Privy.Auth.Models;
+using Privy.Utils;
 
 /// <summary>
 /// Controls all auth screens: send-code, login-with-code (both Email and SMS),
@@ -71,7 +75,16 @@ public class AuthScreenController : MonoBehaviour
         if (updateSmsPhoneButton != null)
             updateSmsPhoneButton.onClick.AddListener(OnUpdateSmsPhoneButtonClick);
 
-        PrivyManager.Instance.SetAuthStateChangeCallback(OnAuthStateChange);
+        PrivyManager.Instance.AuthStateChanged += OnAuthStateChange;
+    }
+
+    private void OnDestroy()
+    {
+        // remove event handler to prevent memory leaks when this object is destroyed
+        if (PrivyManager.Instance != null)
+        {
+            PrivyManager.Instance.AuthStateChanged -= OnAuthStateChange;
+        }
     }
 
     // ── Login method switching ───────────────────────────────────────────────
@@ -108,7 +121,7 @@ public class AuthScreenController : MonoBehaviour
     {
         try
         {
-            PrivyUser user = await PrivyManager.Instance.GetUser();
+            IPrivyUser user = await PrivyManager.Instance.GetUser();
             if (user != null)
             {
                 UpdateUserDisplay(user);
@@ -125,7 +138,7 @@ public class AuthScreenController : MonoBehaviour
     /// Update the user-info display on the authorized screen.
     /// Can be called externally to refresh after link/unlink operations.
     /// </summary>
-    public void UpdateUserDisplay(PrivyUser user)
+    public void UpdateUserDisplay(IPrivyUser user)
     {
         if (user != null)
             userObject.text = JsonConvert.SerializeObject(user);
@@ -164,7 +177,7 @@ public class AuthScreenController : MonoBehaviour
                 else
                     Debug.LogError("Failed to send SMS code.");
             }
-            catch (PrivyException.AuthenticationException ex) when (ex.Error == AuthenticationError.InvalidPhoneNumber)
+            catch (PrivyAuthenticationException ex) when (ex.Error == AuthenticationError.InvalidPhoneNumber)
             {
                 Debug.LogError("Server rejected phone number as invalid: " + ex.Message);
             }
@@ -203,7 +216,7 @@ public class AuthScreenController : MonoBehaviour
             else
                 await PrivyManager.Instance.Email.LoginWithCode(input, code);
         }
-        catch (PrivyException.AuthenticationException ex) when (ex.Error == AuthenticationError.IncorrectOtpCode)
+        catch (PrivyAuthenticationException ex) when (ex.Error == AuthenticationError.IncorrectOtpCode)
         {
             Debug.LogError("Incorrect OTP code — please try again.");
         }
@@ -251,11 +264,11 @@ public class AuthScreenController : MonoBehaviour
         try
         {
             await PrivyManager.Instance.Sms.Link(phone, code);
-            PrivyUser user = await PrivyManager.Instance.GetUser();
+            IPrivyUser user = await PrivyManager.Instance.GetUser();
             UpdateUserDisplay(user);
             Debug.Log($"Phone {phone} linked successfully.");
         }
-        catch (PrivyException.AuthenticationException ex) when (ex.Error == AuthenticationError.IncorrectOtpCode)
+        catch (PrivyAuthenticationException ex) when (ex.Error == AuthenticationError.IncorrectOtpCode)
         {
             Debug.LogError("Incorrect OTP code for link.");
         }
@@ -284,7 +297,7 @@ public class AuthScreenController : MonoBehaviour
         try
         {
             await PrivyManager.Instance.Sms.Unlink(phone);
-            PrivyUser user = await PrivyManager.Instance.GetUser();
+            IPrivyUser user = await PrivyManager.Instance.GetUser();
             UpdateUserDisplay(user);
             Debug.Log($"Phone {phone} unlinked successfully.");
         }
@@ -310,11 +323,11 @@ public class AuthScreenController : MonoBehaviour
         try
         {
             await PrivyManager.Instance.Sms.UpdatePhoneNumber(phone, code);
-            PrivyUser user = await PrivyManager.Instance.GetUser();
+            IPrivyUser user = await PrivyManager.Instance.GetUser();
             UpdateUserDisplay(user);
             Debug.Log($"Phone number updated to {phone}.");
         }
-        catch (PrivyException.AuthenticationException ex) when (ex.Error == AuthenticationError.IncorrectOtpCode)
+        catch (PrivyAuthenticationException ex) when (ex.Error == AuthenticationError.IncorrectOtpCode)
         {
             Debug.LogError("Incorrect OTP code for phone update.");
         }
@@ -333,16 +346,42 @@ public class AuthScreenController : MonoBehaviour
 
     private async void OnGetAccessTokenButtonClick()
     {
-        var user = await PrivyManager.Instance.GetUser();
-        string accessToken = await user!.GetAccessToken();
-        Debug.Log("Access token: " + accessToken);
+        IPrivyUser user = await PrivyManager.Instance.GetUser();
+        if (user == null)
+        {
+            Debug.LogWarning("No authenticated user available to fetch access token.");
+            return;
+        }
+
+        try
+        {
+            string accessToken = await user.GetAccessToken();
+            Debug.Log("Access token: " + accessToken);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError("Failed to get access token: " + ex.Message);
+        }
     }
 
     private async void OnGetIdentityTokenButtonClick()
     {
-        var user = await PrivyManager.Instance.GetUser();
-        string identityToken = await user!.GetIdentityToken();
-        Debug.Log("Identity token: " + identityToken);
+        IPrivyUser user = await PrivyManager.Instance.GetUser();
+        if (user == null)
+        {
+            Debug.LogWarning("No authenticated user available to fetch identity token.");
+            return;
+        }
+
+        try
+        {
+            string identityToken = await user.GetIdentityToken();
+            Debug.Log("Identity token: " + identityToken);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError("Failed to get identity token: " + ex.Message);
+        }
     }
 
     private void OnLogOutButtonClick()

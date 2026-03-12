@@ -1,4 +1,4 @@
-namespace Privy
+namespace Privy.Wallets
 {
     /// <summary>
     /// Represents a Solana cluster (network) with its CAIP-2 identifier and RPC URL.

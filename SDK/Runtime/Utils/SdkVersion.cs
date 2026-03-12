@@ -1,4 +1,4 @@
-namespace Privy
+namespace Privy.Utils
 {
     public static class SdkVersion
     {

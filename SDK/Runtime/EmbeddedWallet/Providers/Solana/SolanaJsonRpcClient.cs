@@ -4,9 +4,10 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Privy.Utils;
 using UnityEngine.Networking;
 
-namespace Privy
+namespace Privy.Wallets
 {
     /// <summary>
     /// Lightweight Solana JSON-RPC client used to broadcast signed transactions
@@ -57,7 +58,7 @@ namespace Privy
             if (errorToken != null && errorToken.Type != JTokenType.Null)
             {
                 string errorMessage = errorToken["message"]?.Value<string>() ?? "Unknown Solana RPC error";
-                throw new PrivyException.EmbeddedWalletException(
+                throw new PrivyWalletException(
                     $"Solana RPC error: {errorMessage}",
                     EmbeddedWalletError.RpcRequestFailed);
             }
@@ -65,7 +66,7 @@ namespace Privy
             string txHash = responseObj["result"]?.Value<string>();
             if (string.IsNullOrEmpty(txHash))
             {
-                throw new PrivyException.EmbeddedWalletException(
+                throw new PrivyWalletException(
                     "Solana sendTransaction returned an empty result",
                     EmbeddedWalletError.RpcRequestFailed);
             }
@@ -88,7 +89,7 @@ namespace Privy
 
             if (request.result != UnityWebRequest.Result.Success)
             {
-                throw new PrivyException.EmbeddedWalletException(
+                throw new PrivyWalletException(
                     $"HTTP error sending transaction to {url}: {request.error}",
                     EmbeddedWalletError.RpcRequestFailed);
             }

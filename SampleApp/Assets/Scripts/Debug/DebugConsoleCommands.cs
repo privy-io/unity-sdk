@@ -4,7 +4,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using IngameDebugConsole;
 using Newtonsoft.Json;
-using Privy;
+using Privy.Core;
+using Privy.Auth;
+using Privy.Auth.Models;
+using Privy.Wallets;
 using UnityEngine;
 
 /// <summary>
@@ -18,7 +21,7 @@ public static class DebugConsoleCommands
     //  Helpers
     // ──────────────────────────────────────────────
 
-    private static async Task<PrivyUser> GetUserOrThrow()
+    private static async Task<IPrivyUser> GetUserOrThrow()
     {
         var user = await PrivyManager.Instance.GetUser();
         if (user == null)
@@ -141,7 +144,7 @@ public static class DebugConsoleCommands
             Debug.Log($"[privy.user] User ID: {user.Id}");
             Debug.Log($"[privy.user] Linked accounts: {user.LinkedAccounts.Length}");
 
-            var ethWallets = user.EmbeddedWallets;
+            var ethWallets = user.EmbeddedEthereumWallets;
             Debug.Log($"[privy.user] Ethereum wallets: {ethWallets.Length}");
             for (int i = 0; i < ethWallets.Length; i++)
             {
@@ -171,7 +174,7 @@ public static class DebugConsoleCommands
         try
         {
             var user = await GetUserOrThrow();
-            var wallet = await user.CreateWallet(allowAdditional: false);
+            var wallet = await user.CreateEthereumWallet(allowAdditional: false);
             Debug.Log($"[privy.eth.create] Wallet created: {wallet.Address}");
         }
         catch (Exception ex)
@@ -186,7 +189,7 @@ public static class DebugConsoleCommands
         try
         {
             var user = await GetUserOrThrow();
-            var wallet = await user.CreateWallet(allowAdditional: true);
+            var wallet = await user.CreateEthereumWallet(allowAdditional: true);
             Debug.Log($"[privy.eth.create_additional] Wallet created: {wallet.Address}");
         }
         catch (Exception ex)
@@ -201,7 +204,7 @@ public static class DebugConsoleCommands
         try
         {
             var user = await GetUserOrThrow();
-            var wallet = await user.CreateWalletAtHdIndex(hdWalletIndex: hdIndex);
+            var wallet = await user.CreateEthereumWalletAtHdIndex(hdWalletIndex: hdIndex);
             Debug.Log($"[privy.eth.create_at_index] Wallet created: {wallet.Address} (HD index: {wallet.HdWalletIndex})");
         }
         catch (Exception ex)
@@ -216,7 +219,7 @@ public static class DebugConsoleCommands
         try
         {
             var user = await GetUserOrThrow();
-            var wallets = user.EmbeddedWallets;
+            var wallets = user.EmbeddedEthereumWallets;
 
             if (wallets.Length == 0)
             {
@@ -242,7 +245,7 @@ public static class DebugConsoleCommands
         try
         {
             var user = await GetUserOrThrow();
-            var wallets = user.EmbeddedWallets;
+            var wallets = user.EmbeddedEthereumWallets;
             if (walletIndex < 0 || walletIndex >= wallets.Length)
                 throw new Exception($"Wallet index {walletIndex} out of range (0..{wallets.Length - 1}).");
 
@@ -268,7 +271,7 @@ public static class DebugConsoleCommands
         try
         {
             var user = await GetUserOrThrow();
-            var wallets = user.EmbeddedWallets;
+            var wallets = user.EmbeddedEthereumWallets;
             if (walletIndex < 0 || walletIndex >= wallets.Length)
                 throw new Exception($"Wallet index {walletIndex} out of range (0..{wallets.Length - 1}).");
 
@@ -336,7 +339,7 @@ public static class DebugConsoleCommands
         try
         {
             var user = await GetUserOrThrow();
-            var wallets = user.EmbeddedWallets;
+            var wallets = user.EmbeddedEthereumWallets;
             if (walletIndex < 0 || walletIndex >= wallets.Length)
                 throw new Exception($"Wallet index {walletIndex} out of range (0..{wallets.Length - 1}).");
 

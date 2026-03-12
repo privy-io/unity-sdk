@@ -1,7 +1,8 @@
+using Privy.Utils;
 using System;
 using System.Threading.Tasks;
 
-namespace Privy
+namespace Privy.Auth.OAuth
 {
     internal class OAuthIOSWebAuthenticationFlow : IOAuthFlow
     {
@@ -16,7 +17,7 @@ namespace Privy
                 {
                     if (error != null)
                     {
-                        oauthFlowTaskSource.SetException(new PrivyException.AuthenticationException(error.Message,
+                        oauthFlowTaskSource.SetException(new PrivyAuthenticationException(error.Message,
                             AuthenticationError.OAuthVerificationFailed));
                         return;
                     }

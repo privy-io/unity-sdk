@@ -1,7 +1,8 @@
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Privy.Internal.Networking;
 
-namespace Privy
+namespace Privy.Config
 {
     /// <summary>
     /// Repository responsible for fetching the app configuration from the Privy API

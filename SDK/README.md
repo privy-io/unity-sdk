@@ -30,11 +30,15 @@ If you are contributing to the Privy SDK codebase, **read
 ### Initialization
 
 ```csharp
+using Privy.Core;
+using Privy.Config;
+
 var config = new PrivyConfig{
     AppId = "YOUR_APP_ID",
     ClientId = "CLIENT_ID"
 };
 
+// synchronous initialization – returns the SDK instance immediately
 PrivyManager.Initialize(config);
 ```
 
@@ -42,8 +46,8 @@ PrivyManager.Initialize(config);
 
 When the Privy SDK is initialized, it will automatically begin to load its necessary
 dependencies and restoring user session data.
-By awaiting on `GetAuthState` you can ensure the SDK will be ready to use in full
-after returning.
+By awaiting on `GetAuthState` you can ensure the SDK has finished its
+background setup before proceeding; this call will block until initialization completes.
 
 ```csharp
 var authState = await PrivyManager.Instance.GetAuthState();
@@ -51,8 +55,8 @@ var authState = await PrivyManager.Instance.GetAuthState();
 switch (authState) {
     case AuthState.Authenticated:
         // User is authenticated. Grab the user's linked accounts
-        var privyUser = await PrivyManager.Instance.GetUser();
-        var linkedAccounts = privyUser.LinkedAccounts;
+        var user = await PrivyManager.Instance.GetUser();
+        var linkedAccounts = user.LinkedAccounts;
         break;
     case AuthState.Unauthenticated:
         // User is not authenticated.
@@ -82,21 +86,22 @@ try {
 }
 ```
 
-### PrivyUser
+### PrivyUser (`IPrivyUser`)
+
+The SDK exposes the authenticated user as an interface. Refer to `IPrivyUser` for details.
 
 ```csharp
-PrivyUser user = PrivyManager.Instance.User;
+IPrivyUser user = await PrivyManager.Instance.GetUser();
 ```
-
 ### Creating an Embedded Wallet
 
 ```csharp
 try {
-    PrivyUser privyUser = PrivyManager.Instance.User;
+    IPrivyUser privyUser = await PrivyManager.Instance.GetUser();
 
     if (privyUser != null) {
-        IEmbeddedWallet wallet = await PrivyManager.Instance.User.CreateWallet();
-        Debug.Log("New wallet created with address: " + wallet.address);
+        IEmbeddedEthereumWallet wallet = await privyUser.CreateEthereumWallet();
+        Debug.Log("New wallet created with address: " + wallet.Address);
     }
 } catch {
     Debug.Log("Error creating embedded wallet.");
@@ -107,7 +112,23 @@ try {
 
 ```csharp
 try {
-    IEmbeddedWallet embeddedWallet = PrivyManager.Instance.User.EmbeddedWallets[0];
+    // obtain the current user and ensure they're authenticated
+    IPrivyUser privyUser = await PrivyManager.Instance.GetUser();
+    if (privyUser == null)
+    {
+        Debug.LogWarning("No authenticated user – cannot perform RPC request.");
+        return;
+    }
+
+    // make sure there is at least one embedded wallet available
+    IEmbeddedEthereumWallet[] wallets = privyUser.EmbeddedEthereumWallets;
+    if (wallets == null || wallets.Count == 0)
+    {
+        Debug.LogWarning("No embedded wallets found for user.");
+        return;
+    }
+
+    IEmbeddedEthereumWallet embeddedWallet = wallets[0];
 
     var rpcRequest = new RpcRequest
     {

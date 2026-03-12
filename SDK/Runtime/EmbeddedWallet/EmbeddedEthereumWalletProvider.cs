@@ -1,9 +1,10 @@
+using Privy.Utils;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Privy
+namespace Privy.Wallets
 {
-    internal class RpcProvider : IRpcProvider
+    internal class EmbeddedEthereumWalletProvider : IEmbeddedEthereumWalletProvider
     {
         private readonly IRpcExecutor _rpcExecutor;
 
@@ -18,7 +19,7 @@ namespace Privy
             "eth_sendTransaction"
         };
 
-        public RpcProvider(IRpcExecutor rpcExecutor)
+        public EmbeddedEthereumWalletProvider(IRpcExecutor rpcExecutor)
         {
             _rpcExecutor = rpcExecutor;
         }
@@ -43,7 +44,7 @@ namespace Privy
                     };
                 }
 
-                throw new PrivyException.EmbeddedWalletException($"Failed to execute RPC Request",
+                throw new PrivyWalletException($"Failed to execute RPC Request",
                     EmbeddedWalletError.RpcRequestFailed);
             }
             else
@@ -55,7 +56,7 @@ namespace Privy
         private Task<RpcResponse> HandleJsonRpc(RpcRequest request)
         {
             PrivyLogger.Debug("Unsupported rpc request type");
-            return Task.FromResult<RpcResponse>(null);
+            throw new PrivyWalletException("Unsupported RPC method", EmbeddedWalletError.RpcRequestFailed);
         }
     }
 }

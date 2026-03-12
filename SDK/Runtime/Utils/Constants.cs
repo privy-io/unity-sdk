@@ -1,6 +1,6 @@
-namespace Privy
+namespace Privy.Utils
 {
-    static internal class Constants
+    internal static class Constants
     {
         // Refresh Defaults
         public const int DEFAULT_EXPIRATION_PADDING_IN_SECONDS = 30;

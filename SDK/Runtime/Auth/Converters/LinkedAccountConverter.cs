@@ -3,8 +3,9 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using Privy.Auth.Models;
 
-namespace Privy
+namespace Privy.Auth.Converters
 {
     internal class LinkedAccountConverter : JsonConverter<LinkedAccountResponse>
     {

@@ -1,6 +1,7 @@
 using System;
+using Privy.Config;
 
-namespace Privy
+namespace Privy.Utils
 {
     internal static class PrivyEnvironment
     {

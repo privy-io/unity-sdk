@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Privy.Config;
 
-namespace Privy
+namespace Privy.Utils
 {
     public static class PrivyLogger
     {
-        private static PrivyLogLevel _level = PrivyLogLevel.NONE; // Default log level
+        private static PrivyLogLevel _level = PrivyLogLevel.None; // Default log level
         private static string _appId = "";
 
         private static readonly List<string> _internalAppIds = new List<string>
@@ -26,7 +27,7 @@ namespace Privy
 
         public static void Debug(string message)
         {
-            if (_level == PrivyLogLevel.DEBUG || _level == PrivyLogLevel.VERBOSE)
+            if (_level >= PrivyLogLevel.Debug)
             {
                 PrintMessage(message);
             }
@@ -34,7 +35,7 @@ namespace Privy
 
         public static void Info(string message)
         {
-            if (_level == PrivyLogLevel.INFO || _level == PrivyLogLevel.VERBOSE)
+            if (_level >= PrivyLogLevel.Info)
             {
                 PrintMessage(message);
             }
@@ -42,7 +43,7 @@ namespace Privy
 
         public static void Warning(string message)
         {
-            if (_level == PrivyLogLevel.WARNING || _level == PrivyLogLevel.VERBOSE)
+            if (_level >= PrivyLogLevel.Warning)
             {
                 PrintMessage(message, LogType.Warning);
             }
@@ -50,7 +51,7 @@ namespace Privy
 
         public static void Error(string message, System.Exception error = null)
         {
-            if (_level == PrivyLogLevel.ERROR || _level == PrivyLogLevel.VERBOSE)
+            if (_level >= PrivyLogLevel.Error)
             {
                 PrintMessage(message, LogType.Error);
             }

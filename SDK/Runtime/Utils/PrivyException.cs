@@ -1,41 +1,39 @@
 using System;
 
-namespace Privy
+namespace Privy.Utils
 {
     public class PrivyException : Exception
     {
-        //Messgae property inherited from Exception
+        public PrivyException(string message) : base(message) { }
+        public PrivyException(string message, Exception inner) : base(message, inner) { }
+    }
 
-        public PrivyException(string message) : base(message)
+    public class PrivyAuthenticationException : PrivyException
+    {
+        public AuthenticationError Error { get; }
+        public PrivyAuthenticationException(string message, AuthenticationError error) : base(message)
         {
+            Error = error;
         }
-
-        // Authentication-specific exception
-        public class AuthenticationException : PrivyException
+        public PrivyAuthenticationException(string message, AuthenticationError error, Exception inner) : base(message, inner)
         {
-            public AuthenticationError Error { get; }
-
-            public AuthenticationException(string message, AuthenticationError error)
-                : base(message)
-            {
-                Error = error;
-            }
-        }
-
-        // Embedded Wallet-specific exception
-        public class EmbeddedWalletException : PrivyException
-        {
-            public EmbeddedWalletError Error { get; }
-
-            public EmbeddedWalletException(string message, EmbeddedWalletError error) : base(message)
-            {
-                Error = error;
-            }
+            Error = error;
         }
     }
 
+    public class PrivyWalletException : PrivyException
+    {
+        public EmbeddedWalletError Error { get; }
+        public PrivyWalletException(string message, EmbeddedWalletError error) : base(message)
+        {
+            Error = error;
+        }
+        public PrivyWalletException(string message, EmbeddedWalletError error, Exception inner) : base(message, inner)
+        {
+            Error = error;
+        }
+    }
 
-    // Enum for specific authentication errors
     public enum AuthenticationError
     {
         SendCodeFailed,
@@ -57,7 +55,8 @@ namespace Privy
         InvalidPhoneNumber,
         LinkFailed,
         UnlinkFailed,
-        IncorrectOtpCode
+        IncorrectOtpCode,
+        InternalError
     }
 
     public enum EmbeddedWalletError

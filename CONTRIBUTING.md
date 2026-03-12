@@ -2,11 +2,22 @@
 
 For questions or support, email <support@privy.io>.
 
-## Formatting
 
-This project uses [`dotnet format`](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-format)
-with an `.editorconfig` to enforce a consistent C# code style.
-CI will reject pull requests that contain unformatted code.
+### Code style & formatting
+
+We use `dotnet format` together with an `.editorconfig` file to enforce
+consistent C# style and catch simple linting issues. A few rules worth
+highlighting:
+
+* `dotnet_style_prefer_auto_properties = true` – always prefer auto‑properties
+  to manually backed fields.
+* `csharp_style_expression_bodied_methods = true` – use expression
+  bodies for short methods.* Naming rules enforce `PascalCase` for enums, types, constants and public
+  members, and `I` prefix for interfaces.
+
+The `.editorconfig` in the repo contains additional options; see the
+[Microsoft code style documentation](https://learn.microsoft.com/dotnet/fundamentals/code-analysis/code-style-rule-options)
+for a complete list.
 
 **Set up the pre-commit hook** (auto-formats staged files on every commit):
 

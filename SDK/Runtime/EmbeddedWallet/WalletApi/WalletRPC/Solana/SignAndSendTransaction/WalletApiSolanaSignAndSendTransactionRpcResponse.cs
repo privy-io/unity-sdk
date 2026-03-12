@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace Privy
+namespace Privy.Wallets
 {
     internal struct WalletApiSolanaSignAndSendTransactionRpcResponse
     {

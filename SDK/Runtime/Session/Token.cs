@@ -2,7 +2,7 @@ using System;
 using System.Text;
 using Newtonsoft.Json.Linq;
 
-namespace Privy
+namespace Privy.Internal.Session
 {
     internal class Token
     {

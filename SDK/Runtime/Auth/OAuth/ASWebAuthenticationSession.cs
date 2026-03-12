@@ -5,7 +5,7 @@ using AOT;
 using System.Runtime.InteropServices;
 #endif
 
-namespace Privy
+namespace Privy.Auth.OAuth
 {
     /// <summary>
     ///     A wrapper of the ASWebAuthenticationSession class from the Authentication Services framework.

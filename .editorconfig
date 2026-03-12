@@ -34,6 +34,13 @@ csharp_space_before_colon_in_inheritance_clause = true
 csharp_space_after_colon_in_inheritance_clause = true
 
 # Expression-level preferences
+
+# prefer auto-properties over manual backing fields
+dotnet_style_prefer_auto_properties = true:suggestion
+
+# prefer expression-bodied members when simple
+csharp_style_expression_bodied_methods = true:suggestion
+
 dotnet_style_object_initializer = true:error
 dotnet_style_collection_initializer = true:error
 
@@ -88,3 +95,6 @@ dotnet_naming_rule.types_should_be_pascal_case.style = pascal_case_style
 
 dotnet_naming_symbols.types.applicable_kinds = class, struct, enum, delegate
 dotnet_naming_symbols.types.applicable_accessibilities = *
+
+# Modifier order preferences
+csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:suggestion

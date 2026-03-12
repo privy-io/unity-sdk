@@ -5,7 +5,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using Newtonsoft.Json;
-using Privy;
+using Privy.Core;
+using Privy.Wallets;
+using Privy.Auth.Models;
+using Privy.Utils;
 
 public class WalletController : MonoBehaviour
 {
@@ -33,7 +36,7 @@ public class WalletController : MonoBehaviour
     public Button createWalletWithIndexButton;
     public TMP_InputField hdWalletIndexInput;
 
-    private PrivyUser _privyUser;
+    private IPrivyUser _privyUser;
 
     private void Awake()
     {
@@ -44,7 +47,7 @@ public class WalletController : MonoBehaviour
         signTransactionButton.onClick.AddListener(OnSignTransactionButtonClick);
         backButton.onClick.AddListener(OnBackButtonClick);
         walletsDropdown.onValueChanged.AddListener(SelectWalletDropdownOption);
-        createWalletWithIndexButton.onClick.AddListener(OnCreateWalletWithIndex);
+        createWalletWithIndexButton.onClick.AddListener(OnCreateEthereumWalletWithIndex);
         
         solanaSignButton.onClick.AddListener(OnSolanaSignButtonClick);
     }
@@ -53,20 +56,20 @@ public class WalletController : MonoBehaviour
     {
         try
         {
-            PrivyUser privyUser = await PrivyManager.Instance.GetUser();
+            IPrivyUser privyUser = await PrivyManager.Instance.GetUser();
 
             if (privyUser != null)
             {
                 bool allowAdditionalWallets = allowAdditionalWalletsToggle.isOn;
-                IEmbeddedEthereumWallet wallet = await privyUser.CreateWallet(allowAdditionalWallets);
+                IEmbeddedEthereumWallet wallet = await privyUser.CreateEthereumWallet(allowAdditionalWallets);
                 Debug.Log("New wallet created with address: " + wallet.Address);
 
                 RefreshWalletDropdownOptions();
                 // Select the last entry, as it is the newest.
-                walletsDropdown.value = privyUser.EmbeddedWallets.Length - 1;
+                walletsDropdown.value = privyUser.EmbeddedEthereumWallets.Length - 1;
             }
         }
-        catch (PrivyException.EmbeddedWalletException ex)
+        catch (PrivyWalletException ex)
         {
             Debug.LogError($"Could not create wallet due to error: {ex.Error} {ex.Message}");
         }
@@ -93,7 +96,7 @@ public class WalletController : MonoBehaviour
             Debug.Log("Personal Sign Response: " + personalSignResponse.Data);
             signature.text = "Last sig:" + personalSignResponse.Data;
         }
-        catch (PrivyException.EmbeddedWalletException ex)
+        catch (PrivyWalletException ex)
         {
             Debug.LogError($"Could not sign message due to error: {ex.Error} {ex.Message}");
         }
@@ -209,7 +212,7 @@ public class WalletController : MonoBehaviour
             // Select the last entry, as it is the newest.
             solanaWalletsDropdown.value = user.EmbeddedSolanaWallets.Length - 1;
         }
-        catch (PrivyException.EmbeddedWalletException ex)
+        catch (PrivyWalletException ex)
         {
             Debug.LogError($"Could not create wallet due to error: {ex.Error} {ex.Message}");
         }
@@ -230,7 +233,7 @@ public class WalletController : MonoBehaviour
             Debug.Log("Solana Sign Response: " + signature);
             solanaSignature.text = "Last sig: " + signature;
         }
-        catch (PrivyException.EmbeddedWalletException ex)
+        catch (PrivyWalletException ex)
         {
             Debug.LogError($"Could not sign message due to error: {ex.Error} {ex.Message}");
         }
@@ -248,7 +251,7 @@ public class WalletController : MonoBehaviour
     private IEmbeddedEthereumWallet SelectedWallet {
         get {
             int selectedWalletIndex = walletsDropdown.value;
-            var embeddedWallets = _privyUser.EmbeddedWallets;
+            var embeddedWallets = _privyUser.EmbeddedEthereumWallets;
             return embeddedWallets[selectedWalletIndex];
         }
     }
@@ -263,7 +266,7 @@ public class WalletController : MonoBehaviour
 
     private void SelectWalletDropdownOption(int index)
     {
-        IEmbeddedEthereumWallet embeddedWallet = _privyUser.EmbeddedWallets[index];
+        IEmbeddedEthereumWallet embeddedWallet = _privyUser.EmbeddedEthereumWallets[index];
         if ( embeddedWallet != null) {
             walletAddress.text = "Address:" + embeddedWallet.Address;
         }
@@ -271,7 +274,7 @@ public class WalletController : MonoBehaviour
 
     private void RefreshWalletDropdownOptions()
     {
-        List<string> walletAddresses = _privyUser.EmbeddedWallets.Select(wallet =>
+        List<string> walletAddresses = _privyUser.EmbeddedEthereumWallets.Select(wallet =>
             $"{wallet.Address.Substring(0, 6)}...{wallet.Address.Substring(wallet.Address.Length - 4)}").ToList();
         walletsDropdown.ClearOptions();
         walletsDropdown.AddOptions(walletAddresses);
@@ -282,7 +285,7 @@ public class WalletController : MonoBehaviour
         solanaWalletsDropdown.AddOptions(solanaWalletAddresses);
     }
     
-    private async void OnCreateWalletWithIndex()
+    private async void OnCreateEthereumWalletWithIndex()
     {
         try
         {
@@ -292,16 +295,16 @@ public class WalletController : MonoBehaviour
             if (_privyUser != null)
             {
                 Debug.Log($"Attempting to create HD wallet at index: {hdWalletIndex}");
-                IEmbeddedEthereumWallet wallet = await _privyUser.CreateWalletAtHdIndex(hdWalletIndex: hdWalletIndex);
+                IEmbeddedEthereumWallet wallet = await _privyUser.CreateEthereumWalletAtHdIndex(hdWalletIndex: hdWalletIndex);
                 
                 Debug.Log($"Wallet received with address: {wallet.Address} and index: {wallet.HdWalletIndex}");
 
                 RefreshWalletDropdownOptions();
                 // Select the last entry, as it is the newest.
-                walletsDropdown.value = _privyUser.EmbeddedWallets.Length - 1;
+                walletsDropdown.value = _privyUser.EmbeddedEthereumWallets.Length - 1;
             }
         }
-        catch (PrivyException.EmbeddedWalletException ex)
+        catch (PrivyWalletException ex)
         {
             Debug.LogError($"Could not create wallet due to error: {ex.Error} {ex.Message}");
         }
@@ -319,7 +322,7 @@ public class WalletController : MonoBehaviour
     {
         try
         {
-            PrivyUser user = await PrivyManager.Instance.GetUser();
+            IPrivyUser user = await PrivyManager.Instance.GetUser();
             if (user == null)
             {
                 Debug.LogError("Must be logged in to access the wallet.");
@@ -328,7 +331,7 @@ public class WalletController : MonoBehaviour
             }
 
             _privyUser = user;
-            IEmbeddedEthereumWallet embeddedWallet = user.EmbeddedWallets.FirstOrDefault();
+            IEmbeddedEthereumWallet embeddedWallet = user.EmbeddedEthereumWallets.FirstOrDefault();
             walletAddress.text = embeddedWallet != null
                 ? "Address:" + embeddedWallet.Address
                 : "No wallets";

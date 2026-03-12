@@ -2,8 +2,9 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using System.Runtime.Serialization;
 using System.Linq;
+using Privy.Wallets;
 
-namespace Privy
+namespace Privy.Auth.Models
 {
     internal static class PrivyLinkedAccountExtensions
     {
@@ -91,10 +92,5 @@ namespace Privy
 
         [EnumMember(Value = "twitter")]
         Twitter
-    }
-
-    public class PrivyAuthSession
-    {
-        public PrivyUser User;
     }
 }
