@@ -60,7 +60,15 @@ namespace Privy.Wallets
             webViewObject.Wrapped.EvaluateJS(js); //Initialize Handlers
             PrivyLogger.Debug("Injected JavaScript into WebView.");
 
-            _ = _webViewManager.PingReadyUntilSuccessful();
+            _ = _webViewManager.PingReadyUntilSuccessful()
+                .ContinueWith(t =>
+                {
+                    if (t.IsFaulted)
+                    {
+                        PrivyLogger.Error("PingReadyUntilSuccessful threw", t.Exception);
+                    }
+                }, TaskContinuationOptions.OnlyOnFaulted);
+
         }
 
         public void SendMessage(string message)
