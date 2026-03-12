@@ -42,9 +42,7 @@ namespace Privy.Auth.Mapping
         {
             if (epoch <= 0)
                 return default;
-            // guess if the value is milliseconds or seconds
-            if (epoch > 1_000_000_000_000) // approx > 2001-09-09 in ms
-                return DateTimeOffset.FromUnixTimeMilliseconds(epoch);
+
             return DateTimeOffset.FromUnixTimeSeconds(epoch);
         }
 
