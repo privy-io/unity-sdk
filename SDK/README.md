@@ -88,8 +88,7 @@ try {
 
 ### PrivyUser (`IPrivyUser`)
 
-The SDK exposes the authenticated user as an interface. Refer to `IPrivyUser` for
-details; you never need to refer to `PrivyUser` directly.
+The SDK exposes the authenticated user as an interface. Refer to `IPrivyUser` for details.
 
 ```csharp
 IPrivyUser user = await PrivyManager.Instance.GetUser();
