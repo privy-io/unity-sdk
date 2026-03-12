@@ -23,7 +23,7 @@
         { "type": "test", "hidden": true },
         { "type": "build", "hidden": true }
       ],
-      "bump-minor-pre-major": false,
+      "bump-minor-pre-major": true,
       "bump-patch-for-minor-pre-major": false,
       "draft": false,
       "prerelease": true
