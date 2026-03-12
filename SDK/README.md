@@ -122,7 +122,7 @@ try {
     }
 
     // make sure there is at least one embedded wallet available
-    var wallets = privyUser.EmbeddedEthereumWallets;
+    IEmbeddedEthereumWallet[] wallets = privyUser.EmbeddedEthereumWallets;
     if (wallets == null || wallets.Count == 0)
     {
         Debug.LogWarning("No embedded wallets found for user.");
