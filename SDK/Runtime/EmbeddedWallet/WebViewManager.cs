@@ -14,6 +14,8 @@ namespace Privy.Wallets
         private TaskCompletionSource<bool> _readyTcs = new TaskCompletionSource<bool>();
         private readonly CancellationTokenSource _disposeCts = new CancellationTokenSource();
 
+        private bool _disposed;
+
         private readonly ConcurrentDictionary<string, TaskCompletionSource<string>> _requestResponseMap =
             new ConcurrentDictionary<string, TaskCompletionSource<string>>();
 
@@ -147,7 +149,7 @@ namespace Privy.Wallets
 
             PrivyLogger.Debug("Ping Ready until success invoked");
 
-            while (!_readyTcs.Task.IsCompleted)
+            while (!_readyTcs.Task.IsCompleted && !_disposeCts.IsCancellationRequested)
             {
                 PrivyLogger.Debug("NOT COMPLETED");
                 try
@@ -159,15 +161,20 @@ namespace Privy.Wallets
                         _readyTcs.TrySetResult(true);
                     }
                 }
+                catch (OperationCanceledException)
+                {
+                    // Dispose was requested; propagate so caller can observe
+                    throw;
+                }
                 catch (Exception)
                 {
                     // Fail silently so the loop continues.
                     PrivyLogger.Debug("Success response not received, pinging again");
                 }
 
-                if (!_readyTcs.Task.IsCompleted)
+                if (!_readyTcs.Task.IsCompleted && !_disposeCts.IsCancellationRequested)
                 {
-                    await Task.Delay(100);
+                    await Task.Delay(100, _disposeCts.Token);
                 }
             }
 
@@ -207,6 +214,10 @@ namespace Privy.Wallets
 
         public void Dispose()
         {
+            if (_disposed)
+                return;
+
+            _disposed = true;
             _disposeCts.Cancel();
             _disposeCts.Dispose();
 
