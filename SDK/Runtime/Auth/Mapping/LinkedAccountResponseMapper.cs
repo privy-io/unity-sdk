@@ -27,6 +27,14 @@ namespace Privy.Auth.Mapping
                 case "externalwallet":
                 case "external-wallet":
                     return LinkedAccountType.ExternalWallet;
+                case "google":
+                    return LinkedAccountType.GoogleOAuth;
+                case "apple":
+                    return LinkedAccountType.AppleOAuth;
+                case "discord":
+                    return LinkedAccountType.DiscordOAuth;
+                case "twitter":
+                    return LinkedAccountType.TwitterOAuth;
                 default:
                     break;
             }
