@@ -26,6 +26,8 @@ namespace Privy.Auth
 
         public delegate void AuthStateChangedHandler(AuthState newState);
 
+
+        // The SDK-hosted object will subscribe directly to this event and re‑expose it publicly.
         public event AuthStateChangedHandler OnAuthStateChanged;
 
         public AuthDelegator(IAuthRepository authRepository, InternalAuthSessionStorage internalAuthSessionStorage)
@@ -34,9 +36,6 @@ namespace Privy.Auth
             _internalAuthSessionStorage = internalAuthSessionStorage;
             UpdateAuthState(AuthState.NotReady);
         }
-
-        // The SDK-hosted object will subscribe directly to this event and re‑expose it publicly.
-        // No need for a convenience setter anymore.
 
 
         //Methods to trigger Auth Repository

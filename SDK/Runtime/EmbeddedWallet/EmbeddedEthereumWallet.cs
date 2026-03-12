@@ -4,7 +4,7 @@ using Privy.Wallets.WalletApi;
 
 namespace Privy.Wallets
 {
-    internal class EmbeddedWallet : IEmbeddedEthereumWallet
+    internal class EmbeddedEthereumWallet : IEmbeddedEthereumWallet
     {
         public string Id { get; }
         public string Address { get; }
@@ -14,7 +14,7 @@ namespace Privy.Wallets
 
         public IEmbeddedEthereumWalletProvider RpcProvider { get; } // Use IEmbeddedEthereumWalletProvider as the type
 
-        public EmbeddedWallet(PrivyEmbeddedWalletAccount account, IEmbeddedEthereumWalletProvider rpcProvider)
+        public EmbeddedEthereumWallet(PrivyEmbeddedWalletAccount account, IEmbeddedEthereumWalletProvider rpcProvider)
         {
             Id = account.Id;
             Address = account.Address;
@@ -24,7 +24,7 @@ namespace Privy.Wallets
             RpcProvider = rpcProvider;
         }
 
-        internal static EmbeddedWallet Create(PrivyEmbeddedWalletAccount account, WalletEntropy walletEntropy,
+        internal static EmbeddedEthereumWallet Create(PrivyEmbeddedWalletAccount account, WalletEntropy walletEntropy,
             EmbeddedWalletManager embeddedWalletManager, WalletApiRepository walletApiRepository,
             AuthDelegator authDelegator)
         {
@@ -33,7 +33,7 @@ namespace Privy.Wallets
                 : new WalletApiRPCExecutor(walletApiRepository, authDelegator, account.Id);
             var rpcProvider = new EmbeddedEthereumWalletProvider(rpcExecutor);
 
-            return new EmbeddedWallet(account, rpcProvider);
+            return new EmbeddedEthereumWallet(account, rpcProvider);
         }
     }
 }

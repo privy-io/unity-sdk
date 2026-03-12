@@ -56,8 +56,6 @@ namespace Privy.Wallets
         private Task<RpcResponse> HandleJsonRpc(RpcRequest request)
         {
             PrivyLogger.Debug("Unsupported rpc request type");
-            // returning null would lead to NRE in callers; throw a descriptive exception instead
-            // this should never happen because the UI should prevent unsupported methods from being requested in the first place, but we want to fail gracefully just in case
             throw new PrivyWalletException("Unsupported RPC method", EmbeddedWalletError.RpcRequestFailed);
         }
     }

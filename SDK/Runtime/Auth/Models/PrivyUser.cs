@@ -42,11 +42,6 @@ namespace Privy.Auth.Models
             }
         }
 
-        // caches to ensure wallet objects are reused across property accesses
-        private readonly Dictionary<string, IEmbeddedEthereumWallet> _ethWalletCache =
-            new Dictionary<string, IEmbeddedEthereumWallet>();
-        private readonly Dictionary<string, IEmbeddedSolanaWallet> _solWalletCache =
-            new Dictionary<string, IEmbeddedSolanaWallet>();
 
         public IEmbeddedEthereumWallet[] EmbeddedEthereumWallets
         {
@@ -58,15 +53,8 @@ namespace Privy.Auth.Models
 
                 return LinkedAccounts.EmbeddedWalletAccounts()
                     .Select(account =>
-                    {
-                        if (!_ethWalletCache.TryGetValue(account.Address, out var wallet))
-                        {
-                            wallet = EmbeddedWallet.Create(account, walletEntropy.Value, _embeddedWalletManager,
-                                _walletApiRepository, _authDelegator);
-                            _ethWalletCache[account.Address] = wallet;
-                        }
-                        return wallet;
-                    })
+                        EmbeddedEthereumWallet.Create(account, walletEntropy.Value, _embeddedWalletManager,
+                            _walletApiRepository, _authDelegator))
                     .ToArray<IEmbeddedEthereumWallet>();
             }
         }
@@ -85,15 +73,8 @@ namespace Privy.Auth.Models
 
                 return LinkedAccounts.EmbeddedSolanaWalletAccounts()
                     .Select(account =>
-                    {
-                        if (!_solWalletCache.TryGetValue(account.Address, out var wallet))
-                        {
-                            wallet = EmbeddedSolanaWallet.Create(account, walletEntropy.Value, _embeddedWalletManager,
-                                _walletApiRepository, _authDelegator);
-                            _solWalletCache[account.Address] = wallet;
-                        }
-                        return wallet;
-                    })
+                        EmbeddedSolanaWallet.Create(account, walletEntropy.Value, _embeddedWalletManager,
+                            _walletApiRepository, _authDelegator))
                     .ToArray<IEmbeddedSolanaWallet>();
             }
         }

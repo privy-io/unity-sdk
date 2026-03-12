@@ -93,11 +93,4 @@ namespace Privy.Auth.Models
         [EnumMember(Value = "twitter")]
         Twitter
     }
-
-    public class PrivyAuthSession
-    {
-        // public-facing session should expose the interface so the concrete
-        // implementation can remain internal.
-        public IPrivyUser User;
-    }
 }
