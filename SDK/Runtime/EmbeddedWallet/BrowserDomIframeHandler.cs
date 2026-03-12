@@ -105,7 +105,7 @@ namespace Privy
             Application.ExternalEval(jsCode);
 
             // Trigger PingReadyUntilSuccessful after injecting the iframe
-            _webViewManager.PingReadyUntilSuccessful();        
+            _ = _webViewManager.PingReadyUntilSuccessful();        
         }
     }
 }

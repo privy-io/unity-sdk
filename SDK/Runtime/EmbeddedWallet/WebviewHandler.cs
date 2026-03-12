@@ -60,7 +60,7 @@ namespace Privy
             webViewObject.Wrapped.EvaluateJS(js); //Initialize Handlers
             PrivyLogger.Debug("Injected JavaScript into WebView.");
 
-            _webViewManager.PingReadyUntilSuccessful();
+            _ = _webViewManager.PingReadyUntilSuccessful();
         }
 
         public void SendMessage(string message)
