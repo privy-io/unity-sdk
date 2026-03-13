@@ -91,72 +91,36 @@ namespace Privy.Wallets
         }
 
 
+        // Extracts TData from a successful IframeResponse, or throws PrivyWalletException.
+        private static TData UnwrapResult<TData>(IframeResponse result, string errorMessage, EmbeddedWalletError errorCode)
+        {
+            if (result is IframeResponseSuccess<TData> success)
+                return success.Data;
+
+            var detail = (result as IframeResponseError)?.Error?.Message;
+
+            throw new PrivyWalletException(
+                detail != null ? $"{errorMessage}: {detail}" : errorMessage,
+                errorCode);
+        }
+
         internal async Task<string> CreateEthereumWallet(string accessToken, string solanaAddress = null)
         {
             var result = await _webViewManager.CreateEthereumWallet(accessToken, solanaAddress);
-
-            if (result is IframeResponseError errorResponse)
-            {
-                throw new PrivyWalletException(
-                    $"Failed to create wallet: {errorResponse.Error.Message}",
-                    EmbeddedWalletError.CreateFailed); //Let this bubble up to Create
-            }
-            else if (result is IframeResponseSuccess<CreateEthereumWalletResponseData> walletResponse)
-            {
-                string connectedWalletAddress = walletResponse.Data.Address;
-                return connectedWalletAddress;
-            }
-            else
-            {
-                throw new PrivyWalletException($"Failed to create wallet",
-                    EmbeddedWalletError.CreateFailed); //Let this bubble up to HandleAuthStateChanged and AwaitConnected
-            }
+            return UnwrapResult<CreateEthereumWalletResponseData>(result, "Failed to create wallet", EmbeddedWalletError.CreateFailed).Address;
         }
 
         internal async Task<string> CreateSolanaWallet(string accessToken, string ethereumAddress = null)
         {
             var result = await _webViewManager.CreateSolanaWallet(accessToken);
-
-            if (result is IframeResponseError errorResponse)
-            {
-                throw new PrivyWalletException(
-                    $"Failed to create wallet: {errorResponse.Error.Message}",
-                    EmbeddedWalletError.CreateFailed); //Let this bubble up to Create
-            }
-            else if (result is IframeResponseSuccess<CreateSolanaWalletResponseData> walletResponse)
-            {
-                return walletResponse.Data.PublicKey;
-            }
-            else
-            {
-                throw new PrivyWalletException($"Failed to create wallet",
-                    EmbeddedWalletError.CreateFailed); //Let this bubble up to HandleAuthStateChanged and AwaitConnected
-            }
+            return UnwrapResult<CreateSolanaWalletResponseData>(result, "Failed to create wallet", EmbeddedWalletError.CreateFailed).PublicKey;
         }
 
         internal async Task<string> CreateAdditionalWallet(string accessToken, WalletEntropy walletEntropy,
             ChainType chainType, int hdWalletIndex)
         {
-            var result =
-                await _webViewManager.CreateAdditionalWallet(accessToken, walletEntropy, chainType, hdWalletIndex);
-
-            if (result is IframeResponseError errorResponse)
-            {
-                throw new PrivyWalletException(
-                    $"Failed to create additional wallet: {errorResponse.Error.Message}",
-                    EmbeddedWalletError.CreateAdditionalFailed); //Let this bubble up to Create
-            }
-            else if (result is IframeResponseSuccess<CreateAdditionalWalletResponseData> walletResponse)
-            {
-                string connectedWalletAddress = walletResponse.Data.Address;
-                return connectedWalletAddress;
-            }
-            else
-            {
-                throw new PrivyWalletException($"Failed to create additional wallet",
-                    EmbeddedWalletError
-                        .CreateAdditionalFailed); //Let this bubble up to HandleAuthStateChanged and AwaitConnected
-            }
+            var result = await _webViewManager.CreateAdditionalWallet(accessToken, walletEntropy, chainType, hdWalletIndex);
+            return UnwrapResult<CreateAdditionalWalletResponseData>(result, "Failed to create additional wallet", EmbeddedWalletError.CreateAdditionalFailed).Address;
         }
 
         internal async Task<string> ConnectWallet(string accessToken, WalletEntropy walletEntropy,
@@ -221,46 +185,19 @@ namespace Privy.Wallets
                 }
             }
 
-            else if (result is IframeResponseSuccess<ConnectWalletResponseData> walletResponse)
-            {
-                // EntropyId equals the wallet address in this case
-                string connectedWalletAddress = walletResponse.Data.EntropyId;
-                _embeddedWalletState = new EmbeddedWalletState.Connected(connectedWalletAddress);
-                return connectedWalletAddress;
-            }
-            else
-            {
-                throw new PrivyWalletException($"Failed to connect wallet",
-                    EmbeddedWalletError
-                        .ConnectionFailed); //Let this bubble up to HandleAuthStateChanged and AwaitConnected
-            }
+            var data = UnwrapResult<ConnectWalletResponseData>(result, "Failed to connect wallet", EmbeddedWalletError.ConnectionFailed);
+            // EntropyId equals the wallet address in this case
+            _embeddedWalletState = new EmbeddedWalletState.Connected(data.EntropyId);
+            return data.EntropyId;
         }
 
 
         internal async Task<string> RecoverWalletThenTryConnecting(string accessToken, WalletEntropy walletEntropy)
         {
-            //This method will be used when there's an error in connecting wallet
-            //Makes a request to recover the wallet
-            //If recovery is successful, then we can connect without an error
             var result = await _webViewManager.RecoverWallet(accessToken, walletEntropy);
-
-            if (result is IframeResponseSuccess<RecoverWalletResponseData> walletResponse)
-            {
-                // After recovery, call ConnectWalletWithoutLock to avoid re-locking
-                return await ConnectWalletWithoutLock(accessToken, walletEntropy,
-                    false); // No recovery on second attempt
-            }
-            else if (result is IframeResponseError errorResponse)
-            {
-                throw new PrivyWalletException(
-                    $"Failed to recover wallet: {errorResponse.Error.Message}",
-                    EmbeddedWalletError.RecoverFailed); //Let this bubble up to connect wallet without lock
-            }
-            else
-            {
-                throw new PrivyWalletException($"Failed to recover wallet",
-                    EmbeddedWalletError.RecoverFailed); //Let this bubble up to connect wallet without lock
-            }
+            UnwrapResult<RecoverWalletResponseData>(result, "Failed to recover wallet", EmbeddedWalletError.RecoverFailed);
+            // After recovery, call ConnectWalletWithoutLock to avoid re-locking
+            return await ConnectWalletWithoutLock(accessToken, walletEntropy, false);
         }
 
         internal async Task<RpcResponseData.IRpcResponseDetails> Request(WalletEntropy walletEntropy,
@@ -275,43 +212,14 @@ namespace Privy.Wallets
 
             string token = await _authDelegator.GetAccessToken();
             var result = await _webViewManager.Request(token, walletEntropy, chainType, hdWalletIndex, request);
-
-            if (result is IframeResponseSuccess<RpcResponseData> rpcResponseData)
-            {
-                return rpcResponseData.Data.Response;
-            }
-            else if (result is IframeResponseError errorResponse)
-            {
-                throw new PrivyWalletException(
-                    $"Failed to execute RPC Request: {errorResponse.Error.Message}",
-                    EmbeddedWalletError.RpcRequestFailed); //Let this bubble up to developer RPC Request
-            }
-            else
-            {
-                throw new PrivyWalletException($"Failed to execute RPC Request",
-                    EmbeddedWalletError.RpcRequestFailed); //Let this bubble up to developer RPC Request
-            }
+            return UnwrapResult<RpcResponseData>(result, "Failed to execute RPC Request", EmbeddedWalletError.RpcRequestFailed).Response;
         }
 
         internal async Task<byte[]> SignWithUserSigner(string accessToken, byte[] message)
         {
             var result = await _webViewManager.SignWithUserSigner(accessToken, message);
-
-            if (result is IframeResponseError errorResponse)
-            {
-                throw new PrivyWalletException(
-                    $"Failed to sign with the user's authorization key: {errorResponse.Error.Message}",
-                    EmbeddedWalletError.UserSignerRequestFailed);
-            }
-
-            if (result is IframeResponseSuccess<UserSignerSignResponseData> walletResponse)
-            {
-                string signatureAsBase64 = walletResponse.Data.Signature;
-                return Convert.FromBase64String(signatureAsBase64);
-            }
-
-            throw new PrivyWalletException($"Failed to sign with user signer",
-                EmbeddedWalletError.CreateAdditionalFailed); //Let this bubble up to HandleAuthStateChanged and AwaitConnected
+            var signature = UnwrapResult<UserSignerSignResponseData>(result, "Failed to sign with the user's authorization key", EmbeddedWalletError.UserSignerRequestFailed).Signature;
+            return Convert.FromBase64String(signature);
         }
     }
 }

@@ -105,7 +105,14 @@ namespace Privy.Wallets
             Application.ExternalEval(jsCode);
 
             // Trigger PingReadyUntilSuccessful after injecting the iframe
-            _webViewManager.PingReadyUntilSuccessful();        
+            _ = _webViewManager.PingReadyUntilSuccessful()
+                .ContinueWith(t =>
+                {
+                    if (t.IsFaulted)
+                    {
+                        PrivyLogger.Error("PingReadyUntilSuccessful threw", t.Exception);
+                    }
+                }, TaskContinuationOptions.OnlyOnFaulted);
         }
     }
 }
