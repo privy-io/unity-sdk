@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Privy.Auth.OAuth
 {
-    public class WebGLPopupMessageInterceptor : MonoBehaviour
+    internal class WebGLPopupMessageInterceptor : MonoBehaviour
     {
         public delegate void OnSignedInDelegate(string redirectUri);
 

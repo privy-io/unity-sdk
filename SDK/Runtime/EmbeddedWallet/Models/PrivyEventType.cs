@@ -1,6 +1,6 @@
 namespace Privy.Wallets
 {
-    public static class PrivyEventType
+    internal static class PrivyEventType
     {
         public const string Ready = "privy:iframe:ready";
         public const string CreateEthereumWallet = "privy:wallet:create"; // ETH-only

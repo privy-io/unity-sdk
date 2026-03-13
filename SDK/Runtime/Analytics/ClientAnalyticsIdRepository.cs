@@ -4,7 +4,7 @@ using Privy.Utils;
 
 namespace Privy.Analytics
 {
-    public class ClientAnalyticsIdRepository : IClientAnalyticsIdRepository
+    internal class ClientAnalyticsIdRepository : IClientAnalyticsIdRepository
     {
         private string _clientIdCache;
 

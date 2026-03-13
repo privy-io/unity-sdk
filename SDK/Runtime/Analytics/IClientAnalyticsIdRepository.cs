@@ -1,6 +1,6 @@
 namespace Privy.Analytics
 {
-    public interface IClientAnalyticsIdRepository
+    internal interface IClientAnalyticsIdRepository
     {
         public string LoadClientId();
 

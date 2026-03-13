@@ -7,7 +7,7 @@ namespace Privy.Auth.OAuth
     /// <summary>
     ///     Provides a randomly generating PKCE code verifier and it's corresponding code challenge.
     /// </summary>
-    public static class PKCE
+    internal static class PKCE
     {
         /// <summary>
         ///     Generates a code_verifier and the corresponding code_challenge, as specified in the rfc-7636.

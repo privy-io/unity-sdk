@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Privy.Wallets
 {
-    public class WebViewHandlerForUnsupportedPlatform : IWebViewHandler
+    internal class WebViewHandlerForUnsupportedPlatform : IWebViewHandler
     {
         public void LoadUrl(string url)
         {
