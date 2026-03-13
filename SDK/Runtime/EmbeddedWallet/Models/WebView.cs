@@ -7,7 +7,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Privy.Wallets
 {
-    public class IframeRequest<T>
+    internal class IframeRequest<T>
     {
         [JsonProperty("id")]
         public string Id { get; set; }
@@ -19,11 +19,11 @@ namespace Privy.Wallets
         public T Data { get; set; }
     }
 
-    public class ReadyRequestData
+    internal class ReadyRequestData
     {
     }
 
-    public class CreateEthereumWalletRequestData
+    internal class CreateEthereumWalletRequestData
     {
         [JsonProperty("accessToken")]
         public string AccessToken;
@@ -33,7 +33,7 @@ namespace Privy.Wallets
         public string SolanaAddress;
     }
 
-    public class CreateSolanaWalletRequestData
+    internal class CreateSolanaWalletRequestData
     {
         [JsonProperty("accessToken")]
         public string AccessToken;
@@ -43,7 +43,7 @@ namespace Privy.Wallets
         public string EthereumAddress;
     }
 
-    public class CreateAdditionalWalletRequestData
+    internal class CreateAdditionalWalletRequestData
     {
         [JsonProperty("accessToken")]
         public string AccessToken;
@@ -61,7 +61,7 @@ namespace Privy.Wallets
         public int WalletIndex;
     }
 
-    public class ConnectWalletRequestData
+    internal class ConnectWalletRequestData
     {
         [JsonProperty("accessToken")]
         public string AccessToken;
@@ -76,7 +76,7 @@ namespace Privy.Wallets
         public EntropyIdVerifierName EntropyIdVerifier;
     }
 
-    public class RecoverWalletRequestData
+    internal class RecoverWalletRequestData
     {
         [JsonProperty("accessToken")]
         public string AccessToken;
@@ -88,7 +88,7 @@ namespace Privy.Wallets
         public EntropyIdVerifierName EntropyIdVerifier;
     }
 
-    public class RpcRequestData
+    internal class RpcRequestData
     {
         [JsonProperty("accessToken")]
         public string AccessToken;
@@ -113,11 +113,11 @@ namespace Privy.Wallets
         [JsonProperty("request")]
         public IRpcRequestDetails Request;
 
-        public interface IRpcRequestDetails
+        internal interface IRpcRequestDetails
         {
         }
 
-        public class EthereumRpcRequestDetails : IRpcRequestDetails
+        internal class EthereumRpcRequestDetails : IRpcRequestDetails
         {
             [JsonProperty("method")]
             public string Method;
@@ -126,7 +126,7 @@ namespace Privy.Wallets
             public string[] Params;
         }
 
-        public class SolanaRpcRequestDetails : IRpcRequestDetails
+        internal class SolanaRpcRequestDetails : IRpcRequestDetails
         {
             [JsonProperty("method")]
             public string Method;
@@ -135,21 +135,21 @@ namespace Privy.Wallets
             public ISolanaRpcRequestParams Params;
         }
 
-        public interface ISolanaRpcRequestParams { }
+        internal interface ISolanaRpcRequestParams { }
 
-        public class SolanaSignMessageRpcRequestParams : ISolanaRpcRequestParams
+        internal class SolanaSignMessageRpcRequestParams : ISolanaRpcRequestParams
         {
             [JsonProperty("message")]
             public string Message;
         }
 
-        public class SolanaSignTransactionRpcRequestParams : ISolanaRpcRequestParams
+        internal class SolanaSignTransactionRpcRequestParams : ISolanaRpcRequestParams
         {
             [JsonProperty("transaction")]
             public string Transaction;
         }
 
-        public class SolanaSignAndSendTransactionRpcRequestParams : ISolanaRpcRequestParams
+        internal class SolanaSignAndSendTransactionRpcRequestParams : ISolanaRpcRequestParams
         {
             [JsonProperty("transaction")]
             public string Transaction;
@@ -161,7 +161,7 @@ namespace Privy.Wallets
             public SolanaSignAndSendOptionsParams Options;
         }
 
-        public class SolanaSignAndSendOptionsParams
+        internal class SolanaSignAndSendOptionsParams
         {
             [JsonProperty("skipPreflight", NullValueHandling = NullValueHandling.Ignore)]
             public bool? SkipPreflight;
@@ -192,7 +192,7 @@ namespace Privy.Wallets
     //Responses
 
     //Base Class, used to parse event and id
-    public class IframeResponse
+    internal class IframeResponse
     {
         [JsonProperty("id")]
         public string Id { get; set; }
@@ -201,13 +201,13 @@ namespace Privy.Wallets
         public string Event { get; set; }
     }
 
-    public class IframeResponseSuccess<T> : IframeResponse
+    internal class IframeResponseSuccess<T> : IframeResponse
     {
         [JsonProperty("data")]
         public T Data { get; set; }
     }
 
-    public class ErrorDetails
+    internal class ErrorDetails
     {
         [JsonProperty("type")]
         public string Type { get; set; }
@@ -217,31 +217,31 @@ namespace Privy.Wallets
     }
 
 
-    public class IframeResponseError : IframeResponse
+    internal class IframeResponseError : IframeResponse
     {
         [JsonProperty("error")]
         public ErrorDetails Error { get; set; }
     }
 
-    public class ReadyResponseData
+    internal class ReadyResponseData
     {
         // Add specific properties for iframe ready data
     }
 
 
-    public class CreateEthereumWalletResponseData
+    internal class CreateEthereumWalletResponseData
     {
         [JsonProperty("address")]
         public string Address { get; set; }
     }
 
-    public class CreateSolanaWalletResponseData
+    internal class CreateSolanaWalletResponseData
     {
         [JsonProperty("publicKey")]
         public string PublicKey { get; set; }
     }
 
-    public class CreateAdditionalWalletResponseData
+    internal class CreateAdditionalWalletResponseData
     {
         [JsonProperty("address")]
         public string Address { get; set; }
@@ -250,19 +250,19 @@ namespace Privy.Wallets
         public string WalletIndex { get; set; }
     }
 
-    public class ConnectWalletResponseData
+    internal class ConnectWalletResponseData
     {
         [JsonProperty("entropyId")]
         public string EntropyId { get; set; }
     }
 
-    public class RecoverWalletResponseData
+    internal class RecoverWalletResponseData
     {
         [JsonProperty("entropyId")]
         public string EntropyId { get; set; }
     }
 
-    public class RpcResponseData
+    internal class RpcResponseData
     {
         [JsonProperty("address")]
         public string Address { get; set; }
@@ -276,7 +276,7 @@ namespace Privy.Wallets
         [JsonConverter(typeof(RpcResponseDetailsConverter))]
         public IRpcResponseDetails Response;
 
-        public interface IRpcResponseDetails
+        internal interface IRpcResponseDetails
         {
         }
 
@@ -350,7 +350,7 @@ namespace Privy.Wallets
             }
         }
 
-        public class EthereumRpcResponseDetails : IRpcResponseDetails
+        internal class EthereumRpcResponseDetails : IRpcResponseDetails
         {
             [JsonProperty("method")]
             public string Method;
@@ -360,7 +360,7 @@ namespace Privy.Wallets
         }
 
         [JsonConverter(typeof(SolanaRpcResponseDetailsConverter))]
-        public class SolanaRpcResponseDetails : IRpcResponseDetails
+        internal class SolanaRpcResponseDetails : IRpcResponseDetails
         {
             [JsonProperty("method")]
             public string Method;
@@ -377,21 +377,21 @@ namespace Privy.Wallets
             public ISolanaRpcResponseData Data;
         }
 
-        public interface ISolanaRpcResponseData { }
+        internal interface ISolanaRpcResponseData { }
 
-        public class SolanaSignMessageRpcResponseData : ISolanaRpcResponseData
+        internal class SolanaSignMessageRpcResponseData : ISolanaRpcResponseData
         {
             [JsonProperty("signature")]
             public string Signature;
         }
 
-        public class SolanaSignTransactionRpcResponseData : ISolanaRpcResponseData
+        internal class SolanaSignTransactionRpcResponseData : ISolanaRpcResponseData
         {
             [JsonProperty("signedTransaction")]
             public string SignedTransaction;
         }
 
-        public class SolanaSignAndSendTransactionRpcResponseData : ISolanaRpcResponseData
+        internal class SolanaSignAndSendTransactionRpcResponseData : ISolanaRpcResponseData
         {
             [JsonProperty("hash")]
             public string Hash;
@@ -408,7 +408,7 @@ namespace Privy.Wallets
     }
 
     [JsonConverter(typeof(StringEnumConverter))]
-    public enum ChainType
+    internal enum ChainType
     {
         [EnumMember(Value = "ethereum")]
         Ethereum,
@@ -418,7 +418,7 @@ namespace Privy.Wallets
     }
 
     [JsonConverter(typeof(StringEnumConverter))]
-    public enum EntropyIdVerifierName
+    internal enum EntropyIdVerifierName
     {
         // In contrast with EntropyIdVerifier, this enum is public, for compatibility with the public classes here.
         [EnumMember(Value = "ethereum-address-verifier")]

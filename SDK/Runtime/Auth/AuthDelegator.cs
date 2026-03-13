@@ -24,11 +24,11 @@ namespace Privy.Auth
         }
 
 
-        public delegate void AuthStateChangedHandler(AuthState newState);
+        internal delegate void AuthStateChangedHandler(AuthState newState);
 
 
         // The SDK-hosted object will subscribe directly to this event and re‑expose it publicly.
-        public event AuthStateChangedHandler OnAuthStateChanged;
+        internal event AuthStateChangedHandler OnAuthStateChanged;
 
         public AuthDelegator(IAuthRepository authRepository, InternalAuthSessionStorage internalAuthSessionStorage)
         {

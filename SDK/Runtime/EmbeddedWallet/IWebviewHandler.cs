@@ -11,7 +11,7 @@ using Privy.Config;
 
 namespace Privy.Wallets
 {
-    public interface IWebViewHandler
+    internal interface IWebViewHandler
     {
         void LoadUrl(string url);
         void SendMessage(string message);

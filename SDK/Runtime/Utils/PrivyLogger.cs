@@ -4,7 +4,7 @@ using Privy.Config;
 
 namespace Privy.Utils
 {
-    public static class PrivyLogger
+    internal static class PrivyLogger
     {
         private static PrivyLogLevel _level = PrivyLogLevel.None; // Default log level
         private static string _appId = "";
