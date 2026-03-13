@@ -24,6 +24,7 @@
 #if UNITY_WEBGL && !UNITY_EDITOR
 using System;
 using UnityEngine;
+using Privy.Utils;
 
 namespace Privy.Wallets
 {
