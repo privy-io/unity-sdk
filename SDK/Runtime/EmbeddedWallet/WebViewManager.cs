@@ -218,14 +218,15 @@ namespace Privy.Wallets
                 return;
 
             _disposed = true;
-            _disposeCts.Cancel();
-            _disposeCts.Dispose();
 
             foreach (var kvp in _requestResponseMap)
             {
                 kvp.Value.TrySetCanceled();
             }
             _requestResponseMap.Clear();
+
+            _disposeCts.Cancel();
+            _disposeCts.Dispose();
 
             if (!_readyTcs.Task.IsCompleted)
             {
