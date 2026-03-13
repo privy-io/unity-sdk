@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## [0.10.0](https://github.com/privy-io/unity-sdk/compare/v0.9.0...v0.10.0) (2026-03-13)
+
+
+### ⚠ BREAKING CHANGES
+
+* introduces namespacing, error classes and renames legacy types ([#14](https://github.com/privy-io/unity-sdk/issues/14))
+
+* introduces namespacing, error classes and renames legacy types ([#14](https://github.com/privy-io/unity-sdk/issues/14)) ([99bc653](https://github.com/privy-io/unity-sdk/commit/99bc65383d283141941cba62ec94b9939270dc17))
+
 ## [0.9.0](https://github.com/privy-io/unity-sdk/compare/v0.8.0...v0.9.0) (2026-03-10)
 
 
