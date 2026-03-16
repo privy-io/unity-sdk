@@ -5,6 +5,7 @@
 
 #if UNITY_IOS || UNITY_ANDROID || UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
 using UnityEngine;
+using Privy.Utils;
 
 namespace Privy.Wallets
 {
