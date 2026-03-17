@@ -1,10 +1,11 @@
-// This class implements the functionality of loading URLs, sending messages, and handling message reception 
+// This class implements the functionality of loading URLs, sending messages, and handling message reception
 // specifically within the context of a native WebView in Unity.
 
-// The class is also responsible for managing a WebViewObject, which is a native implementation of a webview in Unity. 
+// The class is also responsible for managing a WebViewObject, which is a native implementation of a webview in Unity.
 
 #if UNITY_IOS || UNITY_ANDROID || UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
 using UnityEngine;
+using System.Threading.Tasks;
 using Privy.Utils;
 
 namespace Privy.Wallets
