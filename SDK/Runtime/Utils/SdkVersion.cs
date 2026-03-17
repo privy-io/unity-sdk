@@ -3,7 +3,7 @@ namespace Privy.Utils
     public static class SdkVersion
     {
         // x-release-please-start-version
-        public const string VersionNumber = "0.9.0";
+        public const string VersionNumber = "1.0.0-rc";
         // x-release-please-end
     }
 }
