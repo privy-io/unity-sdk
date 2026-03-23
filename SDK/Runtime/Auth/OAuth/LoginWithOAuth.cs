@@ -41,7 +41,8 @@ namespace Privy.Auth.OAuth
             if (IsNativeAppleFlow(provider))
                 return await new NativeAppleSignInFlow().PerformFlow(stateCode);
 
-            return await _oAuthFlow.PerformOAuthFlow(oauthUrl, redirectUri);
+            // Use the transformed redirect URI (e.g., localhost callback) for both init and the WebView flow.
+            return await _oAuthFlow.PerformOAuthFlow(oauthUrl, transformedRedirectUri);
         }
 
         private static bool IsNativeAppleFlow(OAuthProvider provider)

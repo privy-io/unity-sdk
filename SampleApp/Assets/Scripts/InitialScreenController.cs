@@ -1,5 +1,6 @@
 using System;
 using Privy;
+using System.Threading.Tasks;
 using Privy.Auth;
 using Privy.Auth.Models;
 using Privy.Config;
@@ -19,10 +20,12 @@ public class InitialScreenController : MonoBehaviour
     public Button loginWithOAuthAppleButton;
     public EnvConfig envConfig;
 
-    private readonly string _redirectUri = Application.platform == RuntimePlatform.WebGLPlayer ? 
+    private readonly string _redirectUri = Application.platform == RuntimePlatform.WebGLPlayer ?
         (new Uri(Application.absoluteURL).GetLeftPart(UriPartial.Authority) + "/unity_callback.html") :
-        "unitydl://";   // Must set each platforms deeplink scheme to this
-    
+        Application.platform == RuntimePlatform.WindowsPlayer || Application.platform == RuntimePlatform.WindowsEditor ?
+        "https://auth.staging.privy.io/api/v1/oauth/callback" : // Use Privy generic callback for Windows builds
+        "unitydl://";   // Use local callback for non-web builds ios/andriod
+
     private void Awake()
     {
         EnvFileReader.Config = envConfig;
@@ -68,21 +71,37 @@ public class InitialScreenController : MonoBehaviour
 
     private async void OnLoginWithOAuthGoogleButtonClick()
     {
-        await PrivyManager.Instance.OAuth.LoginWithProvider(OAuthProvider.Google, _redirectUri);
+        await LoginWithOAuthProvider(OAuthProvider.Google);
     }
-    
+
     private async void OnLoginWithOAuthDiscordButtonClick()
     {
-        await PrivyManager.Instance.OAuth.LoginWithProvider(OAuthProvider.Discord, _redirectUri);
+        await LoginWithOAuthProvider(OAuthProvider.Discord);
     }
 
     private async void OnLoginWithOAuthTwitterButtonClick()
     {
-        await PrivyManager.Instance.OAuth.LoginWithProvider(OAuthProvider.Twitter, _redirectUri);
+        await LoginWithOAuthProvider(OAuthProvider.Twitter);
     }
 
     private async void OnLoginWithOAuthAppleButtonClick()
     {
-        await PrivyManager.Instance.OAuth.LoginWithProvider(OAuthProvider.Apple, _redirectUri);
+        await LoginWithOAuthProvider(OAuthProvider.Apple);
+    }
+
+    private async Task LoginWithOAuthProvider(OAuthProvider provider)
+    {
+        try
+        {
+            var state = await PrivyManager.Instance.OAuth.LoginWithProvider(provider, _redirectUri);
+            if (state == AuthState.Authenticated)
+            {
+                UIManager.Instance.ShowAuthorizedScreen();
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"OAuth login failed for {provider}: {ex.Message}");
+        }
     }
 }
