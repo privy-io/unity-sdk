@@ -2,17 +2,13 @@
   "name": "com.privy-io.jsoncanonicalizer",
   "version": "1.0.0",
   "displayName": "JSON Canonicalizer (JCS RFC 8785)",
-  "description": "A JCS (RFC 8785) compatible JSON canonicalizer for .NET. Forked from https://github.com/cyberphone/json-canonicalization",
+  "description": "A JCS (RFC 8785) compatible JSON canonicalizer for .NET. Modified by Privy as an assembly from https://github.com/cyberphone/json-canonicalization",
   "unity": "2019.4",
   "author": {
-    "name": "Anders Rundgren (original), Privy (UPM packaging)",
+    "name": "Anders Rundgren (original), Privy (assembly definition)",
     "url": "https://github.com/cyberphone/json-canonicalization"
   },
   "license": "Apache-2.0",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/privy-io/jsoncanonicalizer-upm.git"
-  },
   "keywords": [
     "json",
     "canonicalization",
