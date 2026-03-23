@@ -1,10 +1,7 @@
 {
-    "name": "Privy.SDK.Runtime",
-    "rootNamespace": "",
-    "references": [
-        "unity-webview",
-        "Org.Webpki.JsonCanonicalizer"
-    ],
+    "name": "Org.Webpki.JsonCanonicalizer",
+    "rootNamespace": "Org.Webpki.JsonCanonicalizer",
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
@@ -13,5 +10,5 @@
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],
-    "noEngineReferences": false
+    "noEngineReferences": true
 }

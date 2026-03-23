@@ -15,5 +15,7 @@
     "name": "Privy",
     "url": "https://privy.io"
   },
-  "dependencies": {}
+  "dependencies": {
+    "com.unity.nuget.newtonsoft-json": "3.2.2"
+  }
 }
