@@ -1,0 +1,14 @@
+{
+    "name": "Org.Webpki.JsonCanonicalizer",
+    "rootNamespace": "Org.Webpki.JsonCanonicalizer",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

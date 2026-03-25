@@ -1,13 +1,17 @@
 {
-  "name": "Privy.SDK.Runtime",
-  "references": ["unity-webview"],
-  "includePlatforms": [],
-  "excludePlatforms": [],
-  "allowUnsafeCode": false,
-  "overrideReferences": false,
-  "precompiledReferences": [],
-  "autoReferenced": true,
-  "defineConstraints": [],
-  "versionDefines": [],
-  "noEngineReferences": false
+    "name": "Privy.SDK.Runtime",
+    "rootNamespace": "",
+    "references": [
+        "unity-webview",
+        "Org.Webpki.JsonCanonicalizer"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }
