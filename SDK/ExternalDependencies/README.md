@@ -3,7 +3,7 @@ Each subdirectory should contain the appropriate binaries/source for the
 respective dependency.
 
 - `UnityWebView/` – the unity-webview plugin (including `Plugins/` and related files).
-- `jsoncanonicalizer-upm/` – the local embedded JSON canonicalizer package source and assembly definition.
+- `jsoncanonicalizer/` – the local embedded JSON canonicalizer package source and assembly definition.
 
 > `NewtonsoftJson` is now managed through `SDK/package.json` as a package dependency and removed from this folder. `jsoncanonicalizer-upm` is embedded in this folder and referenced using assembly reference.
 
