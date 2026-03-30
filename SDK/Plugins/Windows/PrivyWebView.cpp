@@ -1,7 +1,15 @@
-// Native plugin for Windows that provides a minimal WebView2-based webview for the embedded wallet.
+// Native plugin for Windows providing two isolated WebView2 instances:
 //
-// This file is intended to be built into a DLL (PrivyWebView.dll) and placed under:
-//   SDK/Plugins/Windows/x86_64/PrivyWebView.dll
+//   1. **Wallet WebView** – Hidden, persistent. Hosts the Privy embedded-wallet
+//      iframe and handles JSON postMessage communication with Unity.
+//
+//   2. **OAuth WebView** – Visible, transient. Shown only during OAuth login
+//      flows to display provider consent screens. Intercepts the redirect
+//      containing `privy_oauth_code` and forwards it to Unity.
+//
+// Each webview gets its own ICoreWebView2Environment with a **separate user-data
+// directory**, ensuring full browser-level isolation of cookies, localStorage,
+// and session state between OAuth and wallet contexts.
 //
 // Build requirements:
 // - WebView2 SDK (Microsoft Edge WebView2)
@@ -9,6 +17,7 @@
 //
 
 #include <windows.h>
+#include <shlobj.h>   // SHGetFolderPathW
 #include <string>
 #include <vector>
 #include <functional>
@@ -19,107 +28,15 @@
 // WRL smart pointers for COM lifetime management
 #include <wrl.h>
 
-// Forward-declare the callback function types used by the C# wrapper.
+// ---------------------------------------------------------------------------
+// Callback types shared with the C# managed layer.
+// ---------------------------------------------------------------------------
 using MessageCallback = void(__cdecl*)(const char*);
-using StatusCallback = void(__cdecl*)(const char*);
+using StatusCallback  = void(__cdecl*)(const char*);
 
-static MessageCallback g_messageCallback = nullptr;
-static StatusCallback g_loadedCallback = nullptr;
-static StatusCallback g_errorCallback = nullptr;
-
-// WebView2 Globals
-static Microsoft::WRL::ComPtr<ICoreWebView2Environment> g_webViewEnvironment;
-static Microsoft::WRL::ComPtr<ICoreWebView2Controller> g_webViewController;
-static Microsoft::WRL::ComPtr<ICoreWebView2> g_webView;
-
-// Window for WebView2
-static HWND g_hWnd = nullptr;
-
-static const wchar_t kWindowClassName[] = L"PrivyWebViewWindowClass";
-
-static LRESULT CALLBACK WebViewWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    if (message == WM_CLOSE) {
-        // Notify the managed side that the user closed the webview during auth.
-        if (g_errorCallback) {
-            g_errorCallback("WEBVIEW_WINDOW_CLOSED");
-        }
-
-        // Keep the control alive to allow re-open later; hide instead of destroying.
-        ShowWindow(hWnd, SW_HIDE);
-        return 0;
-    }
-
-    return DefWindowProcW(hWnd, message, wParam, lParam);
-}
-
-static HWND EnsureWebViewWindow()
-{
-    if (g_hWnd && !IsWindow(g_hWnd)) {
-        g_hWnd = nullptr;
-    }
-
-    if (g_hWnd)
-        return g_hWnd;
-
-    WNDCLASSEXW wcex = {};
-    wcex.cbSize = sizeof(wcex);
-    wcex.style = CS_HREDRAW | CS_VREDRAW;
-    wcex.lpfnWndProc = WebViewWndProc;
-    wcex.cbClsExtra = 0;
-    wcex.cbWndExtra = 0;
-    wcex.hInstance = GetModuleHandleW(nullptr);
-    wcex.hCursor = LoadCursorW(nullptr, (LPCWSTR)IDC_ARROW);
-    wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-    wcex.lpszMenuName = nullptr;
-    wcex.lpszClassName = kWindowClassName;
-
-    if (!RegisterClassExW(&wcex) && GetLastError() != ERROR_CLASS_ALREADY_EXISTS) {
-        return nullptr;
-    }
-
-    g_hWnd = CreateWindowExW(
-        0,
-        kWindowClassName,
-        L"Privy Login",
-        WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT,
-        CW_USEDEFAULT,
-        1024,
-        768,
-        nullptr,
-        nullptr,
-        wcex.hInstance,
-        nullptr);
-
-    if (g_hWnd)
-    {
-        // Create hidden by default; only show for explicit navigation flow.
-        ShowWindow(g_hWnd, SW_HIDE);
-        UpdateWindow(g_hWnd);
-    }
-
-    return g_hWnd;
-}
-
-static void ShowWebViewWindow()
-{
-    EnsureWebViewWindow();
-    if (g_hWnd && IsWindow(g_hWnd)) {
-        ShowWindow(g_hWnd, SW_SHOW);
-        SetForegroundWindow(g_hWnd);
-        SetWindowPos(g_hWnd, HWND_TOPMOST, 0, 0, 0, 0,
-                     SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-    }
-}
-
-static void HideWebViewWindow()
-{
-    if (g_hWnd && IsWindow(g_hWnd)) {
-        ShowWindow(g_hWnd, SW_HIDE);
-    }
-}
-
+// ---------------------------------------------------------------------------
+// Encoding helpers
+// ---------------------------------------------------------------------------
 static std::wstring Utf8ToUtf16(const std::string& utf8)
 {
     if (utf8.empty())
@@ -132,50 +49,10 @@ static std::wstring Utf8ToUtf16(const std::string& utf8)
     std::vector<wchar_t> buffer(size);
     MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), -1, buffer.data(), size);
 
-    // The returned size includes the terminating null; remove it.
     if (!buffer.empty() && buffer.back() == L'\0')
         buffer.pop_back();
 
     return std::wstring(buffer.begin(), buffer.end());
-}
-
-static std::wstring g_pendingUrl;
-static std::wstring g_pendingJs;
-static std::wstring g_oauthRedirectUri;
-
-extern "C" __declspec(dllexport) void __cdecl PrivyWebView_SetRedirectUrl(const char* url)
-{
-    if (url == nullptr || url[0] == '\0') {
-        g_oauthRedirectUri.clear();
-        if (g_loadedCallback) g_loadedCallback("PrivyWebView_SetRedirectUrl: empty redirect uri");
-        return;
-    }
-
-    g_oauthRedirectUri = Utf8ToUtf16(url);
-
-    char buf[1024];
-    sprintf_s(buf, "PrivyWebView_SetRedirectUrl: redirectUri='%s'", url);
-    if (g_loadedCallback) g_loadedCallback(buf);
-}
-
-static std::wstring UrlDecode(const std::wstring& input)
-{
-    std::wstring output;
-    output.reserve(input.size());
-    for (size_t i = 0; i < input.size(); ++i) {
-        wchar_t c = input[i];
-        if (c == L'%' && i + 2 < input.size()) {
-            auto hex = input.substr(i + 1, 2);
-            wchar_t decoded = static_cast<wchar_t>(std::wcstol(hex.c_str(), nullptr, 16));
-            output.push_back(decoded);
-            i += 2;
-        } else if (c == L'+') {
-            output.push_back(L' ');
-        } else {
-            output.push_back(c);
-        }
-    }
-    return output;
 }
 
 static std::string Utf16ToUtf8(const std::wstring& utf16)
@@ -190,248 +67,471 @@ static std::string Utf16ToUtf8(const std::wstring& utf16)
     std::vector<char> buffer(size);
     WideCharToMultiByte(CP_UTF8, 0, utf16.c_str(), -1, buffer.data(), size, nullptr, nullptr);
 
-    // Remove terminating null
     if (!buffer.empty() && buffer.back() == '\0')
         buffer.pop_back();
 
     return std::string(buffer.begin(), buffer.end());
 }
 
-extern "C" __declspec(dllexport) void __cdecl PrivyWebView_Initialize(MessageCallback onMessage, StatusCallback onLoaded, StatusCallback onError)
+// Return <LocalAppData>/PrivyWebView/<subfolder>  as a wide string.
+// Each webview instance uses a different subfolder to achieve browser-level isolation.
+static std::wstring GetUserDataFolder(const wchar_t* subfolder)
 {
-    g_messageCallback = onMessage;
-    g_loadedCallback = onLoaded;
-    g_errorCallback = onError;
+    wchar_t appDataPath[MAX_PATH] = {};
+    if (SUCCEEDED(SHGetFolderPathW(nullptr, CSIDL_LOCAL_APPDATA, nullptr, 0, appDataPath)))
+    {
+        std::wstring path(appDataPath);
+        path += L"\\PrivyWebView\\";
+        path += subfolder;
+        return path;
+    }
+    // Fallback: relative to current directory
+    std::wstring fallback = L".\\PrivyWebView\\";
+    fallback += subfolder;
+    return fallback;
+}
 
-    // Note: Initialization is best done on the main thread with a message pump.
-    // For simplicity, we use a minimal hidden window.
+// ===================================================================
+//  WALLET WEBVIEW  – hidden, persistent, iframe communication
+// ===================================================================
 
-    // Ensure we have a window to host the WebView2 control
-    EnsureWebViewWindow();
+static MessageCallback g_walletMessageCb  = nullptr;
+static StatusCallback  g_walletLoadedCb   = nullptr;
+static StatusCallback  g_walletErrorCb    = nullptr;
+
+static Microsoft::WRL::ComPtr<ICoreWebView2Environment> g_walletEnv;
+static Microsoft::WRL::ComPtr<ICoreWebView2Controller>  g_walletController;
+static Microsoft::WRL::ComPtr<ICoreWebView2>            g_walletWebView;
+
+static HWND g_walletHWnd = nullptr;
+static const wchar_t kWalletWindowClass[] = L"PrivyWalletWebViewClass";
+
+static std::wstring g_walletPendingUrl;
+static std::wstring g_walletPendingJs;
+
+static LRESULT CALLBACK WalletWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    // The wallet window should never be visible to the user – ignore close.
+    if (message == WM_CLOSE) {
+        ShowWindow(hWnd, SW_HIDE);
+        return 0;
+    }
+    return DefWindowProcW(hWnd, message, wParam, lParam);
+}
+
+static HWND EnsureWalletWindow()
+{
+    if (g_walletHWnd && !IsWindow(g_walletHWnd))
+        g_walletHWnd = nullptr;
+
+    if (g_walletHWnd)
+        return g_walletHWnd;
+
+    WNDCLASSEXW wcex = {};
+    wcex.cbSize        = sizeof(wcex);
+    wcex.style         = CS_HREDRAW | CS_VREDRAW;
+    wcex.lpfnWndProc   = WalletWndProc;
+    wcex.hInstance      = GetModuleHandleW(nullptr);
+    wcex.hCursor        = LoadCursorW(nullptr, (LPCWSTR)IDC_ARROW);
+    wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW + 1);
+    wcex.lpszClassName  = kWalletWindowClass;
+
+    if (!RegisterClassExW(&wcex) && GetLastError() != ERROR_CLASS_ALREADY_EXISTS)
+        return nullptr;
+
+    g_walletHWnd = CreateWindowExW(
+        0, kWalletWindowClass, L"PrivyWallet",
+        WS_OVERLAPPEDWINDOW,
+        CW_USEDEFAULT, CW_USEDEFAULT, 1024, 768,
+        nullptr, nullptr, wcex.hInstance, nullptr);
+
+    if (g_walletHWnd) {
+        ShowWindow(g_walletHWnd, SW_HIDE);
+        UpdateWindow(g_walletHWnd);
+    }
+    return g_walletHWnd;
+}
+
+extern "C" __declspec(dllexport) void __cdecl PrivyWebView_Wallet_Initialize(
+    MessageCallback onMessage, StatusCallback onLoaded, StatusCallback onError)
+{
+    g_walletMessageCb = onMessage;
+    g_walletLoadedCb  = onLoaded;
+    g_walletErrorCb   = onError;
+
+    EnsureWalletWindow();
+
+    std::wstring userDataDir = GetUserDataFolder(L"Wallet");
 
     HRESULT hr = CreateCoreWebView2EnvironmentWithOptions(
-        nullptr, nullptr, nullptr,
+        nullptr, userDataDir.c_str(), nullptr,
         Microsoft::WRL::Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
             [](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
                 if (FAILED(result)) {
-                    if (g_errorCallback) {
+                    if (g_walletErrorCb) {
                         char buf[128];
-                        sprintf_s(buf, "Failed to create WebView2 environment (HRESULT=0x%08X)", result);
-                        g_errorCallback(buf);
+                        sprintf_s(buf, "Wallet WebView2 env failed (0x%08X)", result);
+                        g_walletErrorCb(buf);
                     }
                     return result;
                 }
 
-                g_webViewEnvironment = env;
+                g_walletEnv = env;
                 env->CreateCoreWebView2Controller(
-                    g_hWnd,
+                    g_walletHWnd,
                     Microsoft::WRL::Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
                         [](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
                             if (FAILED(result)) {
-                                if (g_errorCallback) {
+                                if (g_walletErrorCb) {
                                     char buf[128];
-                                    sprintf_s(buf, "Failed to create WebView2 controller (HRESULT=0x%08X)", result);
-                                    g_errorCallback(buf);
+                                    sprintf_s(buf, "Wallet controller failed (0x%08X)", result);
+                                    g_walletErrorCb(buf);
                                 }
                                 return result;
                             }
 
-                            g_webViewController = controller;
-                            controller->get_CoreWebView2(&g_webView);
-
-                            // Make sure the WebView is visible and sized.
+                            g_walletController = controller;
+                            controller->get_CoreWebView2(&g_walletWebView);
                             controller->put_IsVisible(TRUE);
                             RECT bounds = {0, 0, 1024, 768};
                             controller->put_Bounds(bounds);
 
-                            // Install a message handler to forward messages to Unity
-                            g_webView->add_WebMessageReceived(
+                            // Forward postMessage from the embedded wallet iframe to Unity.
+                            g_walletWebView->add_WebMessageReceived(
                                 Microsoft::WRL::Callback<ICoreWebView2WebMessageReceivedEventHandler>(
-                                    [](ICoreWebView2* sender, ICoreWebView2WebMessageReceivedEventArgs* args) -> HRESULT {
+                                    [](ICoreWebView2*, ICoreWebView2WebMessageReceivedEventArgs* args) -> HRESULT {
                                         PWSTR msg = nullptr;
-                                        if (SUCCEEDED(args->TryGetWebMessageAsString(&msg)) && msg != nullptr) {
-                                            std::wstring messageW(msg);
-                                            std::string utf8 = Utf16ToUtf8(messageW);
-                                            if (g_messageCallback) {
-                                                g_messageCallback(utf8.c_str());
-                                            }
+                                        if (SUCCEEDED(args->TryGetWebMessageAsString(&msg)) && msg) {
+                                            std::string utf8 = Utf16ToUtf8(std::wstring(msg));
+                                            if (g_walletMessageCb)
+                                                g_walletMessageCb(utf8.c_str());
                                             CoTaskMemFree(msg);
                                         }
                                         return S_OK;
                                     }).Get(),
                                 nullptr);
 
-                            // Intercept custom navigation scheme used to message Unity
-                            auto handleUnityScheme = [&](const std::wstring& u) {
-                                auto isUnityScheme = [&](const std::wstring& prefix) {
-                                    return u.rfind(prefix, 0) == 0;
-                                };
-
-                                // Only log intercept checks when OAuth redirect flow is configured.
-                                if (!g_oauthRedirectUri.empty())
-                                {
-                                    std::string currentUrl = Utf16ToUtf8(u);
-                                    std::string redirectUrl = Utf16ToUtf8(g_oauthRedirectUri);
-                                    char buf[2048];
-                                    sprintf_s(buf, "PrivyWebView intercept check: currentUrl='%s', expectedRedirect='%s'", currentUrl.c_str(), redirectUrl.c_str());
-                                    if (g_loadedCallback) g_loadedCallback(buf);
-                                }
-
-                                // If we see an OAuth code, always intercept and complete the flow.
-                                if (u.find(L"privy_oauth_code=") != std::wstring::npos) {
-                                    HideWebViewWindow();
-
-                                    std::string utf8 = Utf16ToUtf8(u);
-                                    if (g_messageCallback) {
-                                        g_messageCallback(utf8.c_str());
-                                    }
-                                    return true;
-                                }
-
-                                // If a redirect URI was configured, keep allowing normal navigation,
-                                // but do not send it as a message unless it contains OAuth code.
-                                if (!g_oauthRedirectUri.empty() && isUnityScheme(g_oauthRedirectUri)) {
-                                    return false;
-                                }
-
-                                // If redirect URI is not configured yet, allow auth domain navigation and do not message.
-                                if (isUnityScheme(L"https://auth.staging.privy.io/") ||
-                                    isUnityScheme(L"https://auth.privy.io/")) {
-                                    return false;
-                                }
-
-                                return false;
-                            };
-
-                            g_webView->add_NavigationStarting(
-                                Microsoft::WRL::Callback<ICoreWebView2NavigationStartingEventHandler>(
-                                    [handleUnityScheme](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT {
-                                        LPWSTR uri = nullptr;
-                                        if (SUCCEEDED(args->get_Uri(&uri)) && uri) {
-                                            std::wstring u(uri);
-                                            if (handleUnityScheme(u)) {
-                                                args->put_Cancel(TRUE);
-                                            }
-                                            CoTaskMemFree(uri);
-                                        }
-                                        return S_OK;
-                                    }).Get(),
-                                nullptr);
-
-                            // Intercept iframe navigations as well.
-                            // When the user is already logged in, the OAuth provider may skip
-                            // the consent screen and Privy may use an iframe-based silent auth
-                            // flow. The redirect with privy_oauth_code happens inside the
-                            // iframe, which NavigationStarting does NOT capture.
-                            g_webView->add_FrameNavigationStarting(
-                                Microsoft::WRL::Callback<ICoreWebView2NavigationStartingEventHandler>(
-                                    [handleUnityScheme](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT {
-                                        LPWSTR uri = nullptr;
-                                        if (SUCCEEDED(args->get_Uri(&uri)) && uri) {
-                                            std::wstring u(uri);
-                                            if (handleUnityScheme(u)) {
-                                                args->put_Cancel(TRUE);
-                                            }
-                                            CoTaskMemFree(uri);
-                                        }
-                                        return S_OK;
-                                    }).Get(),
-                                nullptr);
-
-                            // Some flows open a new window; intercept those as well.
-                            // By default WebView2 may open external browser for new windows, which breaks embedded flows.
-                            g_webView->add_NewWindowRequested(
+                            // Prevent new-window popups from the wallet iframe.
+                            g_walletWebView->add_NewWindowRequested(
                                 Microsoft::WRL::Callback<ICoreWebView2NewWindowRequestedEventHandler>(
-                                    [handleUnityScheme](ICoreWebView2* sender, ICoreWebView2NewWindowRequestedEventArgs* args) -> HRESULT {
+                                    [](ICoreWebView2* sender, ICoreWebView2NewWindowRequestedEventArgs* args) -> HRESULT {
                                         LPWSTR uri = nullptr;
                                         if (SUCCEEDED(args->get_Uri(&uri)) && uri) {
-                                            std::wstring u(uri);
-                                            // If it's a unity scheme, forward it as a message.
-                                            if (handleUnityScheme(u)) {
-                                                args->put_Handled(TRUE);
-                                            } else {
-                                                // Otherwise, keep navigation inside the existing WebView.
-                                                // This prevents OAuth flows from popping out to an external browser.
-                                                if (sender) {
-                                                    sender->Navigate(u.c_str());
-                                                }
-                                                args->put_Handled(TRUE);
-                                            }
+                                            if (sender)
+                                                sender->Navigate(uri);
+                                            args->put_Handled(TRUE);
                                             CoTaskMemFree(uri);
                                         }
                                         return S_OK;
                                     }).Get(),
                                 nullptr);
 
-                            if (g_loadedCallback) g_loadedCallback("");
+                            // Notify the managed side when a page finishes loading so it can
+                            // inject the UnityProxy and start the ready-ping at the right time.
+                            g_walletWebView->add_NavigationCompleted(
+                                Microsoft::WRL::Callback<ICoreWebView2NavigationCompletedEventHandler>(
+                                    [](ICoreWebView2* sender, ICoreWebView2NavigationCompletedEventArgs*) -> HRESULT {
+                                        PWSTR source = nullptr;
+                                        if (SUCCEEDED(sender->get_Source(&source)) && source) {
+                                            std::string utf8 = Utf16ToUtf8(std::wstring(source));
+                                            if (g_walletLoadedCb)
+                                                g_walletLoadedCb(utf8.c_str());
+                                            CoTaskMemFree(source);
+                                        }
+                                        return S_OK;
+                                    }).Get(),
+                                nullptr);
 
-                            // If a URL was requested before initialization completed, navigate now.
-                            if (!g_pendingUrl.empty()) {
-                                g_webView->Navigate(g_pendingUrl.c_str());
-                                g_pendingUrl.clear();
+                            if (!g_walletPendingUrl.empty()) {
+                                g_walletWebView->Navigate(g_walletPendingUrl.c_str());
+                                g_walletPendingUrl.clear();
                             }
-
-                            // If JS was queued before initialization, execute now.
-                            if (!g_pendingJs.empty()) {
-                                g_webView->ExecuteScript(g_pendingJs.c_str(), nullptr);
-                                g_pendingJs.clear();
+                            if (!g_walletPendingJs.empty()) {
+                                g_walletWebView->ExecuteScript(g_walletPendingJs.c_str(), nullptr);
+                                g_walletPendingJs.clear();
                             }
-
-                            // Keep the window hidden until explicitly requested via LoadUrl.
-                            // Window will be shown by PrivyWebView_LoadUrl() / PrivyWebView_ShowWindow().
 
                             return S_OK;
                         }).Get());
-
                 return S_OK;
             }).Get());
 }
 
-extern "C" __declspec(dllexport) void __cdecl PrivyWebView_LoadUrl(const char* url)
+extern "C" __declspec(dllexport) void __cdecl PrivyWebView_Wallet_LoadUrl(const char* url)
 {
     std::wstring wurl = Utf8ToUtf16(url);
-    if (wurl.empty())
-        return;
+    if (wurl.empty()) return;
 
-    EnsureWebViewWindow();
+    EnsureWalletWindow();
 
-    if (!g_webView) {
-        // Queue until initialization completes
-        g_pendingUrl = std::move(wurl);
+    if (!g_walletWebView) {
+        g_walletPendingUrl = std::move(wurl);
         return;
     }
-
-    g_webView->Navigate(wurl.c_str());
+    g_walletWebView->Navigate(wurl.c_str());
 }
 
-extern "C" __declspec(dllexport) void __cdecl PrivyWebView_ShowWindow()
-{
-    ShowWebViewWindow();
-}
-
-extern "C" __declspec(dllexport) void __cdecl PrivyWebView_HideWindow()
-{
-    HideWebViewWindow();
-}
-
-extern "C" __declspec(dllexport) void __cdecl PrivyWebView_EvaluateJS(const char* js)
+extern "C" __declspec(dllexport) void __cdecl PrivyWebView_Wallet_EvaluateJS(const char* js)
 {
     std::wstring jsW = Utf8ToUtf16(js);
-    if (jsW.empty())
-        return;
+    if (jsW.empty()) return;
 
-    if (!g_webView) {
-        // Queue until initialization completes
-        g_pendingJs = std::move(jsW);
+    if (!g_walletWebView) {
+        g_walletPendingJs = std::move(jsW);
         return;
     }
-
-    g_webView->ExecuteScript(jsW.c_str(), nullptr);
+    g_walletWebView->ExecuteScript(jsW.c_str(), nullptr);
 }
 
-extern "C" __declspec(dllexport) void __cdecl PrivyWebView_Destroy()
+extern "C" __declspec(dllexport) void __cdecl PrivyWebView_Wallet_Destroy()
 {
-    g_webViewController = nullptr;
-    g_webView = nullptr;
-    g_webViewEnvironment = nullptr;
+    g_walletController = nullptr;
+    g_walletWebView    = nullptr;
+    g_walletEnv        = nullptr;
+}
+
+// ===================================================================
+//  OAUTH WEBVIEW  – visible, transient, redirect interception
+// ===================================================================
+
+static MessageCallback g_oauthMessageCb = nullptr;
+static StatusCallback  g_oauthLoadedCb  = nullptr;
+static StatusCallback  g_oauthErrorCb   = nullptr;
+
+static Microsoft::WRL::ComPtr<ICoreWebView2Environment> g_oauthEnv;
+static Microsoft::WRL::ComPtr<ICoreWebView2Controller>  g_oauthController;
+static Microsoft::WRL::ComPtr<ICoreWebView2>            g_oauthWebView;
+
+static HWND g_oauthHWnd = nullptr;
+static const wchar_t kOAuthWindowClass[] = L"PrivyOAuthWebViewClass";
+
+static std::wstring g_oauthPendingUrl;
+static std::wstring g_oauthRedirectUri;
+
+static LRESULT CALLBACK OAuthWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    if (message == WM_CLOSE) {
+        if (g_oauthErrorCb)
+            g_oauthErrorCb("WEBVIEW_WINDOW_CLOSED");
+        ShowWindow(hWnd, SW_HIDE);
+        return 0;
+    }
+    if (message == WM_SIZE && g_oauthController) {
+        RECT bounds;
+        GetClientRect(hWnd, &bounds);
+        g_oauthController->put_Bounds(bounds);
+    }
+    return DefWindowProcW(hWnd, message, wParam, lParam);
+}
+
+static HWND EnsureOAuthWindow()
+{
+    if (g_oauthHWnd && !IsWindow(g_oauthHWnd))
+        g_oauthHWnd = nullptr;
+
+    if (g_oauthHWnd)
+        return g_oauthHWnd;
+
+    WNDCLASSEXW wcex = {};
+    wcex.cbSize        = sizeof(wcex);
+    wcex.style         = CS_HREDRAW | CS_VREDRAW;
+    wcex.lpfnWndProc   = OAuthWndProc;
+    wcex.hInstance      = GetModuleHandleW(nullptr);
+    wcex.hCursor        = LoadCursorW(nullptr, (LPCWSTR)IDC_ARROW);
+    wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW + 1);
+    wcex.lpszClassName  = kOAuthWindowClass;
+
+    if (!RegisterClassExW(&wcex) && GetLastError() != ERROR_CLASS_ALREADY_EXISTS)
+        return nullptr;
+
+    g_oauthHWnd = CreateWindowExW(
+        0, kOAuthWindowClass, L"Privy Login",
+        WS_OVERLAPPEDWINDOW,
+        CW_USEDEFAULT, CW_USEDEFAULT, 1024, 768,
+        nullptr, nullptr, wcex.hInstance, nullptr);
+
+    if (g_oauthHWnd) {
+        ShowWindow(g_oauthHWnd, SW_HIDE);
+        UpdateWindow(g_oauthHWnd);
+    }
+    return g_oauthHWnd;
+}
+
+static void ShowOAuthWindow()
+{
+    EnsureOAuthWindow();
+    if (g_oauthHWnd && IsWindow(g_oauthHWnd)) {
+        ShowWindow(g_oauthHWnd, SW_SHOW);
+        SetForegroundWindow(g_oauthHWnd);
+        SetWindowPos(g_oauthHWnd, HWND_TOPMOST, 0, 0, 0, 0,
+                     SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+    }
+}
+
+static void HideOAuthWindow()
+{
+    if (g_oauthHWnd && IsWindow(g_oauthHWnd))
+        ShowWindow(g_oauthHWnd, SW_HIDE);
+}
+
+// Checks whether a URL contains the OAuth completion marker.
+// If found: hides the OAuth window and sends the URL to the managed callback.
+static bool InterceptOAuthRedirect(const std::wstring& url)
+{
+    if (url.find(L"privy_oauth_code=") != std::wstring::npos) {
+        HideOAuthWindow();
+        std::string utf8 = Utf16ToUtf8(url);
+        if (g_oauthMessageCb)
+            g_oauthMessageCb(utf8.c_str());
+        return true;
+    }
+    return false;
+}
+
+extern "C" __declspec(dllexport) void __cdecl PrivyWebView_OAuth_SetRedirectUrl(const char* url)
+{
+    if (url == nullptr || url[0] == '\0') {
+        g_oauthRedirectUri.clear();
+        return;
+    }
+    g_oauthRedirectUri = Utf8ToUtf16(url);
+}
+
+extern "C" __declspec(dllexport) void __cdecl PrivyWebView_OAuth_Initialize(
+    MessageCallback onMessage, StatusCallback onLoaded, StatusCallback onError)
+{
+    g_oauthMessageCb = onMessage;
+    g_oauthLoadedCb  = onLoaded;
+    g_oauthErrorCb   = onError;
+
+    EnsureOAuthWindow();
+
+    std::wstring userDataDir = GetUserDataFolder(L"OAuth");
+
+    HRESULT hr = CreateCoreWebView2EnvironmentWithOptions(
+        nullptr, userDataDir.c_str(), nullptr,
+        Microsoft::WRL::Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
+            [](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
+                if (FAILED(result)) {
+                    if (g_oauthErrorCb) {
+                        char buf[128];
+                        sprintf_s(buf, "OAuth WebView2 env failed (0x%08X)", result);
+                        g_oauthErrorCb(buf);
+                    }
+                    return result;
+                }
+
+                g_oauthEnv = env;
+                env->CreateCoreWebView2Controller(
+                    g_oauthHWnd,
+                    Microsoft::WRL::Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
+                        [](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
+                            if (FAILED(result)) {
+                                if (g_oauthErrorCb) {
+                                    char buf[128];
+                                    sprintf_s(buf, "OAuth controller failed (0x%08X)", result);
+                                    g_oauthErrorCb(buf);
+                                }
+                                return result;
+                            }
+
+                            g_oauthController = controller;
+                            controller->get_CoreWebView2(&g_oauthWebView);
+                            controller->put_IsVisible(TRUE);
+
+                            RECT bounds;
+                            GetClientRect(g_oauthHWnd, &bounds);
+                            controller->put_Bounds(bounds);
+
+                            // Top-level navigation: check for OAuth redirect.
+                            g_oauthWebView->add_NavigationStarting(
+                                Microsoft::WRL::Callback<ICoreWebView2NavigationStartingEventHandler>(
+                                    [](ICoreWebView2*, ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT {
+                                        LPWSTR uri = nullptr;
+                                        if (SUCCEEDED(args->get_Uri(&uri)) && uri) {
+                                            std::wstring u(uri);
+                                            if (InterceptOAuthRedirect(u))
+                                                args->put_Cancel(TRUE);
+                                            CoTaskMemFree(uri);
+                                        }
+                                        return S_OK;
+                                    }).Get(),
+                                nullptr);
+
+                            // Iframe navigation: silent-auth flows redirect inside an iframe.
+                            g_oauthWebView->add_FrameNavigationStarting(
+                                Microsoft::WRL::Callback<ICoreWebView2NavigationStartingEventHandler>(
+                                    [](ICoreWebView2*, ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT {
+                                        LPWSTR uri = nullptr;
+                                        if (SUCCEEDED(args->get_Uri(&uri)) && uri) {
+                                            std::wstring u(uri);
+                                            if (InterceptOAuthRedirect(u))
+                                                args->put_Cancel(TRUE);
+                                            CoTaskMemFree(uri);
+                                        }
+                                        return S_OK;
+                                    }).Get(),
+                                nullptr);
+
+                            // New-window requests: keep inside the OAuth webview.
+                            g_oauthWebView->add_NewWindowRequested(
+                                Microsoft::WRL::Callback<ICoreWebView2NewWindowRequestedEventHandler>(
+                                    [](ICoreWebView2* sender, ICoreWebView2NewWindowRequestedEventArgs* args) -> HRESULT {
+                                        LPWSTR uri = nullptr;
+                                        if (SUCCEEDED(args->get_Uri(&uri)) && uri) {
+                                            std::wstring u(uri);
+                                            if (InterceptOAuthRedirect(u)) {
+                                                args->put_Handled(TRUE);
+                                            } else if (sender) {
+                                                sender->Navigate(u.c_str());
+                                                args->put_Handled(TRUE);
+                                            }
+                                            CoTaskMemFree(uri);
+                                        }
+                                        return S_OK;
+                                    }).Get(),
+                                nullptr);
+
+                            if (g_oauthLoadedCb) g_oauthLoadedCb("");
+
+                            if (!g_oauthPendingUrl.empty()) {
+                                g_oauthWebView->Navigate(g_oauthPendingUrl.c_str());
+                                g_oauthPendingUrl.clear();
+                            }
+
+                            return S_OK;
+                        }).Get());
+                return S_OK;
+            }).Get());
+}
+
+extern "C" __declspec(dllexport) void __cdecl PrivyWebView_OAuth_LoadUrl(const char* url)
+{
+    std::wstring wurl = Utf8ToUtf16(url);
+    if (wurl.empty()) return;
+
+    EnsureOAuthWindow();
+
+    if (!g_oauthWebView) {
+        g_oauthPendingUrl = std::move(wurl);
+        return;
+    }
+    g_oauthWebView->Navigate(wurl.c_str());
+}
+
+extern "C" __declspec(dllexport) void __cdecl PrivyWebView_OAuth_ShowWindow()
+{
+    ShowOAuthWindow();
+}
+
+extern "C" __declspec(dllexport) void __cdecl PrivyWebView_OAuth_HideWindow()
+{
+    HideOAuthWindow();
+}
+
+extern "C" __declspec(dllexport) void __cdecl PrivyWebView_OAuth_Destroy()
+{
+    g_oauthController = nullptr;
+    g_oauthWebView    = nullptr;
+    g_oauthEnv        = nullptr;
 }

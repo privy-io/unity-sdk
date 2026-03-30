@@ -76,25 +76,12 @@ public class AuthScreenController : MonoBehaviour
             updateSmsPhoneButton.onClick.AddListener(OnUpdateSmsPhoneButtonClick);
     }
 
-    private async void Start()
+    private void Start()
     {
-        // Subscribe in Start() rather than Awake() to guarantee PrivyManager.Initialize()
-        // has been called (Unity does not guarantee Awake() order between scripts).
+        // InitialScreenController.Start() owns the startup auth check and calls
+        // ShowAuthorizedScreen() if already authenticated. Subscribing here for
+        // subsequent auth-state changes (login, logout) is all that's needed.
         PrivyManager.Instance.AuthStateChanged += OnAuthStateChange;
-
-        // If the SDK is already authenticated when the app starts, transition immediately.
-        try
-        {
-            var state = await PrivyManager.Instance.GetAuthState();
-            if (state == AuthState.Authenticated)
-            {
-                UIManager.Instance.ShowAuthorizedScreen();
-            }
-        }
-        catch (Exception ex)
-        {
-            Debug.LogError($"Failed to check initial auth state: {ex.Message}");
-        }
     }
 
     private void OnDestroy()
