@@ -25,6 +25,7 @@
 using System;
 using UnityEngine;
 using Privy.Utils;
+using System.Threading.Tasks;
 
 namespace Privy.Wallets
 {
