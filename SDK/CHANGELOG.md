@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+## [1.0.0](https://github.com/privy-io/unity-sdk/compare/v0.9.0...v1.0.0) (2026-04-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* introduces namespacing, error classes and renames legacy types ([#14](https://github.com/privy-io/unity-sdk/issues/14))
+
+* introduces namespacing, error classes and renames legacy types ([#14](https://github.com/privy-io/unity-sdk/issues/14)) ([99bc653](https://github.com/privy-io/unity-sdk/commit/99bc65383d283141941cba62ec94b9939270dc17))
+
+
+### Fixed
+
+* add System.Threading.Tasks using directive ([#26](https://github.com/privy-io/unity-sdk/issues/26)) ([1894446](https://github.com/privy-io/unity-sdk/commit/18944462e5bc1d35e992de4a0aa5a9e653dafa7a))
+* **macos:** add missing using system.threading.task in webviewhandler ([#23](https://github.com/privy-io/unity-sdk/issues/23)) ([e32e863](https://github.com/privy-io/unity-sdk/commit/e32e86396ab5e52f0e4d3ec83e874a9cab9d6c8f))
+* **macos:** add missing using utils in WebViewhandler ([#22](https://github.com/privy-io/unity-sdk/issues/22)) ([5d4db96](https://github.com/privy-io/unity-sdk/commit/5d4db96279fafc89ee73fb6276589805515c53f3))
+
 ## [0.9.0](https://github.com/privy-io/unity-sdk/compare/v0.8.0...v0.9.0) (2026-03-10)
 
 
