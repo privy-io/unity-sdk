@@ -2,6 +2,25 @@
 
 For questions or support, email <support@privy.io>.
 
+## Pull requests
+
+PR titles **must** follow [Conventional Commits](https://www.conventionalcommits.org/) format:
+
+```
+type(optional scope): description
+```
+
+Allowed types: `feat`, `fix`, `docs`, `test`, `ci`, `refactor`, `perf`, `chore`, `revert`, `style`, `build`.
+
+Examples:
+
+```
+feat: add wallet balance endpoint
+fix(auth): handle expired tokens
+chore: update dependencies
+```
+
+A CI check will block merge if the PR title does not match this format.
 
 ### Code style & formatting
 
