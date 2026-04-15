@@ -1,5 +1,6 @@
 using System;
 using Privy;
+using Privy.Auth;
 using Privy.Auth.Models;
 using Privy.Config;
 using Privy.Core;
@@ -49,8 +50,10 @@ public class InitialScreenController : MonoBehaviour
 
     private async void Start()
     {
-        await PrivyManager.Instance.GetAuthState();
+        var state = await PrivyManager.Instance.GetAuthState();
         Debug.Log("PrivyManager is ready.");
+        if (state == AuthState.Authenticated)
+            UIManager.Instance.ShowAuthorizedScreen();
     }
 
     private void OnLoginWithEmailButtonClick()
