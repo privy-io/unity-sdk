@@ -4,22 +4,26 @@ using Org.Webpki.JsonCanonicalizer;
 
 namespace Privy.Wallets
 {
-    internal struct WalletApiPayload
+    /// <summary>
+    /// Represents an API request payload to be signed for authorization.
+    /// The signature can be included as the <c>privy-authorization-signature</c> header.
+    /// </summary>
+    public struct WalletApiPayload
     {
         [JsonProperty("version")]
-        internal int Version;
+        public int Version;
 
         [JsonProperty("url")]
-        internal string Url;
+        public string Url;
 
         [JsonProperty("method")]
-        internal string Method;
+        public string Method;
 
         [JsonProperty("headers")]
-        internal Dictionary<string, string> Headers;
+        public Dictionary<string, string> Headers;
 
         [JsonProperty("body")]
-        internal object Body;
+        public object Body;
 
         internal byte[] EncodePayload()
         {

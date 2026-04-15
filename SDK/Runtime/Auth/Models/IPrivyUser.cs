@@ -89,5 +89,29 @@ namespace Privy.Auth.Models
         /// Creates a new Solana embedded wallet for the user.
         /// </summary>
         Task<IEmbeddedSolanaWallet> CreateSolanaWallet(bool allowAdditional = false);
+
+        /// <summary>
+        /// Generates a cryptographic signature for an API request payload using the
+        /// authenticated user's signing key.
+        ///
+        /// This method canonicalizes the payload to JSON (RFC 8785) and signs the
+        /// canonical bytes. The returned base64-encoded signature can be included as
+        /// the <c>privy-authorization-signature</c> header to authorize Privy API requests.
+        /// </summary>
+        /// <param name="payload">The <see cref="WalletApiPayload"/> containing the API request details to be signed.</param>
+        /// <returns>A task whose result is the base64-encoded signature string.</returns>
+        Task<string> GenerateAuthorizationSignature(WalletApiPayload payload);
+
+        /// <summary>
+        /// Generates a cryptographic signature for a pre-serialized binary payload using the
+        /// authenticated user's signing key.
+        ///
+        /// Unlike the typed payload variant, this method skips JSON canonicalization and signs the
+        /// raw bytes directly. Use this when you have already serialized and canonicalized your
+        /// payload outside the SDK.
+        /// </summary>
+        /// <param name="payload">The pre-serialized payload bytes to sign.</param>
+        /// <returns>A task whose result is the base64-encoded signature string.</returns>
+        Task<string> GenerateAuthorizationSignature(byte[] payload);
     }
 }
