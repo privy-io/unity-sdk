@@ -98,6 +98,7 @@ namespace Privy.Auth.Models
         private AppConfigRepository _appConfigRepository;
         private WalletApiWalletCreator _walletApiWalletCreator;
         private WalletApiRepository _walletApiRepository;
+        private IAuthorizationKey _authorizationKey;
 
         private EmbeddedWalletManager _embeddedWalletManager;
 
@@ -105,13 +106,14 @@ namespace Privy.Auth.Models
         //TODO: Create Interface class for this
         internal PrivyUser(AuthDelegator authDelegator, EmbeddedWalletManager embeddedWalletManager,
             AppConfigRepository appConfigRepository, WalletApiWalletCreator walletApiWalletCreator,
-            WalletApiRepository walletApiRepository)
+            WalletApiRepository walletApiRepository, IAuthorizationKey authorizationKey)
         {
             _authDelegator = authDelegator;
             _embeddedWalletManager = embeddedWalletManager;
             _appConfigRepository = appConfigRepository;
             _walletApiWalletCreator = walletApiWalletCreator;
             _walletApiRepository = walletApiRepository;
+            _authorizationKey = authorizationKey;
         }
 
         public async Task<string> GetAccessToken()
@@ -122,6 +124,19 @@ namespace Privy.Auth.Models
         public async Task<string> GetIdentityToken()
         {
             return await _authDelegator.GetIdentityToken();
+        }
+
+        public async Task<string> GenerateAuthorizationSignature(WalletApiPayload payload)
+        {
+            byte[] encodedPayload = payload.EncodePayload();
+            byte[] signature = await _authorizationKey.Signature(encodedPayload);
+            return Convert.ToBase64String(signature);
+        }
+
+        public async Task<string> GenerateAuthorizationSignature(byte[] payload)
+        {
+            byte[] signature = await _authorizationKey.Signature(payload);
+            return Convert.ToBase64String(signature);
         }
 
         // Public Methods

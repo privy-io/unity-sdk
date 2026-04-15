@@ -119,7 +119,7 @@ namespace Privy.Core
             OAuth = new LoginWithOAuth(_authDelegator);
             Sms = new LoginWithSms(_authDelegator);
             _user = new PrivyUser(_authDelegator, _embeddedWalletManager, _appConfigRepository, walletApiWalletCreator,
-                walletApiRepository);
+                walletApiRepository, authorizationKey);
         }
 
         internal async Task InitializeAsync()

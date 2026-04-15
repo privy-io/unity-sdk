@@ -1,8 +1,10 @@
 using System;
 using System.Linq;
+using System.Text;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Networking;
 using TMPro;
 using Newtonsoft.Json;
 using Privy.Core;
@@ -36,6 +38,12 @@ public class WalletController : MonoBehaviour
     public Button createWalletWithIndexButton;
     public TMP_InputField hdWalletIndexInput;
 
+    public Button authSigPayloadButton;
+    public Button authSigBinaryButton;
+    public TextMeshProUGUI authSigResult;
+
+    private const string INTERNAL_DEMO_URL = "http://localhost:3200";
+
     private IPrivyUser _privyUser;
 
     private void Awake()
@@ -50,6 +58,8 @@ public class WalletController : MonoBehaviour
         createWalletWithIndexButton.onClick.AddListener(OnCreateEthereumWalletWithIndex);
         
         solanaSignButton.onClick.AddListener(OnSolanaSignButtonClick);
+        authSigPayloadButton.onClick.AddListener(OnAuthSigPayloadButtonClick);
+        authSigBinaryButton.onClick.AddListener(OnAuthSigBinaryButtonClick);
     }
 
     private async void OnCreateWalletButtonClick()
@@ -241,6 +251,146 @@ public class WalletController : MonoBehaviour
         {
             Debug.LogError($"Could not sign message: {ex.Message}");
         }
+    }
+
+    [Serializable]
+    private class FormatPayloadApiResponse
+    {
+        public string payload;
+        public string url;
+        public FormatPayloadBody body;
+    }
+
+    [Serializable]
+    private class FormatPayloadBody
+    {
+        public string method;
+        public FormatPayloadParams @params;
+    }
+
+    [Serializable]
+    private class FormatPayloadParams
+    {
+        public string message;
+        public string encoding;
+    }
+
+    [Serializable]
+    private class BinarySignApiResponse
+    {
+        public bool success;
+    }
+
+    [Serializable]
+    private class BinarySignApiRequest
+    {
+        public string wallet_id;
+        public string signature;
+    }
+
+    [Serializable]
+    private class FormatPayloadApiRequest
+    {
+        public string wallet_id;
+    }
+
+    private async void OnAuthSigPayloadButtonClick()
+    {
+        try
+        {
+            IEmbeddedEthereumWallet wallet = SelectedWallet;
+            string walletId = wallet.Id;
+            string accessToken = await _privyUser.GetAccessToken();
+            string appId = EnvFileReader.Get("PRIVY_APP_ID");
+
+            // Step 1: Get payload structure from server
+            var formatResponse = await PostJson<FormatPayloadApiResponse>(
+                $"{INTERNAL_DEMO_URL}/api/format_authorization_payload",
+                JsonConvert.SerializeObject(new FormatPayloadApiRequest { wallet_id = walletId }));
+
+            // Step 2: Build WalletApiPayload from the returned url and body
+            var payload = new WalletApiPayload
+            {
+                Version = 1,
+                Url = formatResponse.url,
+                Method = "POST",
+                Headers = new Dictionary<string, string> { { "privy-app-id", appId } },
+                Body = formatResponse.body
+            };
+
+            // Step 3: Sign with the typed payload overload
+            string sig = await _privyUser.GenerateAuthorizationSignature(payload);
+            Debug.Log("Auth sig (payload): " + sig);
+
+            // Step 4: Verify signature via server
+            await PostJson<BinarySignApiResponse>(
+                $"{INTERNAL_DEMO_URL}/api/test_binary_sign",
+                JsonConvert.SerializeObject(new BinarySignApiRequest { wallet_id = walletId, signature = sig }),
+                accessToken);
+
+            authSigResult.text = "Payload sig OK: " + sig.Substring(0, Math.Min(30, sig.Length)) + "...";
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"Auth sig (payload) failed: {ex.Message}");
+            authSigResult.text = "Payload sig FAILED: " + ex.Message;
+        }
+    }
+
+    private async void OnAuthSigBinaryButtonClick()
+    {
+        try
+        {
+            IEmbeddedEthereumWallet wallet = SelectedWallet;
+            string walletId = wallet.Id;
+            string accessToken = await _privyUser.GetAccessToken();
+
+            // Step 1: Get binary payload from server
+            var formatResponse = await PostJson<FormatPayloadApiResponse>(
+                $"{INTERNAL_DEMO_URL}/api/format_authorization_payload",
+                JsonConvert.SerializeObject(new FormatPayloadApiRequest { wallet_id = walletId }));
+
+            // Step 2: Decode base64 to byte[] and sign
+            byte[] payloadBytes = Convert.FromBase64String(formatResponse.payload);
+            string sig = await _privyUser.GenerateAuthorizationSignature(payloadBytes);
+            Debug.Log("Auth sig (binary): " + sig);
+
+            // Step 3: Verify signature via server
+            await PostJson<BinarySignApiResponse>(
+                $"{INTERNAL_DEMO_URL}/api/test_binary_sign",
+                JsonConvert.SerializeObject(new BinarySignApiRequest { wallet_id = walletId, signature = sig }),
+                accessToken);
+
+            authSigResult.text = "Binary sig OK: " + sig.Substring(0, Math.Min(30, sig.Length)) + "...";
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"Auth sig (binary) failed: {ex.Message}");
+            authSigResult.text = "Binary sig FAILED: " + ex.Message;
+        }
+    }
+
+    private static async System.Threading.Tasks.Task<T> PostJson<T>(string url, string jsonBody, string bearerToken = null)
+    {
+        using var request = new UnityWebRequest(url, "POST");
+        byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonBody);
+        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+        request.downloadHandler = new DownloadHandlerBuffer();
+        request.SetRequestHeader("Content-Type", "application/json");
+        if (bearerToken != null)
+        {
+            request.SetRequestHeader("Authorization", $"Bearer {bearerToken}");
+        }
+
+        var op = request.SendWebRequest();
+        while (!op.isDone) await System.Threading.Tasks.Task.Yield();
+
+        if (request.result != UnityWebRequest.Result.Success)
+        {
+            throw new Exception($"HTTP {request.responseCode}: {request.downloadHandler.text}");
+        }
+
+        return JsonConvert.DeserializeObject<T>(request.downloadHandler.text);
     }
 
     private void OnBackButtonClick()
