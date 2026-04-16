@@ -34,9 +34,10 @@ namespace Privy.Wallets
             _onPageLoaded = OnPageLoaded;
             _onError = OnError;
 
-            // Initialize native WebView2 plugin
+            // Initialize native WebView2 plugin (two isolated webviews)
             PrivyLogger.Debug("Initializing Windows WebView handler");
-            PrivyWebView_Initialize(_onMessageReceived, _onPageLoaded, _onError);
+            PrivyWebView_Wallet_Initialize(_onMessageReceived, _onPageLoaded, _onError);
+            PrivyWebView_OAuth_Initialize(_onMessageReceived, _onPageLoaded, _onError);
         }
 
         internal async static Task<OAuthResultData> RunOAuthFlow(string url, string redirectUri, TimeSpan timeout)
@@ -57,12 +58,12 @@ namespace Privy.Wallets
             }
 
             // Configure redirect URI for native callback interception.
-            PrivyWebView_SetRedirectUrl(redirectUri);
+            PrivyWebView_OAuth_SetRedirectUrl(redirectUri);
 
             // Show window only for OAuth flows.
-            PrivyWebView_ShowWindow();
-            // Load the URL into the WebView (will be queued if WebView isn't ready)
-            PrivyWebView_LoadUrl(url);
+            PrivyWebView_OAuth_ShowWindow();
+            // Load the URL into the OAuth WebView (will be queued if WebView isn't ready)
+            PrivyWebView_OAuth_LoadUrl(url);
 
             // Timeout safety
             var cancellation = Task.Delay(timeout);
@@ -88,7 +89,7 @@ namespace Privy.Wallets
 
         public void LoadUrl(string url)
         {
-            PrivyWebView_LoadUrl(url);
+            PrivyWebView_Wallet_LoadUrl(url);
         }
 
         public void SendMessage(string message)
@@ -97,7 +98,7 @@ namespace Privy.Wallets
             string jsDispatchEvent = $@"
                 window.dispatchEvent(new MessageEvent('message', {{ data: {message} }}));
             ";
-            PrivyWebView_EvaluateJS(jsDispatchEvent);
+            PrivyWebView_Wallet_EvaluateJS(jsDispatchEvent);
         }
 
         private void OnPageLoaded(string url)
@@ -123,7 +124,7 @@ namespace Privy.Wallets
                 };
             ";
 
-            PrivyWebView_EvaluateJS(js);
+            PrivyWebView_Wallet_EvaluateJS(js);
             _ =_webViewManager.PingReadyUntilSuccessful();
         }
 
@@ -213,28 +214,41 @@ namespace Privy.Wallets
 
         #region Native Plugin Imports
 
+        // Wallet WebView (hidden, persistent — hosts embedded wallet iframe)
         [DllImport("PrivyWebView", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void PrivyWebView_Initialize(NativeMessageCallback onMessage,
+        private static extern void PrivyWebView_Wallet_Initialize(NativeMessageCallback onMessage,
             NativeStatusCallback onLoaded,
             NativeStatusCallback onError);
 
         [DllImport("PrivyWebView", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void PrivyWebView_LoadUrl([MarshalAs(UnmanagedType.LPStr)] string url);
+        private static extern void PrivyWebView_Wallet_LoadUrl([MarshalAs(UnmanagedType.LPStr)] string url);
 
         [DllImport("PrivyWebView", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void PrivyWebView_SetRedirectUrl([MarshalAs(UnmanagedType.LPStr)] string url);
+        private static extern void PrivyWebView_Wallet_EvaluateJS([MarshalAs(UnmanagedType.LPStr)] string js);
 
         [DllImport("PrivyWebView", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void PrivyWebView_ShowWindow();
+        private static extern void PrivyWebView_Wallet_Destroy();
+
+        // OAuth WebView (visible, transient — OAuth consent screens)
+        [DllImport("PrivyWebView", CallingConvention = CallingConvention.Cdecl)]
+        private static extern void PrivyWebView_OAuth_Initialize(NativeMessageCallback onMessage,
+            NativeStatusCallback onLoaded,
+            NativeStatusCallback onError);
 
         [DllImport("PrivyWebView", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void PrivyWebView_HideWindow();
+        private static extern void PrivyWebView_OAuth_SetRedirectUrl([MarshalAs(UnmanagedType.LPStr)] string url);
 
         [DllImport("PrivyWebView", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void PrivyWebView_EvaluateJS([MarshalAs(UnmanagedType.LPStr)] string js);
+        private static extern void PrivyWebView_OAuth_LoadUrl([MarshalAs(UnmanagedType.LPStr)] string url);
 
         [DllImport("PrivyWebView", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void PrivyWebView_Destroy();
+        private static extern void PrivyWebView_OAuth_ShowWindow();
+
+        [DllImport("PrivyWebView", CallingConvention = CallingConvention.Cdecl)]
+        private static extern void PrivyWebView_OAuth_HideWindow();
+
+        [DllImport("PrivyWebView", CallingConvention = CallingConvention.Cdecl)]
+        private static extern void PrivyWebView_OAuth_Destroy();
 
         #endregion
     }
