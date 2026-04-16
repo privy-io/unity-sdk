@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## [1.1.0](https://github.com/privy-io/unity-sdk/compare/v1.0.0...v1.1.0) (2026-04-15)
+
+
+### Added
+
+* implements GenerateAuthorizationSignature support on PrivyUser ([#29](https://github.com/privy-io/unity-sdk/issues/29)) ([e921537](https://github.com/privy-io/unity-sdk/commit/e9215376043e915efc9becd70545c8f1f30f0b1c))
+
 ## [1.0.0](https://github.com/privy-io/unity-sdk/compare/v0.9.0...v1.0.0) (2026-04-07)
 
 
