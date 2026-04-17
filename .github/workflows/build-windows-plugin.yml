@@ -33,7 +33,7 @@ jobs:
         run: |
           $wv2 = Get-ChildItem "${{ runner.temp }}/webview2/Microsoft.Web.WebView2.*" | Select-Object -First 1
           $wv2Root = "$($wv2.FullName)/build/native"
-          cmake -S SDK/Plugins -B SDK/Plugins/build -G "Visual Studio 17 2022" -A x64 -D BUILD_WINDOWS_PLUGIN=ON -D BUILD_LINUX_PLUGIN=OFF -D WEBVIEW2_ROOT="$wv2Root"
+          cmake -S SDK/Plugins -B SDK/Plugins/build -G "Visual Studio 17 2022" -A x64 -D WEBVIEW2_ROOT="$wv2Root"
 
       - name: Build
         run: cmake --build SDK/Plugins/build --config Release

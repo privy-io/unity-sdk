@@ -32,7 +32,7 @@
   - native C++ plugin built into `PrivyWebView.dll`
   - implements two isolated WebView2 instances with separate user-data directories
   - exposes `PrivyWebView_Wallet_*` and `PrivyWebView_OAuth_*` API families
-  - retains legacy `PrivyWebView_*` wrappers for backward compatibility (Linux handler, etc.)
+  - retains legacy `PrivyWebView_*` wrappers for backward compatibility
 
 - `SDK/Runtime/EmbeddedWallet/WebViewHandler.cs`
   - non-Windows handler (mobile/mac) for reference and cross-platform consistency

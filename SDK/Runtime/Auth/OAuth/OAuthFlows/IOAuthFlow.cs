@@ -24,7 +24,6 @@ namespace Privy.Auth.OAuth
                     return new OAuthWindowsWebViewFlow();
                 // For other desktop platforms, use local HTTP listener (fallback)
                 case RuntimePlatform.OSXEditor:
-                case RuntimePlatform.LinuxEditor:
                     return new OAuthInEditorFlow();
                 default:
                     return new OAuthExternalBrowserFlow();
