@@ -18,11 +18,9 @@ namespace Privy.Auth.OAuth
                     return new OAuthIOSWebAuthenticationFlow();
                 case RuntimePlatform.WebGLPlayer:
                     return new OAuthWebGLPopupFlow();
-                // For Windows (Editor or standalone), use the embedded WebView flow.
                 case RuntimePlatform.WindowsPlayer:
                 case RuntimePlatform.WindowsEditor:
                     return new OAuthWindowsWebViewFlow();
-                // For other desktop platforms, use local HTTP listener (fallback)
                 case RuntimePlatform.OSXEditor:
                     return new OAuthInEditorFlow();
                 default:
