@@ -33,7 +33,7 @@ function Run-CMake {
         New-Item -ItemType Directory -Path $buildDir | Out-Null
     }
 
-    Write-Host "Generating build files (generator: $Generator)"
+    Write-Host "Generating build files (generator: $Generator, options: $Options)"
     & cmake -S $pluginsDir -B $buildDir -G $Generator $Options
     if ($LASTEXITCODE -ne 0) { throw "cmake generation failed" }
 
@@ -76,7 +76,8 @@ if ($Platform -eq 'windows' -or $Platform -eq 'all') {
 
     # Use Visual Studio generator (adjust if you have a different VS version)
     $vsGen = 'Visual Studio 18 2026'
-    Run-CMake -Generator $vsGen -Options "-D BUILD_WINDOWS_PLUGIN=ON -D BUILD_LINUX_PLUGIN=OFF -D WEBVIEW2_ROOT=\"$webView2Root\""
+    $options = "-D BUILD_WINDOWS_PLUGIN=ON -D BUILD_LINUX_PLUGIN=OFF -D WEBVIEW2_ROOT=$webView2Root"
+    Run-CMake -Generator $vsGen -Options $options
 }
 
 if ($Platform -eq 'linux' -or $Platform -eq 'all') {
