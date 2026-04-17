@@ -75,7 +75,7 @@ if ($Platform -eq 'windows' -or $Platform -eq 'all') {
     Write-Host "Using WebView2 SDK root: $webView2Root"
 
     # Use Visual Studio generator (adjust if you have a different VS version)
-    $vsGen = 'Visual Studio 17 2022'
+    $vsGen = 'Visual Studio 18 2026'
     Run-CMake -Generator $vsGen -Options "-D BUILD_WINDOWS_PLUGIN=ON -D BUILD_LINUX_PLUGIN=OFF -D WEBVIEW2_ROOT=\"$webView2Root\""
 }
 

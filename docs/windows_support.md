@@ -135,7 +135,7 @@ Run the script from the repo root:
 # from repo root
 cd SDK\Plugins
 mkdir -Force build; cd build
-cmake -G "Visual Studio 17 2022" -D BUILD_WINDOWS_PLUGIN=ON -D BUILD_LINUX_PLUGIN=OFF -D WEBVIEW2_ROOT="C:\Program Files (x86)\Microsoft WebView2 SDK" ..
+cmake -G "Visual Studio 18 2026" -D BUILD_WINDOWS_PLUGIN=ON -D BUILD_LINUX_PLUGIN=OFF -D WEBVIEW2_ROOT="C:\Program Files (x86)\Microsoft WebView2 SDK" ..
 cmake --build . --config Release
 ```
 
