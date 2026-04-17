@@ -22,8 +22,6 @@ public class InitialScreenController : MonoBehaviour
 
     private readonly string _redirectUri = Application.platform == RuntimePlatform.WebGLPlayer ?
         (new Uri(Application.absoluteURL).GetLeftPart(UriPartial.Authority) + "/unity_callback.html") :
-        Application.platform == RuntimePlatform.WindowsPlayer || Application.platform == RuntimePlatform.WindowsEditor ?
-        "https://auth.staging.privy.io/api/v1/oauth/callback" : // Use Privy generic callback for Windows builds
         "unitydl://";   // Use local callback for non-web builds ios/andriod
 
     private void Awake()
