@@ -7,7 +7,6 @@ on:
       - "SDK/Plugins/Windows/**/*.h"
       - "SDK/Plugins/Windows/CMakeLists.txt"
       - "SDK/Plugins/CMakeLists.txt"
-      - "build-plugins.ps1"
       - ".github/workflows/build-windows-plugin.yml"
   push:
     branches: [main]
@@ -16,7 +15,6 @@ on:
       - "SDK/Plugins/Windows/**/*.h"
       - "SDK/Plugins/Windows/CMakeLists.txt"
       - "SDK/Plugins/CMakeLists.txt"
-      - "build-plugins.ps1"
       - ".github/workflows/build-windows-plugin.yml"
 
 jobs:

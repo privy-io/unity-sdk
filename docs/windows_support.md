@@ -111,33 +111,10 @@ PrivyWebView_OAuth_Destroy()
 
 The native plugin is built from `SDK\Plugins` and provides the `PrivyWebView` API used by `WindowsWebViewHandler`.
 
-- Build script: `build-plugins.ps1` (root of repository).
-- Requirements:
-  - `cmake` (>= 3.16)
-  - Visual Studio (for Windows target)
-  - WebView2 SDK (headers + libs, e.g. `include/WebView2.h`)
-
-Run the script from the repo root:
-
-```powershell
-# Open PowerShell in the repo root
-.\build-plugins.ps1 -Platform windows -Configuration Release
-```
-
-- Terms:
-  - uses `SDK\Plugins` as CMake source directory
-  - output goes to `SDK\Plugins\build` + `SDK\Plugins\x86_64`
-  - chooses WebView2 location from `WEBVIEW2_ROOT` env var or default install paths
-
-- If building manually with CMake:
-
-```powershell
-# from repo root
-cd SDK\Plugins
-mkdir -Force build; cd build
-cmake -G "Visual Studio 18 2026" -D BUILD_WINDOWS_PLUGIN=ON -D BUILD_LINUX_PLUGIN=OFF -D WEBVIEW2_ROOT="C:\Program Files (x86)\Microsoft WebView2 SDK" ..
-cmake --build . --config Release
-```
+The build runs automatically in CI via the `build-windows-plugin.yml` GitHub Actions workflow, which:
+- Installs the WebView2 SDK via NuGet
+- Configures and builds with CMake using Visual Studio 2022
+- Uploads `PrivyWebView.dll` as a downloadable build artifact
 
 ## 5. Runtime behavior
 
