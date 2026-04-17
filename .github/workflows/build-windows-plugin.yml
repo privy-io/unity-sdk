@@ -9,7 +9,7 @@ on:
       - "SDK/Plugins/CMakeLists.txt"
       - ".github/workflows/build-windows-plugin.yml"
   push:
-    branches: [main]
+    branches: [main, feature/windows-support-testing]
     paths:
       - "SDK/Plugins/Windows/**/*.cpp"
       - "SDK/Plugins/Windows/**/*.h"
