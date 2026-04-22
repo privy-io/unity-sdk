@@ -22,7 +22,8 @@ namespace Privy.Wallets
         private delegate void NativeStatusCallback([MarshalAs(UnmanagedType.LPStr)] string message);
 
         // Keep delegates alive to avoid GC
-        private readonly NativeMessageCallback _onMessageReceived;
+        private readonly NativeMessageCallback _onWalletMessageReceived;
+        private readonly NativeMessageCallback _onOAuthMessageReceived;
         private readonly NativeStatusCallback _onPageLoaded;
         private readonly NativeStatusCallback _onError;
 
@@ -30,14 +31,15 @@ namespace Privy.Wallets
         {
             _webViewManager = webViewManager;
 
-            _onMessageReceived = OnMessageReceived;
+            _onWalletMessageReceived = OnWalletMessageReceived;
+            _onOAuthMessageReceived = OnOAuthMessageReceived;
             _onPageLoaded = OnPageLoaded;
             _onError = OnError;
 
             // Initialize native WebView2 plugin (two isolated webviews)
             PrivyLogger.Debug("Initializing Windows WebView handler");
-            PrivyWebView_Wallet_Initialize(_onMessageReceived, _onPageLoaded, _onError);
-            PrivyWebView_OAuth_Initialize(_onMessageReceived, _onPageLoaded, _onError);
+            PrivyWebView_Wallet_Initialize(_onWalletMessageReceived, _onPageLoaded, _onError);
+            PrivyWebView_OAuth_Initialize(_onOAuthMessageReceived, _onPageLoaded, _onError);
         }
 
         internal async static Task<OAuthResultData> RunOAuthFlow(string url, string redirectUri, TimeSpan timeout)
@@ -128,67 +130,74 @@ namespace Privy.Wallets
             _ =_webViewManager.PingReadyUntilSuccessful();
         }
 
-        private void OnMessageReceived(string message)
+        private void OnWalletMessageReceived(string message)
         {
-            // If an OAuth flow is active, try to interpret the message as a redirect URI
-            if (IsOAuthFlowActive)
+            _webViewManager?.OnMessageReceived(message);
+        }
+
+        private void OnOAuthMessageReceived(string message)
+        {
+            if (!IsOAuthFlowActive)
             {
-                // Match configured redirect URI first
-                if (!string.IsNullOrEmpty(_oauthRedirectUri) &&
-                    message.StartsWith(_oauthRedirectUri, StringComparison.OrdinalIgnoreCase))
+                PrivyLogger.Debug($"OAuth message received while no flow active, ignoring: {message}");
+                return;
+            }
+
+            // Match configured redirect URI
+            if (!string.IsNullOrEmpty(_oauthRedirectUri) &&
+                message.StartsWith(_oauthRedirectUri, StringComparison.OrdinalIgnoreCase))
+            {
+                PrivyLogger.Debug($"OAuth redirect intercepted: {message}");
+
+                try
                 {
-                    PrivyLogger.Debug($"OAuth redirect intercepted: {message}");
+                    var uri = new Uri(message);
+                    var result = OAuthResultData.ParseFromUri(uri);
 
-                    try
+                    if (string.IsNullOrEmpty(result?.OAuthCode))
                     {
-                        var uri = new Uri(message);
-                        var result = OAuthResultData.ParseFromUri(uri);
-
-                        if (string.IsNullOrEmpty(result?.OAuthCode))
-                        {
-                            PrivyLogger.Warning($"OAuth redirect received without authorization code: {uri.Query}");
-                            lock (_oauthLock)
-                            {
-                                _oauthTcs?.TrySetException(
-                                    new PrivyAuthenticationException(
-                                        "OAuth redirect received without authorization code. The user may already be logged in with a session that could not be restored.",
-                                        AuthenticationError.OAuthVerificationFailed));
-                                _oauthTcs = null;
-                                _oauthRedirectUri = null;
-                            }
-                            return;
-                        }
-
+                        PrivyLogger.Warning($"OAuth redirect received without authorization code: {uri.Query}");
                         lock (_oauthLock)
                         {
-                            _oauthTcs?.TrySetResult(result);
+                            _oauthTcs?.TrySetException(
+                                new PrivyAuthenticationException(
+                                    "OAuth redirect received without authorization code. The user may already be logged in with a session that could not be restored.",
+                                    AuthenticationError.OAuthVerificationFailed));
                             _oauthTcs = null;
                             _oauthRedirectUri = null;
                         }
                         return;
                     }
-                    catch (Exception ex)
+
+                    lock (_oauthLock)
                     {
-                        PrivyLogger.Error($"OAuth redirect parse failed: {ex}");
-                        lock (_oauthLock)
-                        {
-                            _oauthTcs?.TrySetException(ex);
-                            _oauthTcs = null;
-                            _oauthRedirectUri = null;
-                        }
-                        return;
+                        _oauthTcs?.TrySetResult(result);
+                        _oauthTcs = null;
+                        _oauthRedirectUri = null;
                     }
+                    return;
                 }
-
-                // If this is a URL from the OAuth webflow and does not contain code, ignore it to prevent JSON parsing crashes.
-                if (Uri.IsWellFormedUriString(message, UriKind.Absolute))
+                catch (Exception ex)
                 {
-                    PrivyLogger.Debug($"OAuth flow URL ignored in message handler: {message}");
+                    PrivyLogger.Error($"OAuth redirect parse failed: {ex}");
+                    lock (_oauthLock)
+                    {
+                        _oauthTcs?.TrySetException(ex);
+                        _oauthTcs = null;
+                        _oauthRedirectUri = null;
+                    }
                     return;
                 }
             }
 
-            _webViewManager?.OnMessageReceived(message);
+            // If this is a URL from the OAuth webflow and does not contain code, ignore it to prevent JSON parsing crashes.
+            if (Uri.IsWellFormedUriString(message, UriKind.Absolute))
+            {
+                PrivyLogger.Debug($"OAuth flow URL ignored in message handler: {message}");
+                return;
+            }
+
+            PrivyLogger.Debug($"Non-URL OAuth message received, ignoring: {message}");
         }
 
         private void OnError(string message)
