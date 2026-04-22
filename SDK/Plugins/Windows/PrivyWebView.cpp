@@ -170,7 +170,7 @@ extern "C" __declspec(dllexport) void __cdecl PrivyWebView_Wallet_Initialize(
                 if (FAILED(result)) {
                     if (g_walletErrorCb) {
                         char buf[128];
-                        sprintf_s(buf, "Wallet WebView2 env failed (0x%08X)", result);
+                        sprintf_s(buf, "Wallet WebView2 env failed (0x%08lX)", result);
                         g_walletErrorCb(buf);
                     }
                     return result;
@@ -184,7 +184,7 @@ extern "C" __declspec(dllexport) void __cdecl PrivyWebView_Wallet_Initialize(
                             if (FAILED(result)) {
                                 if (g_walletErrorCb) {
                                     char buf[128];
-                                    sprintf_s(buf, "Wallet controller failed (0x%08X)", result);
+                                    sprintf_s(buf, "Wallet controller failed (0x%08lX)", result);
                                     g_walletErrorCb(buf);
                                 }
                                 return result;
@@ -192,6 +192,17 @@ extern "C" __declspec(dllexport) void __cdecl PrivyWebView_Wallet_Initialize(
 
                             g_walletController = controller;
                             controller->get_CoreWebView2(&g_walletWebView);
+
+                            // Harden WebView: disable DevTools, context menus, and browser accelerator keys.
+                            ICoreWebView2Settings* settings = nullptr;
+                            g_walletWebView->get_Settings(&settings);
+                            if (settings) {
+                                settings->put_AreDevToolsEnabled(FALSE);
+                                settings->put_AreDefaultContextMenusEnabled(FALSE);
+                                settings->put_AreBrowserAcceleratorKeysEnabled(FALSE);
+                                settings->Release();
+                            }
+
                             controller->put_IsVisible(TRUE);
                             RECT bounds = {0, 0, 1024, 768};
                             controller->put_Bounds(bounds);
@@ -374,11 +385,14 @@ static void HideOAuthWindow()
         ShowWindow(g_oauthHWnd, SW_HIDE);
 }
 
-// Checks whether a URL contains the OAuth completion marker.
+// Checks whether a URL matches the configured redirect URI and contains
+// the OAuth completion marker.
 // If found: hides the OAuth window and sends the URL to the managed callback.
 static bool InterceptOAuthRedirect(const std::wstring& url)
 {
-    if (url.find(L"privy_oauth_code=") != std::wstring::npos) {
+    if (!g_oauthRedirectUri.empty() &&
+        url.find(g_oauthRedirectUri) == 0 &&
+        url.find(L"privy_oauth_code=") != std::wstring::npos) {
         HideOAuthWindow();
         std::string utf8 = Utf16ToUtf8(url);
         if (g_oauthMessageCb)
@@ -415,7 +429,7 @@ extern "C" __declspec(dllexport) void __cdecl PrivyWebView_OAuth_Initialize(
                 if (FAILED(result)) {
                     if (g_oauthErrorCb) {
                         char buf[128];
-                        sprintf_s(buf, "OAuth WebView2 env failed (0x%08X)", result);
+                        sprintf_s(buf, "OAuth WebView2 env failed (0x%08lX)", result);
                         g_oauthErrorCb(buf);
                     }
                     return result;
@@ -429,7 +443,7 @@ extern "C" __declspec(dllexport) void __cdecl PrivyWebView_OAuth_Initialize(
                             if (FAILED(result)) {
                                 if (g_oauthErrorCb) {
                                     char buf[128];
-                                    sprintf_s(buf, "OAuth controller failed (0x%08X)", result);
+                                    sprintf_s(buf, "OAuth controller failed (0x%08lX)", result);
                                     g_oauthErrorCb(buf);
                                 }
                                 return result;
@@ -437,6 +451,17 @@ extern "C" __declspec(dllexport) void __cdecl PrivyWebView_OAuth_Initialize(
 
                             g_oauthController = controller;
                             controller->get_CoreWebView2(&g_oauthWebView);
+
+                            // Harden WebView: disable DevTools, context menus, and browser accelerator keys.
+                            ICoreWebView2Settings* settings = nullptr;
+                            g_oauthWebView->get_Settings(&settings);
+                            if (settings) {
+                                settings->put_AreDevToolsEnabled(FALSE);
+                                settings->put_AreDefaultContextMenusEnabled(FALSE);
+                                settings->put_AreBrowserAcceleratorKeysEnabled(FALSE);
+                                settings->Release();
+                            }
+
                             controller->put_IsVisible(TRUE);
 
                             RECT bounds;
