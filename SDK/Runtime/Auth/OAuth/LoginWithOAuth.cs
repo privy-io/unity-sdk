@@ -22,6 +22,12 @@ namespace Privy.Auth.OAuth
 
             var result = await PromptOAuthCredentials(provider, redirectUri, codeChallenge, stateCode);
 
+            if (result.OAuthState != stateCode)
+            {
+                throw new System.Security.SecurityException(
+                    "OAuth state mismatch — possible CSRF attack.");
+            }
+
             return await _authDelegator.AuthenticateOAuthFlow(
                 result.OAuthCode,
                 codeVerifier,
