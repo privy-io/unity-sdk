@@ -6,9 +6,10 @@ using Privy.Utils;
 
 namespace Privy.Wallets
 {
-    internal class WindowsWebViewHandler : IWebViewHandler
+    internal class WindowsWebViewHandler : IWebViewHandler, IDisposable
     {
         private readonly WebViewManager _webViewManager;
+        private bool _disposed;
 
         private static TaskCompletionSource<OAuthResultData> _oauthTcs;
         private static readonly object _oauthLock = new object();
@@ -218,6 +219,16 @@ namespace Privy.Wallets
             }
 
             PrivyLogger.Error($"Windows WebView error: {message}");
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
+                return;
+
+            _disposed = true;
+            PrivyWebView_Wallet_Destroy();
+            PrivyWebView_OAuth_Destroy();
         }
 
         #region Native Plugin Imports

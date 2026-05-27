@@ -102,12 +102,40 @@ static StatusCallback  g_walletErrorCb    = nullptr;
 static Microsoft::WRL::ComPtr<ICoreWebView2Environment> g_walletEnv;
 static Microsoft::WRL::ComPtr<ICoreWebView2Controller>  g_walletController;
 static Microsoft::WRL::ComPtr<ICoreWebView2>            g_walletWebView;
+static EventRegistrationToken g_walletMessageToken = {};
+static EventRegistrationToken g_walletNewWindowToken = {};
+static EventRegistrationToken g_walletNavigationCompletedToken = {};
+static bool g_walletHasMessageToken = false;
+static bool g_walletHasNewWindowToken = false;
+static bool g_walletHasNavigationCompletedToken = false;
 
 static HWND g_walletHWnd = nullptr;
 static const wchar_t kWalletWindowClass[] = L"PrivyWalletWebViewClass";
 
 static std::wstring g_walletPendingUrl;
 static std::wstring g_walletPendingJs;
+
+static void RemoveWalletEventHandlers()
+{
+    if (!g_walletWebView)
+        return;
+
+    if (g_walletHasMessageToken) {
+        g_walletWebView->remove_WebMessageReceived(g_walletMessageToken);
+        g_walletHasMessageToken = false;
+        g_walletMessageToken = {};
+    }
+    if (g_walletHasNewWindowToken) {
+        g_walletWebView->remove_NewWindowRequested(g_walletNewWindowToken);
+        g_walletHasNewWindowToken = false;
+        g_walletNewWindowToken = {};
+    }
+    if (g_walletHasNavigationCompletedToken) {
+        g_walletWebView->remove_NavigationCompleted(g_walletNavigationCompletedToken);
+        g_walletHasNavigationCompletedToken = false;
+        g_walletNavigationCompletedToken = {};
+    }
+}
 
 static LRESULT CALLBACK WalletWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -208,7 +236,7 @@ extern "C" __declspec(dllexport) void __cdecl PrivyWebView_Wallet_Initialize(
                             controller->put_Bounds(bounds);
 
                             // Forward postMessage from the embedded wallet iframe to Unity.
-                            g_walletWebView->add_WebMessageReceived(
+                            if (SUCCEEDED(g_walletWebView->add_WebMessageReceived(
                                 Microsoft::WRL::Callback<ICoreWebView2WebMessageReceivedEventHandler>(
                                     [](ICoreWebView2*, ICoreWebView2WebMessageReceivedEventArgs* args) -> HRESULT {
                                         PWSTR msg = nullptr;
@@ -220,10 +248,12 @@ extern "C" __declspec(dllexport) void __cdecl PrivyWebView_Wallet_Initialize(
                                         }
                                         return S_OK;
                                     }).Get(),
-                                nullptr);
+                                &g_walletMessageToken))) {
+                                g_walletHasMessageToken = true;
+                            }
 
                             // Prevent new-window popups from the wallet iframe.
-                            g_walletWebView->add_NewWindowRequested(
+                            if (SUCCEEDED(g_walletWebView->add_NewWindowRequested(
                                 Microsoft::WRL::Callback<ICoreWebView2NewWindowRequestedEventHandler>(
                                     [](ICoreWebView2* sender, ICoreWebView2NewWindowRequestedEventArgs* args) -> HRESULT {
                                         LPWSTR uri = nullptr;
@@ -235,11 +265,13 @@ extern "C" __declspec(dllexport) void __cdecl PrivyWebView_Wallet_Initialize(
                                         }
                                         return S_OK;
                                     }).Get(),
-                                nullptr);
+                                &g_walletNewWindowToken))) {
+                                g_walletHasNewWindowToken = true;
+                            }
 
                             // Notify the managed side when a page finishes loading so it can
                             // inject the UnityProxy and start the ready-ping at the right time.
-                            g_walletWebView->add_NavigationCompleted(
+                            if (SUCCEEDED(g_walletWebView->add_NavigationCompleted(
                                 Microsoft::WRL::Callback<ICoreWebView2NavigationCompletedEventHandler>(
                                     [](ICoreWebView2* sender, ICoreWebView2NavigationCompletedEventArgs*) -> HRESULT {
                                         PWSTR source = nullptr;
@@ -251,7 +283,9 @@ extern "C" __declspec(dllexport) void __cdecl PrivyWebView_Wallet_Initialize(
                                         }
                                         return S_OK;
                                     }).Get(),
-                                nullptr);
+                                &g_walletNavigationCompletedToken))) {
+                                g_walletHasNavigationCompletedToken = true;
+                            }
 
                             if (!g_walletPendingUrl.empty()) {
                                 g_walletWebView->Navigate(g_walletPendingUrl.c_str());
@@ -296,6 +330,12 @@ extern "C" __declspec(dllexport) void __cdecl PrivyWebView_Wallet_EvaluateJS(con
 
 extern "C" __declspec(dllexport) void __cdecl PrivyWebView_Wallet_Destroy()
 {
+    RemoveWalletEventHandlers();
+    g_walletMessageCb = nullptr;
+    g_walletLoadedCb  = nullptr;
+    g_walletErrorCb   = nullptr;
+    g_walletPendingUrl.clear();
+    g_walletPendingJs.clear();
     g_walletController = nullptr;
     g_walletWebView    = nullptr;
     g_walletEnv        = nullptr;
@@ -312,12 +352,40 @@ static StatusCallback  g_oauthErrorCb   = nullptr;
 static Microsoft::WRL::ComPtr<ICoreWebView2Environment> g_oauthEnv;
 static Microsoft::WRL::ComPtr<ICoreWebView2Controller>  g_oauthController;
 static Microsoft::WRL::ComPtr<ICoreWebView2>            g_oauthWebView;
+static EventRegistrationToken g_oauthNavigationStartingToken = {};
+static EventRegistrationToken g_oauthFrameNavigationStartingToken = {};
+static EventRegistrationToken g_oauthNewWindowToken = {};
+static bool g_oauthHasNavigationStartingToken = false;
+static bool g_oauthHasFrameNavigationStartingToken = false;
+static bool g_oauthHasNewWindowToken = false;
 
 static HWND g_oauthHWnd = nullptr;
 static const wchar_t kOAuthWindowClass[] = L"PrivyOAuthWebViewClass";
 
 static std::wstring g_oauthPendingUrl;
 static std::wstring g_oauthRedirectUri;
+
+static void RemoveOAuthEventHandlers()
+{
+    if (!g_oauthWebView)
+        return;
+
+    if (g_oauthHasNavigationStartingToken) {
+        g_oauthWebView->remove_NavigationStarting(g_oauthNavigationStartingToken);
+        g_oauthHasNavigationStartingToken = false;
+        g_oauthNavigationStartingToken = {};
+    }
+    if (g_oauthHasFrameNavigationStartingToken) {
+        g_oauthWebView->remove_FrameNavigationStarting(g_oauthFrameNavigationStartingToken);
+        g_oauthHasFrameNavigationStartingToken = false;
+        g_oauthFrameNavigationStartingToken = {};
+    }
+    if (g_oauthHasNewWindowToken) {
+        g_oauthWebView->remove_NewWindowRequested(g_oauthNewWindowToken);
+        g_oauthHasNewWindowToken = false;
+        g_oauthNewWindowToken = {};
+    }
+}
 
 static LRESULT CALLBACK OAuthWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -469,7 +537,7 @@ extern "C" __declspec(dllexport) void __cdecl PrivyWebView_OAuth_Initialize(
                             controller->put_Bounds(bounds);
 
                             // Top-level navigation: check for OAuth redirect.
-                            g_oauthWebView->add_NavigationStarting(
+                            if (SUCCEEDED(g_oauthWebView->add_NavigationStarting(
                                 Microsoft::WRL::Callback<ICoreWebView2NavigationStartingEventHandler>(
                                     [](ICoreWebView2*, ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT {
                                         LPWSTR uri = nullptr;
@@ -481,10 +549,12 @@ extern "C" __declspec(dllexport) void __cdecl PrivyWebView_OAuth_Initialize(
                                         }
                                         return S_OK;
                                     }).Get(),
-                                nullptr);
+                                &g_oauthNavigationStartingToken))) {
+                                g_oauthHasNavigationStartingToken = true;
+                            }
 
                             // Iframe navigation: silent-auth flows redirect inside an iframe.
-                            g_oauthWebView->add_FrameNavigationStarting(
+                            if (SUCCEEDED(g_oauthWebView->add_FrameNavigationStarting(
                                 Microsoft::WRL::Callback<ICoreWebView2NavigationStartingEventHandler>(
                                     [](ICoreWebView2*, ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT {
                                         LPWSTR uri = nullptr;
@@ -496,10 +566,12 @@ extern "C" __declspec(dllexport) void __cdecl PrivyWebView_OAuth_Initialize(
                                         }
                                         return S_OK;
                                     }).Get(),
-                                nullptr);
+                                &g_oauthFrameNavigationStartingToken))) {
+                                g_oauthHasFrameNavigationStartingToken = true;
+                            }
 
                             // New-window requests: keep inside the OAuth webview.
-                            g_oauthWebView->add_NewWindowRequested(
+                            if (SUCCEEDED(g_oauthWebView->add_NewWindowRequested(
                                 Microsoft::WRL::Callback<ICoreWebView2NewWindowRequestedEventHandler>(
                                     [](ICoreWebView2* sender, ICoreWebView2NewWindowRequestedEventArgs* args) -> HRESULT {
                                         LPWSTR uri = nullptr;
@@ -515,7 +587,9 @@ extern "C" __declspec(dllexport) void __cdecl PrivyWebView_OAuth_Initialize(
                                         }
                                         return S_OK;
                                     }).Get(),
-                                nullptr);
+                                &g_oauthNewWindowToken))) {
+                                g_oauthHasNewWindowToken = true;
+                            }
 
                             if (g_oauthLoadedCb) g_oauthLoadedCb("");
 
@@ -556,6 +630,13 @@ extern "C" __declspec(dllexport) void __cdecl PrivyWebView_OAuth_HideWindow()
 
 extern "C" __declspec(dllexport) void __cdecl PrivyWebView_OAuth_Destroy()
 {
+    RemoveOAuthEventHandlers();
+    HideOAuthWindow();
+    g_oauthMessageCb = nullptr;
+    g_oauthLoadedCb  = nullptr;
+    g_oauthErrorCb   = nullptr;
+    g_oauthPendingUrl.clear();
+    g_oauthRedirectUri.clear();
     g_oauthController = nullptr;
     g_oauthWebView    = nullptr;
     g_oauthEnv        = nullptr;
