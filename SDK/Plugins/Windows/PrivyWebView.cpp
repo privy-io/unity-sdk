@@ -91,6 +91,26 @@ static std::wstring GetUserDataFolder(const wchar_t* subfolder)
     return fallback;
 }
 
+static void HardenWebViewSettings(ICoreWebView2* webView)
+{
+    if (!webView)
+        return;
+
+    ICoreWebView2Settings* settings = nullptr;
+    if (FAILED(webView->get_Settings(&settings)) || !settings)
+        return;
+
+    settings->put_AreDevToolsEnabled(FALSE);
+    settings->put_AreDefaultContextMenusEnabled(FALSE);
+
+    Microsoft::WRL::ComPtr<ICoreWebView2Settings3> settings3;
+    if (SUCCEEDED(settings->QueryInterface(IID_PPV_ARGS(&settings3)))) {
+        settings3->put_AreBrowserAcceleratorKeysEnabled(FALSE);
+    }
+
+    settings->Release();
+}
+
 // ===================================================================
 //  WALLET WEBVIEW  – hidden, persistent, iframe communication
 // ===================================================================
@@ -222,14 +242,7 @@ extern "C" __declspec(dllexport) void __cdecl PrivyWebView_Wallet_Initialize(
                             controller->get_CoreWebView2(&g_walletWebView);
 
                             // Harden WebView: disable DevTools, context menus, and browser accelerator keys.
-                            ICoreWebView2Settings* settings = nullptr;
-                            g_walletWebView->get_Settings(&settings);
-                            if (settings) {
-                                settings->put_AreDevToolsEnabled(FALSE);
-                                settings->put_AreDefaultContextMenusEnabled(FALSE);
-                                settings->put_AreBrowserAcceleratorKeysEnabled(FALSE);
-                                settings->Release();
-                            }
+                            HardenWebViewSettings(g_walletWebView.Get());
 
                             controller->put_IsVisible(TRUE);
                             RECT bounds = {0, 0, 1024, 768};
@@ -521,14 +534,7 @@ extern "C" __declspec(dllexport) void __cdecl PrivyWebView_OAuth_Initialize(
                             controller->get_CoreWebView2(&g_oauthWebView);
 
                             // Harden WebView: disable DevTools, context menus, and browser accelerator keys.
-                            ICoreWebView2Settings* settings = nullptr;
-                            g_oauthWebView->get_Settings(&settings);
-                            if (settings) {
-                                settings->put_AreDevToolsEnabled(FALSE);
-                                settings->put_AreDefaultContextMenusEnabled(FALSE);
-                                settings->put_AreBrowserAcceleratorKeysEnabled(FALSE);
-                                settings->Release();
-                            }
+                            HardenWebViewSettings(g_oauthWebView.Get());
 
                             controller->put_IsVisible(TRUE);
 
