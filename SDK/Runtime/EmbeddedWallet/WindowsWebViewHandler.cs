@@ -1,4 +1,3 @@
-#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
 using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -223,6 +222,7 @@ namespace Privy.Wallets
 
         #region Native Plugin Imports
 
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
         // Wallet WebView (hidden, persistent — hosts embedded wallet iframe)
         [DllImport("PrivyWebView", CallingConvention = CallingConvention.Cdecl)]
         private static extern void PrivyWebView_Wallet_Initialize(NativeMessageCallback onMessage,
@@ -258,8 +258,62 @@ namespace Privy.Wallets
 
         [DllImport("PrivyWebView", CallingConvention = CallingConvention.Cdecl)]
         private static extern void PrivyWebView_OAuth_Destroy();
+#else
+        private static void PrivyWebView_Wallet_Initialize(NativeMessageCallback onMessage,
+            NativeStatusCallback onLoaded,
+            NativeStatusCallback onError)
+        {
+            throw new NotImplementedException("Windows WebView is only supported on Windows.");
+        }
+
+        private static void PrivyWebView_Wallet_LoadUrl(string url)
+        {
+            throw new NotImplementedException("Windows WebView is only supported on Windows.");
+        }
+
+        private static void PrivyWebView_Wallet_EvaluateJS(string js)
+        {
+            throw new NotImplementedException("Windows WebView is only supported on Windows.");
+        }
+
+        private static void PrivyWebView_Wallet_Destroy()
+        {
+            throw new NotImplementedException("Windows WebView is only supported on Windows.");
+        }
+
+        private static void PrivyWebView_OAuth_Initialize(NativeMessageCallback onMessage,
+            NativeStatusCallback onLoaded,
+            NativeStatusCallback onError)
+        {
+            throw new NotImplementedException("Windows WebView is only supported on Windows.");
+        }
+
+        private static void PrivyWebView_OAuth_SetRedirectUrl(string url)
+        {
+            throw new NotImplementedException("Windows WebView is only supported on Windows.");
+        }
+
+        private static void PrivyWebView_OAuth_LoadUrl(string url)
+        {
+            throw new NotImplementedException("Windows WebView is only supported on Windows.");
+        }
+
+        private static void PrivyWebView_OAuth_ShowWindow()
+        {
+            throw new NotImplementedException("Windows WebView is only supported on Windows.");
+        }
+
+        private static void PrivyWebView_OAuth_HideWindow()
+        {
+            throw new NotImplementedException("Windows WebView is only supported on Windows.");
+        }
+
+        private static void PrivyWebView_OAuth_Destroy()
+        {
+            throw new NotImplementedException("Windows WebView is only supported on Windows.");
+        }
+#endif
 
         #endregion
     }
 }
-#endif
