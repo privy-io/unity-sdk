@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 #include <functional>
+#include <utility>
 
 // WebView2 headers (part of Microsoft Edge WebView2 SDK)
 #include "WebView2.h"
@@ -33,6 +34,41 @@
 // ---------------------------------------------------------------------------
 using MessageCallback = void(__cdecl*)(const char*);
 using StatusCallback  = void(__cdecl*)(const char*);
+
+static const UINT kPrivyInvokeMessage = WM_APP + 0x5057;
+
+static bool EnsureWebViewThreadComInitialized()
+{
+    HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+    return SUCCEEDED(hr);
+}
+
+static bool WindowBelongsToCurrentThread(HWND hWnd)
+{
+    DWORD windowThreadId = GetWindowThreadProcessId(hWnd, nullptr);
+    return windowThreadId == GetCurrentThreadId();
+}
+
+static void InvokeOnWindowThread(HWND hWnd, std::function<void()> action)
+{
+    if (!hWnd || !IsWindow(hWnd) || WindowBelongsToCurrentThread(hWnd)) {
+        action();
+        return;
+    }
+
+    auto* actionPtr = new std::function<void()>(std::move(action));
+    SendMessageW(hWnd, kPrivyInvokeMessage, 0, reinterpret_cast<LPARAM>(actionPtr));
+}
+
+static LRESULT HandleInvokeMessage(LPARAM lParam)
+{
+    auto* action = reinterpret_cast<std::function<void()>*>(lParam);
+    if (action) {
+        (*action)();
+        delete action;
+    }
+    return 1;
+}
 
 // ---------------------------------------------------------------------------
 // Encoding helpers
@@ -159,6 +195,9 @@ static void RemoveWalletEventHandlers()
 
 static LRESULT CALLBACK WalletWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    if (message == kPrivyInvokeMessage)
+        return HandleInvokeMessage(lParam);
+
     // The wallet window should never be visible to the user – ignore close.
     if (message == WM_CLOSE) {
         ShowWindow(hWnd, SW_HIDE);
@@ -174,6 +213,9 @@ static HWND EnsureWalletWindow()
 
     if (g_walletHWnd)
         return g_walletHWnd;
+
+    if (!EnsureWebViewThreadComInitialized())
+        return nullptr;
 
     WNDCLASSEXW wcex = {};
     wcex.cbSize        = sizeof(wcex);
@@ -203,18 +245,18 @@ static HWND EnsureWalletWindow()
 extern "C" __declspec(dllexport) void __cdecl PrivyWebView_Wallet_Initialize(
     MessageCallback onMessage, StatusCallback onLoaded, StatusCallback onError)
 {
-    g_walletMessageCb = onMessage;
-    g_walletLoadedCb  = onLoaded;
-    g_walletErrorCb   = onError;
+    HWND walletHWnd = EnsureWalletWindow();
+    InvokeOnWindowThread(walletHWnd, [onMessage, onLoaded, onError]() {
+        g_walletMessageCb = onMessage;
+        g_walletLoadedCb  = onLoaded;
+        g_walletErrorCb   = onError;
 
-    EnsureWalletWindow();
+        std::wstring userDataDir = GetUserDataFolder(L"Wallet");
 
-    std::wstring userDataDir = GetUserDataFolder(L"Wallet");
-
-    HRESULT hr = CreateCoreWebView2EnvironmentWithOptions(
-        nullptr, userDataDir.c_str(), nullptr,
-        Microsoft::WRL::Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
-            [](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
+        HRESULT hr = CreateCoreWebView2EnvironmentWithOptions(
+            nullptr, userDataDir.c_str(), nullptr,
+            Microsoft::WRL::Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
+                [](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
                 if (FAILED(result)) {
                     if (g_walletErrorCb) {
                         char buf[128];
@@ -313,6 +355,13 @@ extern "C" __declspec(dllexport) void __cdecl PrivyWebView_Wallet_Initialize(
                         }).Get());
                 return S_OK;
             }).Get());
+
+        if (FAILED(hr) && g_walletErrorCb) {
+            char buf[128];
+            sprintf_s(buf, "Wallet WebView2 create failed (0x%08lX)", hr);
+            g_walletErrorCb(buf);
+        }
+    });
 }
 
 extern "C" __declspec(dllexport) void __cdecl PrivyWebView_Wallet_LoadUrl(const char* url)
@@ -320,13 +369,23 @@ extern "C" __declspec(dllexport) void __cdecl PrivyWebView_Wallet_LoadUrl(const 
     std::wstring wurl = Utf8ToUtf16(url);
     if (wurl.empty()) return;
 
-    EnsureWalletWindow();
+    HWND walletHWnd = EnsureWalletWindow();
+    InvokeOnWindowThread(walletHWnd, [wurl = std::move(wurl)]() mutable {
+        if (!g_walletWebView) {
+            g_walletPendingUrl = std::move(wurl);
+            return;
+        }
+        g_walletWebView->Navigate(wurl.c_str());
+    });
+}
 
-    if (!g_walletWebView) {
-        g_walletPendingUrl = std::move(wurl);
-        return;
+static void ReportWalletScriptError(HRESULT hr)
+{
+    if (g_walletErrorCb) {
+        char buf[128];
+        sprintf_s(buf, "Wallet ExecuteScript failed (0x%08lX)", hr);
+        g_walletErrorCb(buf);
     }
-    g_walletWebView->Navigate(wurl.c_str());
 }
 
 extern "C" __declspec(dllexport) void __cdecl PrivyWebView_Wallet_EvaluateJS(const char* js)
@@ -334,24 +393,33 @@ extern "C" __declspec(dllexport) void __cdecl PrivyWebView_Wallet_EvaluateJS(con
     std::wstring jsW = Utf8ToUtf16(js);
     if (jsW.empty()) return;
 
-    if (!g_walletWebView) {
-        g_walletPendingJs = std::move(jsW);
-        return;
-    }
-    g_walletWebView->ExecuteScript(jsW.c_str(), nullptr);
+    HWND walletHWnd = EnsureWalletWindow();
+    InvokeOnWindowThread(walletHWnd, [jsW = std::move(jsW)]() mutable {
+        if (!g_walletWebView) {
+            g_walletPendingJs = std::move(jsW);
+            return;
+        }
+
+        HRESULT hr = g_walletWebView->ExecuteScript(jsW.c_str(), nullptr);
+        if (FAILED(hr))
+            ReportWalletScriptError(hr);
+    });
 }
 
 extern "C" __declspec(dllexport) void __cdecl PrivyWebView_Wallet_Destroy()
 {
-    RemoveWalletEventHandlers();
-    g_walletMessageCb = nullptr;
-    g_walletLoadedCb  = nullptr;
-    g_walletErrorCb   = nullptr;
-    g_walletPendingUrl.clear();
-    g_walletPendingJs.clear();
-    g_walletController = nullptr;
-    g_walletWebView    = nullptr;
-    g_walletEnv        = nullptr;
+    HWND walletHWnd = g_walletHWnd;
+    InvokeOnWindowThread(walletHWnd, []() {
+        RemoveWalletEventHandlers();
+        g_walletMessageCb = nullptr;
+        g_walletLoadedCb  = nullptr;
+        g_walletErrorCb   = nullptr;
+        g_walletPendingUrl.clear();
+        g_walletPendingJs.clear();
+        g_walletController = nullptr;
+        g_walletWebView    = nullptr;
+        g_walletEnv        = nullptr;
+    });
 }
 
 // ===================================================================
@@ -402,6 +470,9 @@ static void RemoveOAuthEventHandlers()
 
 static LRESULT CALLBACK OAuthWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    if (message == kPrivyInvokeMessage)
+        return HandleInvokeMessage(lParam);
+
     if (message == WM_CLOSE) {
         if (g_oauthErrorCb)
             g_oauthErrorCb("WEBVIEW_WINDOW_CLOSED");
@@ -423,6 +494,9 @@ static HWND EnsureOAuthWindow()
 
     if (g_oauthHWnd)
         return g_oauthHWnd;
+
+    if (!EnsureWebViewThreadComInitialized())
+        return nullptr;
 
     WNDCLASSEXW wcex = {};
     wcex.cbSize        = sizeof(wcex);
@@ -485,28 +559,31 @@ static bool InterceptOAuthRedirect(const std::wstring& url)
 
 extern "C" __declspec(dllexport) void __cdecl PrivyWebView_OAuth_SetRedirectUrl(const char* url)
 {
-    if (url == nullptr || url[0] == '\0') {
-        g_oauthRedirectUri.clear();
-        return;
-    }
-    g_oauthRedirectUri = Utf8ToUtf16(url);
+    std::wstring redirectUri;
+    if (url != nullptr && url[0] != '\0')
+        redirectUri = Utf8ToUtf16(url);
+
+    HWND oauthHWnd = g_oauthHWnd;
+    InvokeOnWindowThread(oauthHWnd, [redirectUri = std::move(redirectUri)]() mutable {
+        g_oauthRedirectUri = std::move(redirectUri);
+    });
 }
 
 extern "C" __declspec(dllexport) void __cdecl PrivyWebView_OAuth_Initialize(
     MessageCallback onMessage, StatusCallback onLoaded, StatusCallback onError)
 {
-    g_oauthMessageCb = onMessage;
-    g_oauthLoadedCb  = onLoaded;
-    g_oauthErrorCb   = onError;
+    HWND oauthHWnd = EnsureOAuthWindow();
+    InvokeOnWindowThread(oauthHWnd, [onMessage, onLoaded, onError]() {
+        g_oauthMessageCb = onMessage;
+        g_oauthLoadedCb  = onLoaded;
+        g_oauthErrorCb   = onError;
 
-    EnsureOAuthWindow();
+        std::wstring userDataDir = GetUserDataFolder(L"OAuth");
 
-    std::wstring userDataDir = GetUserDataFolder(L"OAuth");
-
-    HRESULT hr = CreateCoreWebView2EnvironmentWithOptions(
-        nullptr, userDataDir.c_str(), nullptr,
-        Microsoft::WRL::Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
-            [](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
+        HRESULT hr = CreateCoreWebView2EnvironmentWithOptions(
+            nullptr, userDataDir.c_str(), nullptr,
+            Microsoft::WRL::Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
+                [](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
                 if (FAILED(result)) {
                     if (g_oauthErrorCb) {
                         char buf[128];
@@ -608,6 +685,13 @@ extern "C" __declspec(dllexport) void __cdecl PrivyWebView_OAuth_Initialize(
                         }).Get());
                 return S_OK;
             }).Get());
+
+        if (FAILED(hr) && g_oauthErrorCb) {
+            char buf[128];
+            sprintf_s(buf, "OAuth WebView2 create failed (0x%08lX)", hr);
+            g_oauthErrorCb(buf);
+        }
+    });
 }
 
 extern "C" __declspec(dllexport) void __cdecl PrivyWebView_OAuth_LoadUrl(const char* url)
@@ -615,35 +699,45 @@ extern "C" __declspec(dllexport) void __cdecl PrivyWebView_OAuth_LoadUrl(const c
     std::wstring wurl = Utf8ToUtf16(url);
     if (wurl.empty()) return;
 
-    EnsureOAuthWindow();
-
-    if (!g_oauthWebView) {
-        g_oauthPendingUrl = std::move(wurl);
-        return;
-    }
-    g_oauthWebView->Navigate(wurl.c_str());
+    HWND oauthHWnd = EnsureOAuthWindow();
+    InvokeOnWindowThread(oauthHWnd, [wurl = std::move(wurl)]() mutable {
+        if (!g_oauthWebView) {
+            g_oauthPendingUrl = std::move(wurl);
+            return;
+        }
+        g_oauthWebView->Navigate(wurl.c_str());
+    });
 }
 
 extern "C" __declspec(dllexport) void __cdecl PrivyWebView_OAuth_ShowWindow()
 {
-    ShowOAuthWindow();
+    HWND oauthHWnd = EnsureOAuthWindow();
+    InvokeOnWindowThread(oauthHWnd, []() {
+        ShowOAuthWindow();
+    });
 }
 
 extern "C" __declspec(dllexport) void __cdecl PrivyWebView_OAuth_HideWindow()
 {
-    HideOAuthWindow();
+    HWND oauthHWnd = g_oauthHWnd;
+    InvokeOnWindowThread(oauthHWnd, []() {
+        HideOAuthWindow();
+    });
 }
 
 extern "C" __declspec(dllexport) void __cdecl PrivyWebView_OAuth_Destroy()
 {
-    RemoveOAuthEventHandlers();
-    HideOAuthWindow();
-    g_oauthMessageCb = nullptr;
-    g_oauthLoadedCb  = nullptr;
-    g_oauthErrorCb   = nullptr;
-    g_oauthPendingUrl.clear();
-    g_oauthRedirectUri.clear();
-    g_oauthController = nullptr;
-    g_oauthWebView    = nullptr;
-    g_oauthEnv        = nullptr;
+    HWND oauthHWnd = g_oauthHWnd;
+    InvokeOnWindowThread(oauthHWnd, []() {
+        RemoveOAuthEventHandlers();
+        HideOAuthWindow();
+        g_oauthMessageCb = nullptr;
+        g_oauthLoadedCb  = nullptr;
+        g_oauthErrorCb   = nullptr;
+        g_oauthPendingUrl.clear();
+        g_oauthRedirectUri.clear();
+        g_oauthController = nullptr;
+        g_oauthWebView    = nullptr;
+        g_oauthEnv        = nullptr;
+    });
 }

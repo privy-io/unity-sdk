@@ -7,6 +7,8 @@ add_library(PrivyWebView SHARED PrivyWebView.cpp)
 
 # Ensure output is placed in the Unity plugin folder
 set_target_properties(PrivyWebView PROPERTIES
+    CXX_STANDARD 17
+    CXX_STANDARD_REQUIRED ON
     RUNTIME_OUTPUT_DIRECTORY "${PLUGIN_OUTPUT_DIR}"
     LIBRARY_OUTPUT_DIRECTORY "${PLUGIN_OUTPUT_DIR}"
     ARCHIVE_OUTPUT_DIRECTORY "${PLUGIN_OUTPUT_DIR}"
