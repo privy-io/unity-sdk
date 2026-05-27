@@ -20,18 +20,27 @@ on:
 jobs:
   build:
     name: Build PrivyWebView.dll
-    runs-on: windows-latest
+    runs-on: windows-2022
+    env:
+      WEBVIEW2_VERSION: 1.0.3296.44
+      WEBVIEW2_PACKAGE_DIR: .webview2
 
     steps:
       - uses: actions/checkout@v4
 
+      - name: Cache WebView2 SDK
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.WEBVIEW2_PACKAGE_DIR }}
+          key: webview2-${{ runner.os }}-${{ env.WEBVIEW2_VERSION }}
+
       - name: Install WebView2 SDK
         run: |
-          nuget install Microsoft.Web.WebView2 -OutputDirectory ${{ runner.temp }}/webview2
+          nuget install Microsoft.Web.WebView2 -Version $env:WEBVIEW2_VERSION -OutputDirectory $env:WEBVIEW2_PACKAGE_DIR -NonInteractive
 
       - name: Configure CMake
         run: |
-          $wv2 = Get-ChildItem "${{ runner.temp }}/webview2/Microsoft.Web.WebView2.*" | Select-Object -First 1
+          $wv2 = Get-Item (Join-Path $env:WEBVIEW2_PACKAGE_DIR "Microsoft.Web.WebView2.$env:WEBVIEW2_VERSION")
           $wv2Root = "$($wv2.FullName)/build/native"
           cmake -S SDK/Plugins -B SDK/Plugins/build -G "Visual Studio 17 2022" -A x64 -D WEBVIEW2_ROOT="$wv2Root"
 
