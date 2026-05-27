@@ -17,8 +17,8 @@ namespace Privy.Wallets
         internal static bool IsOAuthFlowActive => _oauthTcs != null;
 
         // Delegates for native callbacks
-        private delegate void NativeMessageCallback([MarshalAs(UnmanagedType.LPStr)] string message);
-        private delegate void NativeStatusCallback([MarshalAs(UnmanagedType.LPStr)] string message);
+        private delegate void NativeMessageCallback([MarshalAs(UnmanagedType.LPUTF8Str)] string message);
+        private delegate void NativeStatusCallback([MarshalAs(UnmanagedType.LPUTF8Str)] string message);
 
         // Keep delegates alive to avoid GC
         private readonly NativeMessageCallback _onWalletMessageReceived;
@@ -230,10 +230,10 @@ namespace Privy.Wallets
             NativeStatusCallback onError);
 
         [DllImport("PrivyWebView", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void PrivyWebView_Wallet_LoadUrl([MarshalAs(UnmanagedType.LPStr)] string url);
+        private static extern void PrivyWebView_Wallet_LoadUrl([MarshalAs(UnmanagedType.LPUTF8Str)] string url);
 
         [DllImport("PrivyWebView", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void PrivyWebView_Wallet_EvaluateJS([MarshalAs(UnmanagedType.LPStr)] string js);
+        private static extern void PrivyWebView_Wallet_EvaluateJS([MarshalAs(UnmanagedType.LPUTF8Str)] string js);
 
         [DllImport("PrivyWebView", CallingConvention = CallingConvention.Cdecl)]
         private static extern void PrivyWebView_Wallet_Destroy();
@@ -245,10 +245,10 @@ namespace Privy.Wallets
             NativeStatusCallback onError);
 
         [DllImport("PrivyWebView", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void PrivyWebView_OAuth_SetRedirectUrl([MarshalAs(UnmanagedType.LPStr)] string url);
+        private static extern void PrivyWebView_OAuth_SetRedirectUrl([MarshalAs(UnmanagedType.LPUTF8Str)] string url);
 
         [DllImport("PrivyWebView", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void PrivyWebView_OAuth_LoadUrl([MarshalAs(UnmanagedType.LPStr)] string url);
+        private static extern void PrivyWebView_OAuth_LoadUrl([MarshalAs(UnmanagedType.LPUTF8Str)] string url);
 
         [DllImport("PrivyWebView", CallingConvention = CallingConvention.Cdecl)]
         private static extern void PrivyWebView_OAuth_ShowWindow();
