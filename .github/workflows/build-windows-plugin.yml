@@ -53,3 +53,11 @@ jobs:
           name: PrivyWebView-windows-x64
           path: SDK/Plugins/Windows/x86_64/Release/PrivyWebView.dll
           if-no-files-found: error
+
+      - name: Verify committed DLL is up to date
+        run: |
+          git diff --exit-code -- SDK/Plugins/Windows/x86_64/Release/PrivyWebView.dll
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Built PrivyWebView.dll differs from the committed DLL. Download the workflow artifact and commit the updated SDK/Plugins/Windows/x86_64/Release/PrivyWebView.dll."
+            exit 1
+          }
