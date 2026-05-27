@@ -29,11 +29,14 @@ namespace Privy.Internal.Networking
             _clientId = privyConfig.ClientId;
             _baseUrl = $"{PrivyEnvironment.BASE_URL}/api/v1";
             _clientAnalyticsIdRepository = clientAnalyticsIdRepository;
-            // Unity's Application.identifier can be empty for some standalone builds (or not set in Player Settings).
-            // The backend expects a native app identifier header for mobile/desktop clients, so we provide a fallback.
             _appIdentifier = !string.IsNullOrEmpty(Application.identifier)
                 ? Application.identifier
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+                // Windows standalone builds may not have Application.identifier configured.
                 : Application.productName;
+#else
+                : null;
+#endif
 
             PrivyLogger.Debug($"App identifier is {_appId}");
             PrivyLogger.Debug($"Unity app identifier is {_appIdentifier}");
