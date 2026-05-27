@@ -71,6 +71,7 @@ namespace Privy.Wallets
             var cancellation = Task.Delay(timeout);
 
             var completedTask = await Task.WhenAny(tcs.Task, cancellation);
+            var timedOut = completedTask == cancellation;
 
             // Only clear the shared reference if it still points at our tcs.
             lock (_oauthLock)
@@ -78,11 +79,17 @@ namespace Privy.Wallets
                 if (_oauthTcs == tcs)
                 {
                     _oauthTcs = null;
+                    if (timedOut)
+                    {
+                        _oauthRedirectUri = null;
+                    }
                 }
             }
 
-            if (completedTask == cancellation)
+            if (timedOut)
             {
+                PrivyWebView_OAuth_HideWindow();
+                PrivyWebView_OAuth_SetRedirectUrl(null);
                 tcs.TrySetException(new TimeoutException("OAuth flow timed out."));
             }
 
