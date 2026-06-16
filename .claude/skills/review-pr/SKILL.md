@@ -32,3 +32,12 @@ For each violation found:
 ```
 
 At the end, provide a summary: number of blocking/warning/nit issues, and an overall verdict (Approve, Request Changes, or Approve with Nits).
+
+## Comment Style
+
+- Be terse. One sentence per finding is the norm. Two is long. Never write a paragraph when a sentence will do.
+- Ask questions over demands. "Can we make this `internal`?" lands better than "Make this `internal`."
+- Prefix minor style comments with `nit:` to signal they won't block merge.
+- Explain the "why" only when non-obvious. A missing `I` prefix is self-explanatory; a subtle async deadlock is not.
+- No filler. Don't open with "Great work!" or pad with "Love the approach, however...". Go straight to the point.
+- Only comment on lines with real issues — do not comment for the sake of it.
