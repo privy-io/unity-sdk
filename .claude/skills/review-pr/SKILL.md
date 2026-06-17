@@ -5,7 +5,7 @@ description: Review the current branch's changes against SDK architectural patte
 
 # PR Review for Privy Unity SDK
 
-Review the current branch's changes against our SDK architectural patterns. For each file changed, check the rules in `agent_docs/pr_review_rules.md` and report violations. Be strict — our SDK's consistency depends on this.
+Review the current branch's changes against our SDK architectural patterns and code correctness rules. For each file changed, check the rules in `agent_docs/pr_review_rules.md` and report violations. Be strict — our SDK's consistency depends on this.
 
 ## Instructions
 

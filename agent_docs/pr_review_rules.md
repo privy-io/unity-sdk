@@ -63,6 +63,19 @@ These are the architectural patterns and rules for the Privy Unity SDK. Any new 
 - **C# events for state changes**: Use `event Action<T>` for state change notifications (e.g., `AuthStateChanged`). Forward events from internal components to the public interface.
 - **No Unity-specific patterns in SDK core**: Don't use `UnityEvent`, `MonoBehaviour`, or coroutines in the SDK Runtime. Use standard C# async/await and events.
 
+## Correctness & Logic (Warning)
+
+- **No unhandled error paths**: Every `async Task` call site must handle exceptions. Don't let raw exceptions propagate past the delegator layer unhandled.
+- **No `.Result` or `.Wait()`**: Never block on async tasks. This causes deadlocks in Unity's single-threaded synchronization context. Always `await`.
+- **No sensitive data in logs**: Never log tokens, private keys, seed phrases, wallet addresses, or user credentials at any log level.
+- **Dead code**: Flag unused methods, parameters, and imports. Remove them rather than leaving commented-out code.
+- **Null reference safety**: Check for null before dereferencing objects from external sources (API responses, deserialized JSON, user input). Use null-conditional operators (`?.`) or explicit guards.
+- **Race conditions in async code**: Ensure that state checks followed by state mutations don't have `await` points between them that could allow interleaving.
+- **Guard against invalid inputs**: Validate inputs at method boundaries before performing work. Throw `ArgumentException`/`ArgumentNullException` early rather than proceeding with invalid state.
+- **No redundant work**: Don't re-fetch data that's already available in scope. Don't re-compute values inside loops when they can be hoisted.
+- **Dispose resources**: `IDisposable` resources (HTTP clients, streams, WebViews) must be disposed when no longer needed.
+- **TaskCompletionSource safety**: Always set a result or exception on `TaskCompletionSource` — unresolved TCS instances will hang awaiting callers forever.
+
 ## Documentation (Nit)
 
 - **XML docs on public types**: All `public` interfaces, methods, properties, and classes need `/// <summary>` documentation.
