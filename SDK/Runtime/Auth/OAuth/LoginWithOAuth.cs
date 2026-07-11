@@ -22,6 +22,12 @@ namespace Privy.Auth.OAuth
 
             var result = await PromptOAuthCredentials(provider, redirectUri, codeChallenge, stateCode);
 
+            if (result.OAuthState != stateCode)
+            {
+                throw new System.Security.SecurityException(
+                    "OAuth state mismatch — possible CSRF attack.");
+            }
+
             return await _authDelegator.AuthenticateOAuthFlow(
                 result.OAuthCode,
                 codeVerifier,
@@ -41,7 +47,8 @@ namespace Privy.Auth.OAuth
             if (IsNativeAppleFlow(provider))
                 return await new NativeAppleSignInFlow().PerformFlow(stateCode);
 
-            return await _oAuthFlow.PerformOAuthFlow(oauthUrl, redirectUri);
+            // Use the transformed redirect URI (e.g., localhost callback) for both init and the WebView flow.
+            return await _oAuthFlow.PerformOAuthFlow(oauthUrl, transformedRedirectUri);
         }
 
         private static bool IsNativeAppleFlow(OAuthProvider provider)
