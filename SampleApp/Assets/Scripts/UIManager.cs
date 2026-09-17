@@ -225,15 +225,10 @@ public class UIManager : MonoBehaviour
 
     public void ShowAuthorizedScreen()
     {
-        StateMachine.ClearHistory();
-
-        // If already on the authorized screen, just refresh the data display
         if (StateMachine.CurrentScreen == UIScreenId.Authorized)
-        {
-            authScreenController.OnAuthorizedScreenShown();
             return;
-        }
 
+        StateMachine.ClearHistory();
         NavigateTo(UIScreenId.Authorized);
     }
 }

@@ -232,6 +232,11 @@ namespace Privy.Wallets
             {
                 _readyTcs.TrySetCanceled();
             }
+
+            if (_webViewHandler is IDisposable disposableWebViewHandler)
+            {
+                disposableWebViewHandler.Dispose();
+            }
         }
 
         // Wallet Methods

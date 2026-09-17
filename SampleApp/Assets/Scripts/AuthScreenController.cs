@@ -74,7 +74,13 @@ public class AuthScreenController : MonoBehaviour
             unlinkSmsButton.onClick.AddListener(OnUnlinkSmsButtonClick);
         if (updateSmsPhoneButton != null)
             updateSmsPhoneButton.onClick.AddListener(OnUpdateSmsPhoneButtonClick);
+    }
 
+    private void Start()
+    {
+        // InitialScreenController.Start() owns the startup auth check and calls
+        // ShowAuthorizedScreen() if already authenticated. Subscribing here for
+        // subsequent auth-state changes (login, logout) is all that's needed.
         PrivyManager.Instance.AuthStateChanged += OnAuthStateChange;
     }
 

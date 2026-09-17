@@ -93,5 +93,16 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Build artifact folders for C Windows plugin
+/SDK/Plugins/Windows/**/bin/
+/SDK/Plugins/Windows/**/obj/
+/SDK/Plugins/Windows/**/Debug/
+/SDK/Plugins/Windows/**/Release/*.lib*
+/SDK/Plugins/Windows/**/Release/*.exp*
+/SDK/Plugins/Build*
+
+# Temporary build/test folders
+SampleApp/Test*/
+
 # Environment secrets
 .env
