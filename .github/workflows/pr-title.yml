@@ -1,6 +1,6 @@
 name: PR Title
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, edited, synchronize, reopened]
 
 permissions:
@@ -15,5 +15,5 @@ jobs:
     steps:
       - uses: ytanikin/pr-conventional-commits@639145d78959c53c43112365837e3abd21ed67c1
         with:
-          task_types: '["feat","fix","docs","test","ci","refactor","perf","chore","revert","style","build"]'
+          task_types: '["feat","fix","docs","test","ci","refactor","perf","chore","revert","style","build","release","deps"]'
           add_label: 'false'
