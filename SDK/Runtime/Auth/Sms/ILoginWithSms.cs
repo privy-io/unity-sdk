@@ -33,9 +33,9 @@ namespace Privy.Auth.Sms
         /// </summary>
         /// <param name="phoneNumber">The phone number to link. Must be in E.164 format.</param>
         /// <param name="code">The OTP code received via SMS after calling <see cref="SendCode"/>.</param>
-        /// <returns>A task that represents the asynchronous operation.</returns>
+        /// <returns>A task that represents the asynchronous operation. The task result is the updated authenticated user.</returns>
         /// <exception cref="PrivyAuthenticationException">Thrown if the user is not authenticated or if the link operation fails.</exception>
-        Task Link(string phoneNumber, string code);
+        Task<IPrivyUser> Link(string phoneNumber, string code);
 
         /// <summary>
         /// Unlinks a phone number from the currently authenticated user.
@@ -43,9 +43,9 @@ namespace Privy.Auth.Sms
         /// After completion, the updated linked accounts are reflected in <c>privy.User.LinkedAccounts</c>.
         /// </summary>
         /// <param name="phoneNumber">The phone number to unlink. Must be in E.164 format.</param>
-        /// <returns>A task that represents the asynchronous operation.</returns>
+        /// <returns>A task that represents the asynchronous operation. The task result is the updated authenticated user.</returns>
         /// <exception cref="PrivyAuthenticationException">Thrown if the user is not authenticated or if the unlink operation fails.</exception>
-        Task Unlink(string phoneNumber);
+        Task<IPrivyUser> Unlink(string phoneNumber);
 
         /// <summary>
         /// Replaces the user's currently linked phone number with a new one.
@@ -54,8 +54,8 @@ namespace Privy.Auth.Sms
         /// </summary>
         /// <param name="phoneNumber">The new phone number to replace the existing one with. Must be in E.164 format.</param>
         /// <param name="code">The OTP code sent to the new phone number via <see cref="SendCode"/>.</param>
-        /// <returns>A task that represents the asynchronous operation.</returns>
+        /// <returns>A task that represents the asynchronous operation. The task result is the updated authenticated user.</returns>
         /// <exception cref="PrivyAuthenticationException">Thrown if the user is not authenticated, the OTP is incorrect, or the update fails.</exception>
-        Task UpdatePhoneNumber(string phoneNumber, string code);
+        Task<IPrivyUser> UpdatePhoneNumber(string phoneNumber, string code);
     }
 }
