@@ -117,7 +117,7 @@ namespace Privy.Core
 
             Email = new LoginWithEmail(_authDelegator);
             OAuth = new LoginWithOAuth(_authDelegator);
-            Sms = new LoginWithSms(_authDelegator, () => _user);
+            Sms = new LoginWithSms(_authDelegator, this);
             _user = new PrivyUser(_authDelegator, _embeddedWalletManager, _appConfigRepository, walletApiWalletCreator,
                 walletApiRepository, authorizationKey);
         }
