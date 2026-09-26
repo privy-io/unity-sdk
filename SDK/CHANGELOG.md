@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+## [1.2.0](https://github.com/privy-io/unity-sdk/compare/v1.1.0...v1.2.0) (2026-09-26)
+
+
+### Added
+
+* add automated PR review skill ([#31](https://github.com/privy-io/unity-sdk/issues/31)) ([d3739f7](https://github.com/privy-io/unity-sdk/commit/d3739f714ee76cc1bb49ff87408e71fdb678d9f0))
+* add Claude Code review GitHub Action ([#34](https://github.com/privy-io/unity-sdk/issues/34)) ([7a57b6f](https://github.com/privy-io/unity-sdk/commit/7a57b6f3a576072e331c7e61dbb2f0a9a52217a3))
+
+
+### Fixed
+
+* return users from SMS account updates 🪿✨ ([#40](https://github.com/privy-io/unity-sdk/issues/40)) ([3751e28](https://github.com/privy-io/unity-sdk/commit/3751e282c4bcd729f5b653d23f2c2ef3e0fe73ab))
+* update copyright year to 2026 ([#32](https://github.com/privy-io/unity-sdk/issues/32)) ([f1e52bd](https://github.com/privy-io/unity-sdk/commit/f1e52bdbfd5516bd856c0acb29964d0cf0d84dec))
+
 ## [1.1.0](https://github.com/privy-io/unity-sdk/compare/v1.0.0...v1.1.0) (2026-04-15)
 
 
