@@ -271,11 +271,36 @@ namespace Privy.Auth
                     Token jwt = Token.Parse(persistedSession.AccessToken);
                     InternalAuthSession newSession = persistedSession;
 
+                    bool shouldRefresh = persistedSession?.RefreshToken != null;
 
-                    if (jwt != null && jwt.IsExpired(Constants.DEFAULT_EXPIRATION_PADDING_IN_SECONDS))
+                    if (jwt == null || jwt.IsExpired(Constants.DEFAULT_EXPIRATION_PADDING_IN_SECONDS))
                     {
-                        newSession = await _authRepository.RefreshSession(persistedSession.AccessToken,
-                            persistedSession.RefreshToken); //could be null if request fails
+                        // Expired or invalid token must refresh to validate session and get correct user data.
+                        if (shouldRefresh)
+                        {
+                            newSession = await _authRepository.RefreshSession(persistedSession.AccessToken,
+                                persistedSession.RefreshToken);
+                        }
+                        else
+                        {
+                            // No refresh token available: log out and force re-auth.
+                            Logout();
+                            return;
+                        }
+                    }
+                    else if (shouldRefresh)
+                    {
+                        // Token valid, but refresh for authoritative user mapping and any account changes.
+                        try
+                        {
+                            newSession = await _authRepository.RefreshSession(persistedSession.AccessToken,
+                                persistedSession.RefreshToken);
+                        }
+                        catch
+                        {
+                            // If refresh fails, keep persisted session to continue working offline.
+                            newSession = persistedSession;
+                        }
                     }
 
                     SetInternalAuthSession(newSession, persistedSession);
