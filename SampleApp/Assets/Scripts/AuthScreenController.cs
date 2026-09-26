@@ -263,8 +263,7 @@ public class AuthScreenController : MonoBehaviour
 
         try
         {
-            await PrivyManager.Instance.Sms.Link(phone, code);
-            IPrivyUser user = await PrivyManager.Instance.GetUser();
+            IPrivyUser user = await PrivyManager.Instance.Sms.Link(phone, code);
             UpdateUserDisplay(user);
             Debug.Log($"Phone {phone} linked successfully.");
         }
@@ -296,8 +295,7 @@ public class AuthScreenController : MonoBehaviour
 
         try
         {
-            await PrivyManager.Instance.Sms.Unlink(phone);
-            IPrivyUser user = await PrivyManager.Instance.GetUser();
+            IPrivyUser user = await PrivyManager.Instance.Sms.Unlink(phone);
             UpdateUserDisplay(user);
             Debug.Log($"Phone {phone} unlinked successfully.");
         }
@@ -322,8 +320,7 @@ public class AuthScreenController : MonoBehaviour
 
         try
         {
-            await PrivyManager.Instance.Sms.UpdatePhoneNumber(phone, code);
-            IPrivyUser user = await PrivyManager.Instance.GetUser();
+            IPrivyUser user = await PrivyManager.Instance.Sms.UpdatePhoneNumber(phone, code);
             UpdateUserDisplay(user);
             Debug.Log($"Phone number updated to {phone}.");
         }
