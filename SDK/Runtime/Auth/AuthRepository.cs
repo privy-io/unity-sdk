@@ -196,7 +196,6 @@ namespace Privy.Auth
         {
             JsonSerializerSettings settings = new JsonSerializerSettings
             {
-                TypeNameHandling = TypeNameHandling.All,
                 Converters = new List<JsonConverter> { new LinkedAccountConverter() }
             };
 
@@ -209,7 +208,6 @@ namespace Privy.Auth
         {
             JsonSerializerSettings settings = new JsonSerializerSettings
             {
-                TypeNameHandling = TypeNameHandling.All,
                 Converters = new List<JsonConverter> { new LinkedAccountConverter() }
             };
 
