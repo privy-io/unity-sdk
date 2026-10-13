@@ -53,6 +53,9 @@ namespace Privy.Auth.Models
 
         [JsonProperty("recovery_method")]
         public string RecoveryMethod { get; set; }
+
+        [JsonProperty("user_can_sign")]
+        public bool? UserCanSign { get; set; }
     }
 
     internal class EmailAccountResponse : LinkedAccountResponse

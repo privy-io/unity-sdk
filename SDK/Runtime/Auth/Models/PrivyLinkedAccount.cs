@@ -69,6 +69,8 @@ namespace Privy.Auth.Models
 
         public string RecoveryMethod { get; set; }
 
+        public bool? UserCanSign { get; set; }
+
         internal bool IsOnDevice => Id == null || RecoveryMethod != "privy-v2";
     }
 
@@ -92,6 +94,8 @@ namespace Privy.Auth.Models
         public bool Imported { get; set; }
 
         public string RecoveryMethod { get; set; }
+
+        public bool? UserCanSign { get; set; }
 
         internal bool IsOnDevice => Id == null || RecoveryMethod != "privy-v2";
     }

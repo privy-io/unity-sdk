@@ -11,6 +11,7 @@ namespace Privy.Wallets
         public string ChainId { get; }
         public string RecoveryMethod { get; }
         public int HdWalletIndex { get; }
+        public bool? UserCanSign { get; }
 
         public IEmbeddedEthereumWalletProvider RpcProvider { get; } // Use IEmbeddedEthereumWalletProvider as the type
 
@@ -21,6 +22,7 @@ namespace Privy.Wallets
             ChainId = account.ChainId;
             RecoveryMethod = account.RecoveryMethod;
             HdWalletIndex = account.WalletIndex;
+            UserCanSign = account.UserCanSign;
             RpcProvider = rpcProvider;
         }
 
