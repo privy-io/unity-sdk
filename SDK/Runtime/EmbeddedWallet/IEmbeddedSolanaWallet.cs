@@ -30,9 +30,8 @@ namespace Privy.Wallets
 
         /// <summary>
         /// Whether the user can unilaterally sign with this wallet.
-        /// Null if unknown.
         /// </summary>
-        bool? UserCanSign => null;
+        bool UserCanSign => false;
 
         /// <summary>
         /// The Solana provider to use for acting on the embedded wallet.

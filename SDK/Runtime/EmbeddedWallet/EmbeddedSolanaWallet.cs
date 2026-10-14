@@ -10,7 +10,7 @@ namespace Privy.Wallets
         public string Address { get; }
         public string RecoveryMethod { get; }
         public int WalletIndex { get; }
-        public bool? UserCanSign { get; }
+        public bool UserCanSign { get; }
 
         public IEmbeddedSolanaWalletProvider EmbeddedSolanaWalletProvider { get; }
 

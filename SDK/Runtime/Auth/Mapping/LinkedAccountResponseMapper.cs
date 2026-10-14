@@ -91,7 +91,7 @@ namespace Privy.Auth.Mapping
                         Imported = walletResponse.Imported,
                         WalletIndex = walletResponse.WalletIndex,
                         RecoveryMethod = walletResponse.RecoveryMethod,
-                        UserCanSign = walletResponse.UserCanSign
+                        UserCanSign = walletResponse.UserCanSign ?? false
                     };
                 }
 
@@ -112,7 +112,7 @@ namespace Privy.Auth.Mapping
                     ConnectorType = walletResponse.ConnectorType,
                     PublicKey = walletResponse.PublicKey,
                     RecoveryMethod = walletResponse.RecoveryMethod,
-                    UserCanSign = walletResponse.UserCanSign
+                    UserCanSign = walletResponse.UserCanSign ?? false
                 };
             }
             else if (response is EmailAccountResponse emailResponse)
