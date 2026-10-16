@@ -29,6 +29,11 @@ namespace Privy.Wallets
         int WalletIndex { get; }
 
         /// <summary>
+        /// Whether the user can unilaterally sign with this wallet.
+        /// </summary>
+        bool UserCanSign => true;
+
+        /// <summary>
         /// The Solana provider to use for acting on the embedded wallet.
         /// </summary>
         IEmbeddedSolanaWalletProvider EmbeddedSolanaWalletProvider { get; }
