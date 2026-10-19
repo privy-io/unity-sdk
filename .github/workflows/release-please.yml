@@ -4,16 +4,28 @@ on:
       - main
 
 permissions:
-  contents: write
-  issues: write
-  pull-requests: write
+  contents: read
 
 name: release-please
 
 jobs:
   release-please:
+    if: github.repository == 'privy-io/unity-sdk'
     runs-on: ubuntu-latest
+    environment: package-release
     steps:
+      - name: Mint Builder Blobby token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ secrets.BUILDER_BLOBBY_APP_ID }}
+          private-key: ${{ secrets.BUILDER_BLOBBY_APP_PRIVATE_KEY }}
+          owner: privy-io
+          repositories: unity-sdk
+          permission-contents: write
+          permission-pull-requests: write
+
       - uses: googleapis/release-please-action@8b8fd2cc23b2e18957157a9d923d75aa0c6f6ad5 # v4
         with:
+          token: ${{ steps.app-token.outputs.token }}
           target-branch: ${{ github.ref_name }}
