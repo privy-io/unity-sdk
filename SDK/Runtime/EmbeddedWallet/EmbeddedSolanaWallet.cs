@@ -10,6 +10,7 @@ namespace Privy.Wallets
         public string Address { get; }
         public string RecoveryMethod { get; }
         public int WalletIndex { get; }
+        public bool UserCanSign { get; }
 
         public IEmbeddedSolanaWalletProvider EmbeddedSolanaWalletProvider { get; }
 
@@ -20,6 +21,7 @@ namespace Privy.Wallets
             Address = account.Address;
             RecoveryMethod = account.RecoveryMethod;
             WalletIndex = account.WalletIndex;
+            UserCanSign = account.UserCanSign;
             EmbeddedSolanaWalletProvider = embeddedSolanaWalletProvider;
         }
 

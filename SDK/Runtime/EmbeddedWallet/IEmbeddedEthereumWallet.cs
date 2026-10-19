@@ -13,6 +13,10 @@ namespace Privy.Wallets
         string ChainId { get; }
         string RecoveryMethod { get; }
         int HdWalletIndex { get; }
+        /// <summary>
+        /// Whether the user can unilaterally sign with this wallet.
+        /// </summary>
+        bool UserCanSign => true;
         IEmbeddedEthereumWalletProvider RpcProvider { get; }
     }
 

@@ -53,6 +53,10 @@ namespace Privy.Auth.Models
 
         [JsonProperty("recovery_method")]
         public string RecoveryMethod { get; set; }
+
+        // Only external wallets omit user_can_sign
+        [JsonProperty("user_can_sign")]
+        public bool UserCanSign { get; set; } = true;
     }
 
     internal class EmailAccountResponse : LinkedAccountResponse

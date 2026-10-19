@@ -90,7 +90,8 @@ namespace Privy.Auth.Mapping
                         LatestVerifiedAt = FromUnixEpoch(walletResponse.LatestVerifiedAt),
                         Imported = walletResponse.Imported,
                         WalletIndex = walletResponse.WalletIndex,
-                        RecoveryMethod = walletResponse.RecoveryMethod
+                        RecoveryMethod = walletResponse.RecoveryMethod,
+                        UserCanSign = walletResponse.UserCanSign
                     };
                 }
 
@@ -110,7 +111,8 @@ namespace Privy.Auth.Mapping
                     WalletClientType = walletResponse.WalletClientType,
                     ConnectorType = walletResponse.ConnectorType,
                     PublicKey = walletResponse.PublicKey,
-                    RecoveryMethod = walletResponse.RecoveryMethod
+                    RecoveryMethod = walletResponse.RecoveryMethod,
+                    UserCanSign = walletResponse.UserCanSign
                 };
             }
             else if (response is EmailAccountResponse emailResponse)
