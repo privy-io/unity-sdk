@@ -23,6 +23,8 @@ namespace Privy.Wallets
             return new BrowserDomIframeHandler(webViewManager);
 #elif UNITY_IOS || UNITY_ANDROID || UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
             return new WebViewHandler(webViewManager);
+#elif UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+            return new WindowsWebViewHandler(webViewManager);
 #else
             return new WebViewHandlerForUnsupportedPlatform();
 #endif
