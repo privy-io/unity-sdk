@@ -32,11 +32,4 @@ string lives in three places and is kept in sync by release-please:
 
 ### How to release
 
-1. Merge conventional-commit-formatted PRs into `main` (e.g. `feat:`, `fix:`).
-2. Release-please automatically opens (or updates) a release PR that bumps
-   versions and updates `SDK/CHANGELOG.md`.
-3. Review the release PR and merge it when ready.
-4. On merge, release-please creates a GitHub Release and git tag.
-
-For UPM releases, the tag is sufficient; OpenUPM and Package Manager clients
-will pick up the new version automatically.
+See [RELEASING.md](../RELEASING.md).

@@ -28,11 +28,7 @@ Use [Conventional Commits](https://www.conventionalcommits.org/) — `feat:`, `f
 
 ## Release Process
 
-1. Merge conventional-commit PRs into `main`
-2. Release-please opens a release PR bumping `version.txt`, `SDK/package.json`, and `SDK/Runtime/Utils/SdkVersion.cs`
-3. Review and merge the release PR — release-please then creates the GitHub Release and git tag
-
-See `docs/releasing.md` for the full release guide.
+See [RELEASING.md](RELEASING.md).
 
 ## GitHub Actions
 
