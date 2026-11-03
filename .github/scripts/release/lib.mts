@@ -1,5 +1,5 @@
 // Shared helpers for the release scripts in this directory. The scripts here are shared by
-// node-sdk-private, ios-headless-sdk, android-sdk, flutter-sdk and unity-sdk; keep them in sync.
+// node-sdk-private and ios-headless-sdk; keep them in sync.
 //
 // The scripts are TypeScript run directly by Node 24 (`node script.mts`, no build step and no
 // dependencies), so they only use erasable syntax and Node built-ins.
