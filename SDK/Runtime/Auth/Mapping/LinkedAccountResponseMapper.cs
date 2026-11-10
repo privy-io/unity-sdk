@@ -95,6 +95,14 @@ namespace Privy.Auth.Mapping
                     };
                 }
 
+                if (walletResponse.ChainType != "ethereum")
+                {
+                    // Embedded wallets on other chains aren't supported yet. Exclude them rather than
+                    // treating them as Ethereum wallets.
+                    PrivyLogger.Debug($"Skipping embedded wallet with unsupported chain type: {walletResponse.ChainType}");
+                    return null;
+                }
+
                 return new PrivyEmbeddedWalletAccount
                 {
                     Id = walletResponse.Id,
