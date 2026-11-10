@@ -10,6 +10,7 @@ namespace Privy.Wallets
     {
         internal struct CreatedWallet
         {
+            internal string Id;
             internal ChainType ChainType;
             internal string Address;
         }
@@ -44,6 +45,7 @@ namespace Privy.Wallets
 
             return new CreatedWallet()
             {
+                Id = response.Id,
                 Address = response.Address,
                 ChainType = response.ChainType,
             };

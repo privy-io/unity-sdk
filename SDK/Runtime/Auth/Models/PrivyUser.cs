@@ -47,13 +47,22 @@ namespace Privy.Auth.Models
         {
             get
             {
-                var walletEntropy = LinkedAccounts.WalletEntropyOrNull();
+                var linkedAccounts = LinkedAccounts;
+                var onDeviceWalletEntropy = linkedAccounts.WalletEntropyOrNull();
 
-                if (walletEntropy == null) return Array.Empty<IEmbeddedEthereumWallet>();
-
-                return LinkedAccounts.EmbeddedWalletAccounts()
-                    .Select(account =>
-                        EmbeddedEthereumWallet.Create(account, walletEntropy.Value, _embeddedWalletManager,
+                // On-device wallets need the user's HD entropy. TEE wallets are addressed by id, so they are
+                // listed whatever their HD index, using their own address as the entropy id.
+                return linkedAccounts.EmbeddedWalletAccounts()
+                    .Select(account => new
+                    {
+                        Account = account,
+                        WalletEntropy = account.IsOnDevice
+                            ? onDeviceWalletEntropy
+                            : new WalletEntropy(account.Address, EntropyIdVerifier.EthereumAddress)
+                    })
+                    .Where(item => item.WalletEntropy != null)
+                    .Select(item =>
+                        EmbeddedEthereumWallet.Create(item.Account, item.WalletEntropy.Value, _embeddedWalletManager,
                             _walletApiRepository, _authDelegator))
                     .ToArray<IEmbeddedEthereumWallet>();
             }
@@ -67,13 +76,22 @@ namespace Privy.Auth.Models
         {
             get
             {
-                var walletEntropy = LinkedAccounts.WalletEntropyOrNull();
+                var linkedAccounts = LinkedAccounts;
+                var onDeviceWalletEntropy = linkedAccounts.WalletEntropyOrNull();
 
-                if (walletEntropy == null) return Array.Empty<IEmbeddedSolanaWallet>();
-
-                return LinkedAccounts.EmbeddedSolanaWalletAccounts()
-                    .Select(account =>
-                        EmbeddedSolanaWallet.Create(account, walletEntropy.Value, _embeddedWalletManager,
+                // On-device wallets need the user's HD entropy. TEE wallets are addressed by id, so they are
+                // listed whatever their HD index, using their own address as the entropy id.
+                return linkedAccounts.EmbeddedSolanaWalletAccounts()
+                    .Select(account => new
+                    {
+                        Account = account,
+                        WalletEntropy = account.IsOnDevice
+                            ? onDeviceWalletEntropy
+                            : new WalletEntropy(account.Address, EntropyIdVerifier.SolanaAddress)
+                    })
+                    .Where(item => item.WalletEntropy != null)
+                    .Select(item =>
+                        EmbeddedSolanaWallet.Create(item.Account, item.WalletEntropy.Value, _embeddedWalletManager,
                             _walletApiRepository, _authDelegator))
                     .ToArray<IEmbeddedSolanaWallet>();
             }
@@ -146,7 +164,7 @@ namespace Privy.Auth.Models
             if (appConfig.EmbeddedWalletConfig.Mode == EmbeddedWalletMode.UserControlledServerWalletsOnly)
             {
                 var result = await _walletApiWalletCreator.CreateWallet(ChainType.Ethereum, allowAdditional);
-                return await PrepareAndConnectWallet(result.Address);
+                return await PrepareAndConnectWallet(result.Address, walletId: result.Id);
             }
 
             if (!HasPrimaryWallet())
@@ -186,7 +204,7 @@ namespace Privy.Auth.Models
             if (appConfig.EmbeddedWalletConfig.Mode == EmbeddedWalletMode.UserControlledServerWalletsOnly)
             {
                 var result = await _walletApiWalletCreator.CreateWallet(ChainType.Solana, allowAdditional);
-                return await PrepareAndConnectSolanaWallet(result.Address);
+                return await PrepareAndConnectSolanaWallet(result.Address, walletId: result.Id);
             }
 
             var solanaWallets = LinkedAccounts.EmbeddedSolanaWalletAccounts();
@@ -225,7 +243,18 @@ namespace Privy.Auth.Models
                     EmbeddedWalletError.CreateAdditionalFailed
                 );
             }
-            else if (hdWalletIndex == 0)
+
+            var appConfig = await _appConfigRepository.LoadAppConfig();
+            if (appConfig.EmbeddedWalletConfig.Mode == EmbeddedWalletMode.UserControlledServerWalletsOnly)
+            {
+                // TEE wallets get their HD index from the server, so a caller can't choose one.
+                throw new PrivyWalletException(
+                    "Creating a wallet at a specific HD index is not supported for user-controlled server wallets. Use CreateEthereumWallet instead.",
+                    EmbeddedWalletError.CreateFailed
+                );
+            }
+
+            if (hdWalletIndex == 0)
             {
                 // Dev wants to create primary wallet
                 // CreatePrimaryEthereumWallet should not throw if a primary wallet already exists, because CreateEthereumWalletAtHdIndex
@@ -241,13 +270,15 @@ namespace Privy.Auth.Models
         }
 
         // Private Methods
-        private async Task<IEmbeddedEthereumWallet> PrepareAndConnectWallet(string walletAddress)
+        private async Task<IEmbeddedEthereumWallet> PrepareAndConnectWallet(string walletAddress,
+            string walletId = null)
         {
             await _authDelegator.RefreshSession(true); //Forces refresh even if token is valid
 
+            //Get the first wallet with matching id or address, else null
             var embeddedWallet =
                 EmbeddedEthereumWallets.FirstOrDefault(wallet =>
-                    wallet.Address == walletAddress); //Get the first wallet with matching address, else null
+                    (walletId != null && wallet.Id == walletId) || wallet.Address == walletAddress);
 
             if (embeddedWallet == null)
             {
@@ -263,12 +294,14 @@ namespace Privy.Auth.Models
             return embeddedWallet;
         }
 
-        private async Task<IEmbeddedSolanaWallet> PrepareAndConnectSolanaWallet(string walletAddress)
+        private async Task<IEmbeddedSolanaWallet> PrepareAndConnectSolanaWallet(string walletAddress,
+            string walletId = null)
         {
             await _authDelegator.RefreshSession(forceRefresh: true);
 
             var embeddedWallet =
-                EmbeddedSolanaWallets.FirstOrDefault(wallet => wallet.Address == walletAddress);
+                EmbeddedSolanaWallets.FirstOrDefault(wallet =>
+                    (walletId != null && wallet.Id == walletId) || wallet.Address == walletAddress);
 
             if (embeddedWallet == null)
                 throw new PrivyWalletException(
