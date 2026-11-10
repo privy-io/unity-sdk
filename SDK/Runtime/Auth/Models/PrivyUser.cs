@@ -247,6 +247,15 @@ namespace Privy.Auth.Models
             var appConfig = await _appConfigRepository.LoadAppConfig();
             if (appConfig.EmbeddedWalletConfig.Mode == EmbeddedWalletMode.UserControlledServerWalletsOnly)
             {
+                // Keep index 0 idempotent: return the first existing index-0 wallet, as on-device does.
+                var existingIndexZeroWallet = hdWalletIndex == 0
+                    ? EmbeddedEthereumWallets.FirstOrDefault(wallet => wallet.HdWalletIndex == 0)
+                    : null;
+                if (existingIndexZeroWallet != null)
+                {
+                    return existingIndexZeroWallet;
+                }
+
                 // TEE wallets get their HD index from the server, so a caller can't choose one.
                 throw new PrivyWalletException(
                     "Creating a wallet at a specific HD index is not supported for user-controlled server wallets. Use CreateEthereumWallet instead.",

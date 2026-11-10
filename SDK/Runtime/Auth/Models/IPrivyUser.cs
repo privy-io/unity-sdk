@@ -82,7 +82,8 @@ namespace Privy.Auth.Models
         /// Thrown if the wallet creation fails or the wallet cannot be added to the user's account.
         /// Can also be thrown if an invalid HD wallet index is supplied, i.e. hdWalletIndex is less than 0,
         /// or if HD wallet index is greater than 0 while user has no wallet with HD index 0.
-        /// Always thrown for apps using user-controlled server wallets, where the server assigns HD indices;
+        /// Thrown for apps using user-controlled server wallets, where the server assigns HD indices, unless
+        /// hdWalletIndex is 0 and the user already has an index-0 wallet (which is returned);
         /// use <see cref="CreateEthereumWallet"/> instead.
         /// </exception>
         Task<IEmbeddedEthereumWallet> CreateEthereumWalletAtHdIndex(int hdWalletIndex);
