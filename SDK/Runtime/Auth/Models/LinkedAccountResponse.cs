@@ -30,8 +30,10 @@ namespace Privy.Auth.Models
         [JsonProperty("imported")]
         public bool Imported { get; set; }
 
+        // Nullable so that a null wallet_index doesn't fail deserialization of the whole user.
+        // The mapper treats null the same as a missing field (index 0).
         [JsonProperty("wallet_index")]
-        public int WalletIndex { get; set; }
+        public int? WalletIndex { get; set; }
 
         [JsonProperty("chain_id")]
         public string ChainId { get; set; }

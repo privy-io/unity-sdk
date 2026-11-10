@@ -89,7 +89,7 @@ namespace Privy.Auth.Mapping
                         FirstVerifiedAt = FromUnixEpoch(walletResponse.FirstVerifiedAt),
                         LatestVerifiedAt = FromUnixEpoch(walletResponse.LatestVerifiedAt),
                         Imported = walletResponse.Imported,
-                        WalletIndex = walletResponse.WalletIndex,
+                        WalletIndex = walletResponse.WalletIndex ?? 0,
                         RecoveryMethod = walletResponse.RecoveryMethod,
                         UserCanSign = walletResponse.UserCanSign
                     };
@@ -112,7 +112,7 @@ namespace Privy.Auth.Mapping
                     FirstVerifiedAt = FromUnixEpoch(walletResponse.FirstVerifiedAt),
                     LatestVerifiedAt = FromUnixEpoch(walletResponse.LatestVerifiedAt),
                     Imported = walletResponse.Imported,
-                    WalletIndex = walletResponse.WalletIndex,
+                    WalletIndex = walletResponse.WalletIndex ?? 0,
                     ChainId = walletResponse.ChainId,
                     ChainType = walletResponse.ChainType,
                     WalletClient = walletResponse.WalletClient,
