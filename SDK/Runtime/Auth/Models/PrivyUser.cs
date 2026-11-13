@@ -258,7 +258,7 @@ namespace Privy.Auth.Models
 
                 // TEE wallets get their HD index from the server, so a caller can't choose one.
                 throw new PrivyWalletException(
-                    "Creating a wallet at a specific HD index is not supported for user-controlled server wallets. Use CreateEthereumWallet instead.",
+                    "Creating a wallet at a specific HD index is not supported for wallets with TEE execution. Use CreateEthereumWallet instead.",
                     EmbeddedWalletError.CreateFailed
                 );
             }
