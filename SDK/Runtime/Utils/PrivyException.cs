@@ -56,7 +56,9 @@ namespace Privy.Utils
         LinkFailed,
         UnlinkFailed,
         IncorrectOtpCode,
-        InternalError
+        InternalError,
+        /// <summary>The authentication session could not be safely stored or removed.</summary>
+        StorageUnavailable
     }
 
     public enum EmbeddedWalletError

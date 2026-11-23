@@ -13,6 +13,7 @@ namespace Privy.Auth
         private InternalAuthSession _internalAuthSession;
         public AuthState CurrentAuthState { get; private set; } //Public property for privy class to access
         private Task _refreshSessionTask;
+        private long _sessionGeneration;
 
         private void UpdateAuthState(AuthState newState)
         {
@@ -202,10 +203,11 @@ namespace Privy.Auth
             }
 
             string accessToken = await GetAccessToken();
+            var sessionGeneration = _sessionGeneration;
 
             InternalPrivyUser updatedUser = await _authRepository.LinkSms(phoneNumber, code, accessToken);
 
-            UpdateUserInSession(updatedUser);
+            UpdateUserInSession(updatedUser, sessionGeneration);
             return updatedUser;
         }
 
@@ -218,10 +220,11 @@ namespace Privy.Auth
             }
 
             string accessToken = await GetAccessToken();
+            var sessionGeneration = _sessionGeneration;
 
             InternalPrivyUser updatedUser = await _authRepository.UnlinkSms(phoneNumber, accessToken);
 
-            UpdateUserInSession(updatedUser);
+            UpdateUserInSession(updatedUser, sessionGeneration);
             return updatedUser;
         }
 
@@ -240,26 +243,34 @@ namespace Privy.Auth
             }
 
             string accessToken = await GetAccessToken();
+            var sessionGeneration = _sessionGeneration;
 
             InternalPrivyUser updatedUser = await _authRepository.UpdateSmsPhoneNumber(phoneNumber, code, accessToken);
 
-            UpdateUserInSession(updatedUser);
+            UpdateUserInSession(updatedUser, sessionGeneration);
         }
 
-        private void UpdateUserInSession(InternalPrivyUser updatedUser)
+        private void UpdateUserInSession(InternalPrivyUser updatedUser, long sessionGeneration)
         {
-            _internalAuthSession.User = updatedUser;
-            _internalAuthSessionStorage.SaveInternalAuthSessionInStorage(_internalAuthSession);
+            if (_internalAuthSession == null || CurrentAuthState != AuthState.Authenticated ||
+                sessionGeneration != _sessionGeneration)
+                throw new PrivyAuthenticationException("User is not authenticated.", AuthenticationError.NotAuthenticated);
+            PersistSession(new InternalAuthSession
+            {
+                User = updatedUser,
+                AccessToken = _internalAuthSession.AccessToken,
+                IdentityToken = _internalAuthSession.IdentityToken,
+                RefreshToken = _internalAuthSession.RefreshToken,
+                SessionUpdateAction = _internalAuthSession.SessionUpdateAction
+            });
         }
 
         //Methods for persisting storage
         public async Task RestoreSession()
         {
-            //To handle errors here, we should simply log out
-            //Wrapping it all in a try catch is the simple solution, although we could get more granular and see what's failing
-            //For example the retrieval from storage, or the token parsing could be failing
-            //Regardless, any errors should just lead to a logout, as we don't want to throw an exception for the dev to catch here, given that this is called on initialize
+            // Invalid/expired sessions log out. Secure-store failures must reach initialization callers.
 
+            var sessionGeneration = _sessionGeneration;
             try
             {
                 InternalAuthSession persistedSession =
@@ -278,16 +289,22 @@ namespace Privy.Auth
                             persistedSession.RefreshToken); //could be null if request fails
                     }
 
-                    SetInternalAuthSession(newSession, persistedSession);
+                    if (sessionGeneration != _sessionGeneration) return;
+                    SetInternalAuthSession(newSession);
                 }
                 else
                 {
                     Logout();
                 }
             }
+            catch (PrivyAuthenticationException exception) when (exception.Error == AuthenticationError.StorageUnavailable)
+            {
+                ClearSessionState();
+                throw;
+            }
             catch
             {
-                Logout();
+                if (sessionGeneration == _sessionGeneration) Logout();
             }
         }
 
@@ -330,10 +347,12 @@ namespace Privy.Auth
                 return;
             }
 
-            // Proceed with the refresh
+            // A pending refresh must not recreate a session after logout or a newer login.
+            var sessionGeneration = _sessionGeneration;
             var newSession =
                 await _authRepository.RefreshSession(_internalAuthSession.AccessToken,
                     _internalAuthSession.RefreshToken);
+            if (sessionGeneration != _sessionGeneration) return;
             SetInternalAuthSession(newSession);
         }
 
@@ -354,20 +373,22 @@ namespace Privy.Auth
         }
 
         //Methods for in-memory storage
-        private void SetInternalAuthSession(InternalAuthSession authSession,
-            InternalAuthSession persistedSession = null)
+        private void SetInternalAuthSession(InternalAuthSession authSession)
         {
             //Either a new session, or a refreshed session
 
+            if (authSession == null)
+            {
+                Logout();
+                return;
+            }
             SessionUpdateAction sessionUpdateAction = authSession.SessionUpdateAction;
 
             switch (sessionUpdateAction)
             {
                 case SessionUpdateAction.Set:
                     // Save tokens in keychain and update auth state to authenticated
-                    _internalAuthSessionStorage.SaveInternalAuthSessionInStorage(authSession);
-                    _internalAuthSession = authSession;
-                    UpdateAuthState(AuthState.Authenticated);
+                    PersistSession(authSession);
                     break;
 
                 case SessionUpdateAction.Clear:
@@ -377,9 +398,7 @@ namespace Privy.Auth
 
                 case SessionUpdateAction.Ignore:
                     //Handle ignore
-                    _internalAuthSessionStorage.SaveInternalAuthSessionInStorage(authSession);
-                    _internalAuthSession = authSession;
-                    UpdateAuthState(AuthState.Authenticated);
+                    PersistSession(authSession);
                     break;
                     // NOTE: the above logic is still not ideal management. Ideal checks are outlined in the Slack thread:
                     // https://privyio.slack.com/archives/C06QTV3RQDS/p1718735684071109?thread_ts=1718690205.889179&cid=C06QTV3RQDS
@@ -396,6 +415,8 @@ namespace Privy.Auth
         {
             await RefreshSessionIfNeeded(); //This could throw an error, which would bubble up to create/connect wallet
             //Session will be refreshed by now, new access token
+            if (_internalAuthSession == null || CurrentAuthState != AuthState.Authenticated)
+                throw new PrivyAuthenticationException("User is not authenticated.", AuthenticationError.NotAuthenticated);
             return _internalAuthSession.AccessToken;
         }
 
@@ -403,6 +424,8 @@ namespace Privy.Auth
         {
             await RefreshSessionIfNeeded(); //This could throw an error, which would bubble up to create/connect wallet
             //Session will be refreshed by now, new identity token
+            if (_internalAuthSession == null || CurrentAuthState != AuthState.Authenticated)
+                throw new PrivyAuthenticationException("User is not authenticated.", AuthenticationError.NotAuthenticated);
             return _internalAuthSession.IdentityToken;
         }
 
@@ -411,12 +434,41 @@ namespace Privy.Auth
             return _internalAuthSession;
         }
 
+        private void PersistSession(InternalAuthSession session)
+        {
+            try
+            {
+                _internalAuthSessionStorage.SaveInternalAuthSessionInStorage(session);
+            }
+            catch
+            {
+                ClearSessionState();
+                throw;
+            }
+
+            _sessionGeneration++;
+            _internalAuthSession = session;
+            UpdateAuthState(AuthState.Authenticated);
+        }
+
+        private void ClearSessionState()
+        {
+            _sessionGeneration++;
+            _internalAuthSession = null;
+            UpdateAuthState(AuthState.Unauthenticated);
+        }
+
         public void Logout()
         {
-            // Placeholder implementation
-            UpdateAuthState(AuthState.Unauthenticated);
-            _internalAuthSessionStorage.ClearInternalAuthSessionInStorage();
-            _internalAuthSession = null;
+            try
+            {
+                // Clear memory before a native storage error or consumer event handler can throw.
+                ClearSessionState();
+            }
+            finally
+            {
+                _internalAuthSessionStorage.ClearInternalAuthSessionInStorage();
+            }
         }
     }
 }

@@ -6,5 +6,6 @@
   <ItemGroup>
     <Compile Remove="SDK/ExternalDependencies/**" />
     <Compile Remove="SampleApp/**" />
+    <Compile Remove="SDK/Tests/**" />
   </ItemGroup>
 </Project>

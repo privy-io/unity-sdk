@@ -1,0 +1,6 @@
+{
+    "name": "Privy.SDK.Tests",
+    "references": ["Privy.SDK.Runtime", "Privy.SDK.Editor"],
+    "includePlatforms": ["Editor"],
+    "optionalUnityReferences": ["TestAssemblies"]
+}
