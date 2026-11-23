@@ -42,6 +42,38 @@ var config = new PrivyConfig{
 PrivyManager.Initialize(config);
 ```
 
+### Session persistence
+
+On iOS, authentication sessions (tokens and user data) use device-only Keychain
+storage. Android API 23+ uses Android Keystore-backed AES-GCM encryption, with
+ciphertext in the app's no-backup directory. Native sessions are scoped to the
+configured app and client IDs. A native storage failure never falls back to plaintext.
+
+WebGL, the Unity Editor, Android API 22 and other platforms retain their existing
+PlayerPrefs persistence and restart-login behavior. This change does not add secure
+persistence to those platforms. WebGL cannot conceal tokens from same-origin scripts.
+
+On supported native platforms, initialization migrates a valid legacy PlayerPrefs
+session only after a secure write and readback. The legacy copy is removed and
+flushed, including when migration fails. Migration cannot erase copies already captured in backups or revoke
+those sessions server-side; handle existing backup exposure through the host app's
+session-revocation policy. A secure-storage or cleanup failure surfaces as
+`PrivyAuthenticationException` with `AuthenticationError.StorageUnavailable`;
+there is no plaintext or static-key fallback. `GetAuthState()` also reports an
+initialization failure instead of waiting indefinitely. Fix the storage problem
+and reinitialize before using the instance again.
+
+Logout clears the in-memory session before deleting the persisted session. Handle
+`StorageUnavailable` on logout: deletion may have failed, so do not assume the
+persisted copy is gone. Device-only storage does not protect an unlocked/rooted
+or instrumented process that can access the running app. iOS Keychain items may
+survive uninstall; applications with reinstall logout requirements must enforce
+them separately. SDK release adoption and real device backup/restore behavior
+must be validated by the host application. Android release builds must retain the
+`proguard-unity.txt` consumer rules that Unity normally includes; the SDK build hook
+adds the JNI adapter keep rule there. Custom Gradle templates that omit those
+consumer rules must preserve `io.privy.unity.storage.AuthSessionStore` explicitly.
+
 ### Check user's authentication state
 
 When the Privy SDK is initialized, it will automatically begin to load its necessary

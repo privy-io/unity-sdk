@@ -102,7 +102,25 @@ namespace Privy.Core
             _httpRequestHandler = new HttpRequestHandler(config, _clientAnalyticsIdRepository);
 
             //Dependency Injection
-            _internalAuthSessionStorage = new InternalAuthSessionStorage(_playerPrefsDataManager);
+            var storageAccount = AuthSessionStoreNamespace.Create(config.AppId, config.ClientId);
+            IAuthSessionStore nativeSessionStore = null;
+#if UNITY_IOS && !UNITY_EDITOR
+            nativeSessionStore = new IOSAuthSessionStore(storageAccount);
+#elif UNITY_ANDROID && !UNITY_EDITOR
+            using (var version = new UnityEngine.AndroidJavaClass("android.os.Build$VERSION"))
+            {
+                // Android Keystore AES-GCM requires API 23. API 22 retains its existing PlayerPrefs persistence.
+                if (version.GetStatic<int>("SDK_INT") >= 23)
+                {
+                    nativeSessionStore = new AndroidAuthSessionStore(storageAccount);
+                }
+            }
+#endif
+            // Preserve existing persistence on platforms without the native secure store.
+            // A native storage error never falls back to PlayerPrefs.
+            IAuthSessionStore sessionStore = nativeSessionStore ?? new PlayerPrefsAuthSessionStore(_playerPrefsDataManager);
+            _internalAuthSessionStorage = new InternalAuthSessionStorage(sessionStore,
+                nativeSessionStore == null ? null : _playerPrefsDataManager, config.AppId);
             _appConfigRepository = new AppConfigRepository(config, _httpRequestHandler);
             _authRepository = new AuthRepository(_httpRequestHandler);
             _authDelegator = new AuthDelegator(_authRepository, _internalAuthSessionStorage);
@@ -125,10 +143,17 @@ namespace Privy.Core
         internal async Task InitializeAsync()
         {
             // Asynchronous part of the initialization, e.g., restoring session
-            await _authDelegator.RestoreSession();
-
-            // Mark initialization as complete
-            _initializationCompletionSource.SetResult(true);
+            try
+            {
+                await _authDelegator.RestoreSession();
+                _initializationCompletionSource.TrySetResult(true);
+            }
+            catch (Exception exception)
+            {
+                // A secure-store or cleanup failure must not leave GetAuthState awaiting forever.
+                _initializationCompletionSource.TrySetException(exception);
+                throw;
+            }
 
             // Fire initialize analytics event
             await _analyticsManager.LogEvent(AnalyticsEvent.SdkInitialize);
